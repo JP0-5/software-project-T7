@@ -1,0 +1,66 @@
+.logo >img{
+    height:260px;
+    display:block;
+    margin-left: auto;
+    margin-right:auto;
+    margin-top:5rem;
+}
+body{
+    background-color: green; 
+}
+
+.header a{background: red;color:yellow; text-decoration:none;font-family: Arial, Helvetica, sans-serif;border-style: solid; padding:0.3em;
+    font-size: 1.5rem;margin-left:2rem;margin-right:0.5rem;border-color:black;border-radius:2em;border-width:0.15em;font-weight: bold;}
+
+.nav_bar {  
+    margin-top: 1rem;
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+.modes{
+     margin-top: 2rem;
+     flex-direction: column;
+    display: flex;
+    gap: 1rem;
+    align-items: center;  
+}
+
+.modes a {
+    background: red;
+    text-align: center;
+    width:12em;
+    text-decoration: none;
+    color:yellow;
+    font-family: Arial, Helvetica, sans-serif;border-style: solid; padding:0.3em;
+    font-size: 1.8rem;border-color:black;border-radius:2em;border-width:0.15em;font-weight: bold;
+}
+
+#signup>h1{
+    text-align: center;
+    color:white;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+#registration {
+    text-align: center;
+    width:40em;
+    padding-bottom: 10em;
+    padding-top:6em;
+    padding-left:4em;
+    padding-right: 4em;
+    box-sizing: border-box;
+    margin-top:2em;
+    margin: 6em auto;
+    margin-top:2em;
+    display: flex;
+    flex-direction: column;
+
+    border-width: 2px;
+    border-radius: 10px;
+    border-color: black;
+    border-style: solid;
+    background-color: white;
+    font-family: Arial, Helvetica, sans-serif;
+}

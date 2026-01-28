@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block main_content %}
+    <a class = "logo" href="/"><img src="{{ url_for('static', filename='logo.jpg')}}"></a>
+    <section class = "modes">
+    <a  href="/">Classic BlackJack</a>
+    <a  href="/">Modified BlackJack</a>
+    </section>
+
+{% endblock %}

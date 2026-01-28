@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block register %}
+
+
+<section id = "signup">
+
+
+<form action ="" id ="registration" method ="post" novalidate>
+
+        {{ form.hidden_tag() }}
+        <h1>Create your BlackJack Account</h1>
+        <p id = "label"> {{ form.user_id.label }}
+
+        </p>
+
+        {{ form.user_id() }}
+
+        {% for error in form.user_id.errors %}
+            {{ error }}
+            {% endfor %}
+        <br>
+
+        <p id ="label"> {{ form.password.label }}</p>
+        {{ form.password() }}
+        {% for error in form.password.errors %}
+            {{ error }}
+            {% endfor %}
+
+        <br>
+
+        <p id ="label"> {{ form.passwordRepeat.label }}</p>
+        {{ form.passwordRepeat() }}
+        {% for error in form.passwordRepeat.errors %}
+            {{ error }}
+            {% endfor %}
+
+        <br>
+
+        {{ form.submit() }}
+
+    </form>
+
+</section>
+{% endblock %}
