@@ -162,6 +162,12 @@ def handle_join(game_id):
             # This is important to prevent conflicts
             disconnect(request.sid)
             print("----handle_join(): Refused connection as the player is already connected to this game.-----")    # Message for debugging
+
+            # Send a message to the old socket to check if it still alive
+            # This is to try to prevent situations where a player disconnects, and the server is not able to detect the disconnect
+            # for a while, so refuses to allow them to reconnect
+            socketio.emit("test_socket", to=player_entry["socket_id"])
+
             return
         else:
             # The player was previously connected to this game, but disconnected and is now reconnecting
