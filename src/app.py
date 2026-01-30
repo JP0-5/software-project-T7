@@ -111,6 +111,14 @@ def log_in():
 def play(game_id):
     db = get_db()
 
+    game = db.execute("SELECT * FROM games WHERE game_id = ?", (game_id,)).fetchone()
+
+    if game is None:
+        return render_template("error.html", title="Not Found", error="This game does not exist.")
+    
+    if game["finished"] == 1:
+        return render_template("error.html", title="Game Finished", error="This game has finished.")
+
     # Assign a player ID based on the username, or on number if not logged in
     if g.user is not None:
         session["player_id"] = "u" + g.user
@@ -240,7 +248,7 @@ def handle_chat_message(content):
 # def handle_event_name(data):
 #     game_id = session["sockets"].get(request.sid, None)
 #     player_id = session["player_id"]
-
+# 
 #     if game_id is not None:
 #         (code here)
 
