@@ -1,11 +1,13 @@
 CREATE TABLE users (user_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, user TEXT NOT NULL, password TEXT NOT NULL);
 
 -- Game state
+
 CREATE TABLE games (
     game_id INTEGER PRIMARY KEY AUTOINCREMENT,
     host TEXT NOT NULL,                                 -- Player ID of the host
-    start_time INTEGER NOT NULL,                        -- When the game was started - in a Unix timestamp for easy comparison
-    next_turn TEXT NOT NULL                             -- Player ID of the player whose turn it is next
+    start_time INTEGER NOT NULL,                        -- When the game was started - in a Unix timestamp for easy comparison (this one may or may not be necessary)
+    next_turn TEXT NOT NULL,                            -- Player ID of the player whose turn it is next
+    finished INTEGER NOT NULL                           -- Whether the game is finished or not - Boolean value (0 or 1)
 );
 
 -- Keeps track of what cards are in the deck in each game
@@ -17,7 +19,8 @@ CREATE TABLE decks (
         value >= 1 AND
         value <= 13 AND
         suit IN ("clubs", "diamonds", "hearts", "spades")
-    )
+    ),
+    FOREIGN KEY (game_id) REFERENCES games(game_id)
 );
 -- One possible way to represent cards - feel free to try a different representation 
 -- suit: A string in ("clubs", "diamonds", "hearts", "spades")
@@ -36,17 +39,22 @@ CREATE TABLE decks (
 CREATE TABLE players (
     game_id INTEGER NOT NULL,
     player_id INTEGER NOT NULL,
-    socket_id INTEGER NOT NULL UNIQUE,
-    connected INTEGER NOT NULL,                         -- Boolean value (0 or 1)
-    disconnect_time INTEGER,
-    user TEXT,
-    score INTEGER NOT NULL,
-    PRIMARY KEY (game_id, player_id)
+    socket_id INTEGER NOT NULL,                         -- Socket ID of the socket on which the player is connected to this game
+    connected INTEGER NOT NULL,                         -- Whether the player is currently connected or not - Boolean value (0 or 1)
+    user TEXT,                                          -- Username if logged in, otherwise NULL
+    score INTEGER NOT NULL,                             -- Player's score - starts at 0
+    PRIMARY KEY (game_id, player_id),
+    FOREIGN KEY (game_id) REFERENCES games(game_id),
+    FOREIGN KEY (user) REFERENCES users(user_id)
 );
 
--- Allow for efficient lookup of player info based on socket ID when a message comes in on a socket
-CREATE UNIQUE INDEX socket_player
-ON players(socket_id);
+-- Stores the next number that can be used to assign a guest ID
+CREATE TABLE next_guest_id (
+    id INTEGER NOT NULL
+);
+
+INSERT INTO next_guest_id (id)
+VALUES (0);
 
 -- The cards currently in the hand of each player in each game
 CREATE TABLE hands (
@@ -58,13 +66,17 @@ CREATE TABLE hands (
         value >= 1 AND
         value <= 13 AND
         suit IN ("clubs", "diamonds", "hearts", "spades")
-    )
+    ),
+    FOREIGN KEY (game_id) REFERENCES games(game_id),
+    FOREIGN KEY (player_id) REFERENCES players(player_id)
 );
 
 CREATE TABLE chat_messages (
     game_id INTEGER NOT NULL,
     player_id INTEGER NOT NULL,
-    content TEXT NOT NULL
+    content TEXT NOT NULL,
+    FOREIGN KEY (game_id) REFERENCES games(game_id),
+    FOREIGN KEY (player_id) REFERENCES players(player_id)
 );
 
 CREATE INDEX game_chat_messages

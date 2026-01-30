@@ -5,14 +5,15 @@
 from gevent import monkey
 monkey.patch_all()
 
-from forms import RegistrationForm, LoginForm
-from werkzeug.security import generate_password_hash, check_password_hash
-
 from flask import Flask, render_template, request, session, g, redirect, url_for
 from flask_socketio import SocketIO, send, emit, join_room, leave_room, disconnect
 from flask_session import Session
+from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
+from time import time
+from gevent.lock import BoundedSemaphore
 from database import get_db, close_db
+from forms import *
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "this-is-my-secret-key"
@@ -22,16 +23,18 @@ Session(app)
 
 socketio = SocketIO(app, async_mode="gevent", cors_allowed_origins="*", logger=True, engineio_logger=True)
 
+# Used to ensure guests are always given unique player IDs
+guest_id_lock = BoundedSemaphore()
+
 @app.before_request
 def get_username():
-    if "username" in session:
-        g.user = session["username"]
-    else:
-        g.user = None
+    g.user = session.get("username", None)
+    if g.user is None:
         session["username"] = None
-        # Need to store something in session, even if the user is not logged in, to ensure a session ID is created
 
-# Some standard things from Web Dev
+    if "sockets" not in session:
+        session["sockets"] = {}        #Maps socket IDs to game IDs
+
 def login_required(view):
     @wraps(view)
     def wrapped_view(*args, **kwargs):
@@ -44,14 +47,13 @@ def logged_out_required(view):
     @wraps(view)
     def wrapped_view2(*args, **kwargs):
         if g.user is not None:
-            return redirect(url_for('base'))
+            return redirect(url_for("main"))
         return view(*args,**kwargs)
     return wrapped_view2
 
 @app.errorhandler(404)
 def page_not_found(error):
-    # TODO
-    return "error"
+    return render_template("error.html", title="Not Found", error="404 Not Found"), 404
 
 
 # Routes
@@ -105,18 +107,133 @@ def log_in():
         
     return render_template("log_in.html",form=form,title="Sign Up for BlackJack")
 
-
 @app.route("/play/<game_id>")
 def play(game_id):
-    return "Under construction"
+    db = get_db()
+
+    # Assign a player ID based on the username, or on number if not logged in
+    if g.user is not None:
+        session["player_id"] = "u" + g.user
+        # Add "u" to the username to ensure this can never match a guest's player ID
+    elif "player_id" not in session:
+        # If not logged in and a player ID has not already been assigned
+
+        # Use a lock to ensure two guests will not accidentally get the same player ID
+        with guest_id_lock:
+            id = db.execute("SELECT * FROM next_guest_id").fetchone()["id"]
+            db.execute("UPDATE next_guest_id SET id = id + 1")
+            db.commit()
+
+        session["player_id"] = "_Guest" + str(id)
+
+    
+
+    # To be expanded
+
+    messages = db.execute("SELECT * FROM chat_messages WHERE game_id = ?", (game_id,)).fetchall()
+
+    return render_template("play.html", game_id=game_id, messages=messages)
 
 
 # SocketIO event handlers
+@socketio.on("join")
+def handle_join(game_id):
+    player_id = session["player_id"]
+    db = get_db()
+
+    # Get player and game info
+    player_entry = db.execute("""
+                                SELECT *
+                                FROM players JOIN games
+                                ON players.game_id = games.game_id
+                                WHERE players.game_id = ? AND players.player_id = ?
+                                """, (game_id, player_id)).fetchone()
+
+    # Check if this player is already connected to this game, or was previously
+    if player_entry is not None:
+        if player_entry["finished"] == 1:
+            # If the game is finished, refuse the connection
+            # This should not occur, but is included to be safe
+            disconnect(request.sid)
+            print("----handle_join(): Refused connection as the game is finished.-----")    # Message for debugging
+            return
+        if player_entry["connected"] == 1:
+            # If the same player is currently connected to this room on another socket, refuse the connection
+            # This is important to prevent conflicts
+            disconnect(request.sid)
+            print("----handle_join(): Refused connection as the player is already connected to this game.-----")    # Message for debugging
+            return
+        else:
+            # The player was previously connected to this game, but disconnected and is now reconnecting
+            db.execute("""
+                        UPDATE players
+                        SET socket_id = ?, connected = 1
+                        WHERE game_id = ? AND player_id = ?""",
+                        (request.sid, game_id, player_id))
+    else:
+        # The player is connecting to this game for the first time
+        game = db.execute("SELECT * FROM games WHERE game_id = ?", (game_id,)).fetchone()
+        if game["finished"] == 1:
+            # If the game is finished, refuse the connection
+            # This should not occur, but is included to be safe
+            disconnect(request.sid)
+            print("----handle_join(): Refused connection as the game is finished.-----")    # Message for debugging
+            return
+        
+        db.execute("""
+                    INSERT INTO players (game_id, player_id, socket_id, connected, user, score)
+                    VALUES (?, ?, ?, 1, ?, 0)""",
+                    (game_id, player_id, request.sid, session["username"]))
+    db.commit()
+
+    session["sockets"][request.sid] = game_id
+    session.modified = True
+    join_room(game_id)
+    socketio.emit("other_player_join", player_id, to=game_id, include_self=False)
+
 @socketio.on("disconnect")
 def handle_disconnect(*args):
-    # TODO
-    pass
+    game_id = session["sockets"].pop(request.sid, None)
+    
+    if game_id is not None:
+        session.modified = True
+        player_id = session["player_id"]
+        db = get_db()
 
+        # Get player and game info
+        player_entry = db.execute("""
+                                    SELECT *
+                                    FROM players JOIN games
+                                    ON players.game_id = games.game_id
+                                    WHERE players.game_id = ? AND players.player_id = ?""",
+                                    (game_id, player_id)).fetchone()
+        if player_entry is not None:
+            if player_entry["finished"] == 0:
+                # Only emit if the game is not finished
+                socketio.emit("other_player_disconnect", player_id, to=game_id, include_self=False)
+
+            db.execute("""
+                        UPDATE players
+                        SET connected = 0
+                        WHERE game_id = ? AND player_id = ?""",
+                        (game_id, player_id))
+            db.commit()
+        
+@socketio.on("chat_message_from_client")
+def handle_chat_message(content):
+    game_id = session["sockets"].get(request.sid, None)
+
+    if game_id is not None:
+        session.modified = True
+        player_id = session["player_id"]
+        socketio.emit("chat_message_from_server", (player_id, content), to=game_id)
+
+        db = get_db()
+        db.execute("""
+                    INSERT INTO chat_messages (game_id, player_id, content)
+                    VALUES (?, ?, ?)""",
+                    (game_id, player_id, content))
+        db.commit()
 
 # Run the server locally
 if __name__ == "__main__":
