@@ -194,10 +194,10 @@ def handle_join(game_id):
 @socketio.on("disconnect")
 def handle_disconnect(*args):
     game_id = session["sockets"].pop(request.sid, None)
+    player_id = session["player_id"]
     
     if game_id is not None:
         session.modified = True
-        player_id = session["player_id"]
         db = get_db()
 
         # Get player and game info
@@ -222,10 +222,9 @@ def handle_disconnect(*args):
 @socketio.on("chat_message_from_client")
 def handle_chat_message(content):
     game_id = session["sockets"].get(request.sid, None)
+    player_id = session["player_id"]
 
     if game_id is not None:
-        session.modified = True
-        player_id = session["player_id"]
         socketio.emit("chat_message_from_server", (player_id, content), to=game_id)
 
         # Write to database afterwards, so it does not delay the emitting of the message
@@ -235,6 +234,15 @@ def handle_chat_message(content):
                     VALUES (?, ?, ?)""",
                     (game_id, player_id, content))
         db.commit()
+
+# Other event handlers can probably follow this template:
+# @socketio.on("event_name")
+# def handle_event_name(data):
+#     game_id = session["sockets"].get(request.sid, None)
+#     player_id = session["player_id"]
+
+#     if game_id is not None:
+#         (code here)
 
 # Run the server locally
 if __name__ == "__main__":

@@ -18,10 +18,6 @@ function init() {
 
     socket = io();
 
-    addEventListener("beforeunload", (event) => {
-        socket.disconnect();
-    })
-
     socket.on("connect", () => {
         socket.emit("join_request", gameID);
     })
