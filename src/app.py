@@ -21,7 +21,7 @@ app.config["SESSION_TYPE"] = "filesystem"
 app.teardown_appcontext(close_db)
 Session(app)
 
-socketio = SocketIO(app, async_mode="gevent", cors_allowed_origins="*", logger=True, engineio_logger=True)
+socketio = SocketIO(app, async_mode="gevent", cors_allowed_origins="*", logger=True, engineio_logger=True, ping_timeout=5)
 
 # Used to ensure guests are always given unique player IDs
 guest_id_lock = BoundedSemaphore()
@@ -136,7 +136,7 @@ def play(game_id):
 
 
 # SocketIO event handlers
-@socketio.on("join")
+@socketio.on("join_request")
 def handle_join(game_id):
     player_id = session["player_id"]
     db = get_db()
@@ -162,12 +162,6 @@ def handle_join(game_id):
             # This is important to prevent conflicts
             disconnect(request.sid)
             print("----handle_join(): Refused connection as the player is already connected to this game.-----")    # Message for debugging
-
-            # Send a message to the old socket to check if it still alive
-            # This is to try to prevent situations where a player disconnects, and the server is not able to detect the disconnect
-            # for a while, so refuses to allow them to reconnect
-            socketio.emit("test_socket", to=player_entry["socket_id"])
-
             return
         else:
             # The player was previously connected to this game, but disconnected and is now reconnecting
@@ -195,7 +189,7 @@ def handle_join(game_id):
     session["sockets"][request.sid] = game_id
     session.modified = True
     join_room(game_id)
-    socketio.emit("other_player_join", player_id, to=game_id, include_self=False)
+    socketio.emit("join_accepted", (player_id, request.sid), to=game_id)
 
 @socketio.on("disconnect")
 def handle_disconnect(*args):

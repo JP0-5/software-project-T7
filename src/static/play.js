@@ -23,9 +23,7 @@ function init() {
     })
 
     socket.on("connect", () => {
-        socket.emit("join", gameID);
-        sendButton.disabled = false;
-        connectionStatus.innerHTML = "Connected";
+        socket.emit("join_request", gameID);
     })
 
     socket.on("disconnect", (reason) => {
@@ -49,9 +47,15 @@ function init() {
         }
     })
 
-    // Called when another player joins this game
-    socket.on("other_player_join", (playerID) => {
-        
+    socket.on("join_accepted", (playerID, socketID) => {
+        if (socketID == socket.id) {
+            // This client was allowed to join
+            sendButton.disabled = false;
+            connectionStatus.innerHTML = "Connected";
+        } else {
+            // Another player joined the game
+
+        }
     })
 
     // Called when another player in this game disconnects
