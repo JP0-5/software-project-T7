@@ -60,7 +60,6 @@ function init() {
     })
 
     socket.on("chat_message_from_server", (playerID, content) => {
-        let displayName;
         messages.innerHTML += `<p>${playerID.slice(1)}: ${content}</p>`;
     });
 }

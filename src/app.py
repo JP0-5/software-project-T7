@@ -114,10 +114,10 @@ def play(game_id):
     game = db.execute("SELECT * FROM games WHERE game_id = ?", (game_id,)).fetchone()
 
     if game is None:
-        return render_template("error.html", title="Not Found", error="This game does not exist.")
+        return render_template("error.html", title="Not Found", error="This game does not exist."), 404
     
     if game["finished"] == 1:
-        return render_template("error.html", title="Game Finished", error="This game has finished.")
+        return render_template("error.html", title="Game Finished", error="This game has finished."), 404
 
     # Assign a player ID based on the username, or on number if not logged in
     if g.user is not None:
