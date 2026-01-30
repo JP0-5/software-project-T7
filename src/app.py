@@ -6,7 +6,7 @@ from gevent import monkey
 monkey.patch_all()
 
 from flask import Flask, render_template, request, session, g, redirect, url_for
-from flask_socketio import SocketIO, send, emit, join_room, leave_room, disconnect
+from flask_socketio import SocketIO, join_room, disconnect
 from flask_session import Session
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
@@ -121,7 +121,7 @@ def play(game_id):
         # Use a lock to ensure two guests will not accidentally get the same player ID
         with guest_id_lock:
             id = db.execute("SELECT * FROM next_guest_id").fetchone()["id"]
-            db.execute("UPDATE next_guest_id SET id = id + 1")
+            db.execute("UPDATE next_guest_id SET id = ?", (id+1,))
             db.commit()
 
         session["player_id"] = "_Guest" + str(id)
@@ -228,6 +228,7 @@ def handle_chat_message(content):
         player_id = session["player_id"]
         socketio.emit("chat_message_from_server", (player_id, content), to=game_id)
 
+        # Write to database afterwards, so it does not delay the emitting of the message
         db = get_db()
         db.execute("""
                     INSERT INTO chat_messages (game_id, player_id, content)

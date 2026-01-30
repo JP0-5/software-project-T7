@@ -1,3 +1,11 @@
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS games;
+DROP TABLE IF EXISTS decks;
+DROP TABLE IF EXISTS players;
+DROP TABLE IF EXISTS next_guest_id;
+DROP TABLE IF EXISTS hands;
+DROP TABLE IF EXISTS chat_messages;
+
 CREATE TABLE users (user_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, user TEXT NOT NULL, password TEXT NOT NULL);
 
 -- Game state
@@ -15,12 +23,12 @@ CREATE TABLE decks (
     game_id INTEGER NOT NULL,
     value INTEGER NOT NULL,
     suit TEXT NOT NULL,
+    FOREIGN KEY (game_id) REFERENCES games(game_id),
     CHECK(
         value >= 1 AND
         value <= 13 AND
         suit IN ("clubs", "diamonds", "hearts", "spades")
-    ),
-    FOREIGN KEY (game_id) REFERENCES games(game_id)
+    )
 );
 -- One possible way to represent cards - feel free to try a different representation 
 -- suit: A string in ("clubs", "diamonds", "hearts", "spades")
@@ -33,7 +41,7 @@ CREATE TABLE decks (
 -- 1, 2, "hearts"
 -- 1, 1, "spades"
 -- 2, 3, "clubs"
--- 2, 13, "hearts"
+-- 2, 13, "hearts
 
 -- Each user will have one row in this table for each game they play in
 CREATE TABLE players (
@@ -41,8 +49,8 @@ CREATE TABLE players (
     player_id INTEGER NOT NULL,
     socket_id INTEGER NOT NULL,                         -- Socket ID of the socket on which the player is connected to this game
     connected INTEGER NOT NULL,                         -- Whether the player is currently connected or not - Boolean value (0 or 1)
-    user TEXT,                                          -- Username if logged in, otherwise NULL
-    score INTEGER NOT NULL,                             -- Player's score - starts at 0
+    user TEXT,                                          -- Username if logged in - otherwise NULL
+    score INTEGER NOT NULL,                             -- Players score - starts at 0
     PRIMARY KEY (game_id, player_id),
     FOREIGN KEY (game_id) REFERENCES games(game_id),
     FOREIGN KEY (user) REFERENCES users(user_id)
