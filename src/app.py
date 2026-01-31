@@ -1,6 +1,8 @@
 # NOTE: Do not use `flask run` to start the server.
 # Instead, run this file and code at the end of the file will start the server.
 
+# NOTE: You may need to run the schema.sql file to setup app.db first.
+
 # Required to set up gevent
 from gevent import monkey
 monkey.patch_all()
