@@ -12,7 +12,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 from time import time
 from gevent.lock import BoundedSemaphore
-from database import get_db, close_db
+from database import *
 from forms import *
 
 app = Flask(__name__)
@@ -254,4 +254,11 @@ def handle_chat_message(content):
 
 # Run the server locally
 if __name__ == "__main__":
+    # On a restart of the development server, mark all players as disconnected
+    # This prevents issues where the server thinks players are still connected and does not allow them to reconnect
+    db = db_connection()
+    db.execute("UPDATE players SET connected = 0")
+    db.commit()
+    db.close()
+
     socketio.run(app, host="127.0.0.1", port=5000, debug=True)

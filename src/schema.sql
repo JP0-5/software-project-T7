@@ -12,11 +12,16 @@ CREATE TABLE users (user_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, user TEX
 
 CREATE TABLE games (
     game_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,                                 -- Name of the game, given by the host
     host TEXT NOT NULL,                                 -- Player ID of the host
-    start_time INTEGER NOT NULL,                        -- When the game was started - in a Unix timestamp for easy comparison (this one may or may not be necessary)
+    start_time INTEGER NOT NULL,                        -- When the game was started (this one may or may not be needed)
     next_turn TEXT NOT NULL,                            -- Player ID of the player whose turn it is next
     finished INTEGER NOT NULL                           -- Whether the game is finished or not - Boolean value (0 or 1)
 );
+
+-- Insert a dummy game for testing
+INSERT INTO games
+VALUES (0, "Test Game", "-", "2026-01-31 12:39:00", "-", 0);
 
 -- Keeps track of what cards are in the deck in each game
 CREATE TABLE decks (
