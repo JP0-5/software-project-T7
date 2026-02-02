@@ -11,13 +11,26 @@
             
             
             <nav class = "nav_bar">
+            {% if g.user == None %}
             <a href="{{ url_for('log_in') }}">Log In</a>
             <a href="{{ url_for('sign_up') }}">Sign Up</a>
-            <a href="{{ url_for('main') }}">Settings</a>
+            {% else %}
+            <a href="{{ url_for('logout') }}">Log Out</a>
+            {% endif %}
+            <a id ="settings" onclick = "openSettings()" href="#">Settings</a>
             </nav>
         </header>
 
         <main class = "base_content">
+            <section id = "settings_box">
+                <section id = "settings_content">
+                    <h2>Settings</h2>
+                    <p>Music</p>
+                    <p>Sound</p>
+                </section>
+            </section>
+            
+
             {% block main_content %}
             {% endblock %} 
             
@@ -25,5 +38,17 @@
             {%block register %}
             {% endblock %}
         </main>
+
+        <script>
+            function openSettings(){
+                document.getElementById("settings_box").style.display = "flex"
+                document.getElementById("settings").onclick=closeSetting
+            }
+
+            function closeSettings(){
+                document.getElementById("settings_box").style.display = "none"
+                document.getElementById("settings").onclick=openSetting
+            }
+        </script>
     </body>
 </html>

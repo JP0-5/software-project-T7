@@ -82,6 +82,8 @@ def sign_up():
         else:
             db.execute('''INSERT INTO users(user, password) VALUES (?, ?); ''',(user_id, generate_password_hash(password)))
             db.commit()
+            session.clear()
+            session["username"]=user_id
             next_page=request.args.get('next')
             if not next_page:
                 next_page = url_for('main')
@@ -97,17 +99,25 @@ def log_in():
         user_id=form.user_id.data
         password=form.password.data
         db = get_db()
-        user = db.execute(''' SELECT * FROM users WHERE user =?; ''', (user_id,)).fetchOne()
+        user = db.execute(''' SELECT * FROM users WHERE user =?; ''', (user_id,)).fetchone()
         if user is None:
             form.user_id.errors.append('No such username!')
         elif not check_password_hash(user['password'],password):
             form.login_password.errors.append('Incorrect password!')
         else:
+            session.clear()
+            session["username"]=user_id
+            next_page=request.args.get('next')
             if not next_page:
                 next_page = url_for('main')
             return redirect(next_page)
         
     return render_template("log_in.html",form=form,title="Sign Up for BlackJack")
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for('main'))
 
 @app.route("/play/<game_id>")
 def play(game_id):
