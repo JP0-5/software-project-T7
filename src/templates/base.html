@@ -10,14 +10,18 @@
         <header class ="header">
             
             
-            <nav class = "nav_bar">
+           <nav class = "nav_bar">
             {% if g.user == None %}
-            <a href="{{ url_for('log_in') }}">Log In</a>
-            <a href="{{ url_for('sign_up') }}">Sign Up</a>
+            <a class ="reg_nav" href="{{ url_for('log_in') }}">Log In</a>
+            <a class ="reg_nav" href="{{ url_for('sign_up') }}">Sign Up</a>
             {% else %}
-            <a href="{{ url_for('logout') }}">Log Out</a>
+            <a id = "account_button">
+            <img id = "account_img" src = "{{ url_for('static',filename='logo.jpg')}}"></img>
+            <p id = "account_name"> {{ session["username"] }}</p>
+            </a>
+            <a class ="reg_nav" href="{{ url_for('logout') }}">Log Out</a>
             {% endif %}
-            <a id ="settings" onclick = "openSettings()" href="#">Settings</a>
+            <a class ="reg_nav" id ="settings" onclick = "openSettings()" href="#">Settings</a>
             </nav>
         </header>
 
@@ -27,6 +31,7 @@
                     <h2>Settings</h2>
                     <p>Music</p>
                     <p>Sound</p>
+                    <p>Font Size</p>
                 </section>
             </section>
             
@@ -39,16 +44,7 @@
             {% endblock %}
         </main>
 
-        <script>
-            function openSettings(){
-                document.getElementById("settings_box").style.display = "flex"
-                document.getElementById("settings").onclick=closeSetting
-            }
-
-            function closeSettings(){
-                document.getElementById("settings_box").style.display = "none"
-                document.getElementById("settings").onclick=openSetting
-            }
-        </script>
+        
     </body>
+    <script src = "{{ url_for('static', filename='settings.js')}}"> </script>
 </html>

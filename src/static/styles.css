@@ -6,12 +6,30 @@
     margin-top:5rem;
 }
 body{
-    margin:0;background-color: green; 
+    margin:0;
+    background-color: green; 
+    background-image: url('bjf bg.jpg');
+    background-size: cover;
 }
 
-.header a{background: red;color:yellow; text-decoration:none;font-family: Arial, Helvetica, sans-serif;border-style: solid; padding:0.3em;
-    font-size: 1.5rem;margin-left:2rem;margin-right:0.5rem;border-color:black;border-radius:2em;border-width:0.15em;font-weight: bold;}
+header .reg_nav{
+    background: red;
+    color:yellow;
+    text-decoration:none;
+    
+    padding:0.3em;
+    margin-left:2rem;
+    margin-right:0.5rem;
 
+    border-style: solid;
+    border-color:black;
+    border-radius:2em;
+    border-width:0.15em;
+
+    font-weight: bold;
+    font-size: 1.5rem;
+    font-family: Arial, Helvetica, sans-serif;
+}
 .nav_bar {  
     margin-top: 1rem;
     display: flex;
@@ -105,11 +123,48 @@ body{
     padding: 0.5em;
     margin: 1em;
     text-align: left;
-    font-size: 2em;
+    font-size: 1.5em;
 
     border-style: solid;
     border-radius: 2em;
     border-color: black;
     color: black;
     background-color: yellow
+}
+
+#account_name{
+    padding: 0.3em 0.3em 0.3em 2em;
+
+    font-size: 1.5rem;
+    font-weight: bold;
+    font-family: Arial, Helvetica, sans-serif;
+
+    background: red;
+    color:yellow;
+    text-decoration:none;
+    
+    
+    border-style: solid;
+    border-radius:2em;
+    border-width:0.15em;
+    border-color:black;
+
+    margin: 0 0 auto 0.7rem;
+    z-index: 1;
+   }
+
+#account_img {
+    height:48px;
+    width:48px;
+    border-radius: 50%;
+    position:absolute;
+    top:-2.7px;
+    left:6px;
+    z-index: 2;
+    border-style:solid;
+}
+
+#account_button {
+    position:relative;
+    margin-right:auto;
 }
