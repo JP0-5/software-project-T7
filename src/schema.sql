@@ -16,12 +16,23 @@ CREATE TABLE games (
     host TEXT NOT NULL,                                 -- Player ID of the host
     start_time INTEGER NOT NULL,                        -- When the game was started (this one may or may not be needed)
     next_turn TEXT NOT NULL,                            -- Player ID of the player whose turn it is next
-    finished INTEGER NOT NULL                           -- Whether the game is finished or not - Boolean value (0 or 1)
+    finished INTEGER NOT NULL,                          -- Whether the game is finished or not - Boolean value (0 or 1)
+    status INTEGER NOT NULL,                            -- Whether the game has started or not
+    player_count INTEGER NOT NULL,                      -- Number of players in game
+    game_mode INTEGER NOT NULL                          -- Mode of the game - 0 is Classic, 1 is Modified                       
 );
 
 -- Insert a dummy game for testing
 INSERT INTO games
-VALUES (0, "Test Game", "-", "2026-01-31 12:39:00", "-", 0);
+VALUES (0, "Test Game", "-", "2026-01-31 12:39:00", "-", 0,0,2,0),
+(1, "Test Game", "-", "2026-01-31 12:39:00", "-", 0,0,2,0),
+(2, "Test Game", "-", "2026-01-31 12:39:00", "-", 0,0,2,0),
+(3, "Test Game", "-", "2026-01-31 12:39:00", "-", 0,0,2,0),
+(4, "Test Game", "-", "2026-01-31 12:39:00", "-", 0,0,2,0),
+(5, "Test Game", "-", "2026-01-31 12:39:00", "-", 0,0,2,0),
+(6, "Test Game", "-", "2026-01-31 12:39:00", "-", 0,0,2,1),
+(7, "Test Game", "-", "2026-01-31 12:39:00", "-", 0,0,2,1),
+(8, "Test Game", "-", "2026-01-31 12:39:00", "-", 0,0,2,1);
 
 -- Keeps track of what cards are in the deck in each game
 CREATE TABLE decks (

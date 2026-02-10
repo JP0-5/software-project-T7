@@ -119,6 +119,25 @@ def logout():
     session.clear()
     return redirect(url_for('main'))
 
+@app.route("/classic")
+def classic():
+    db=get_db()
+    games = db.execute(''' SELECT * FROM games WHERE game_mode == 0 ORDER BY game_id ;''').fetchall()
+    games = [list(row) for row in games]
+    length=len(games)
+    form=gameSearchForm()
+    return render_template("classic.html", title = "Classic BlackJack",games=games,length=length,form=form)
+
+@app.route("/modified")
+def modified():
+    db=get_db()
+    games = db.execute(''' SELECT * FROM games WHERE game_mode == 1 ORDER BY game_id ;''').fetchall()
+    games = [list(row) for row in games]
+    length=len(games)
+    form=gameSearchForm()
+    return render_template("modified.html", title = "Modified BlackJack",games=games,length=length,form=form)
+
+
 @app.route("/play/<game_id>")
 def play(game_id):
     db = get_db()

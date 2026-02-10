@@ -166,5 +166,76 @@ header .reg_nav{
 
 #account_button {
     position:relative;
-    margin-right:auto;
+    
 }
+
+#classic_games{
+ 
+    display: flex;
+    flex-direction: column;
+    column-gap: 6em;
+    gap:1.3em;
+    overflow:auto;
+    height:470px;
+    font-size: 1.3em;
+    font-weight: bold;
+    
+    
+}
+#game_entry{
+    justify-content: center;
+text-align: center;
+align-items: center;
+display: flex;
+color:yellow;
+gap:3em;
+background-color: red;
+border-style: solid;
+border-color:white;
+border-radius:3px;
+
+padding:auto;
+font-family: Arial, Helvetica, sans-serif;
+
+}
+#game_entry>a{
+    text-decoration: none;
+    color:yellow;
+}
+
+#game_title{
+    text-align: center;
+    color: yellow;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+#game_search{
+    display: flex;
+    text-align: center;
+    align-items: center;
+    gap:1em;
+    margin-left:25%;
+    margin-right:25%;
+    color:yellow;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+#game_search>*{
+    font-weight: bold;
+    font-size: 20px;
+    text-decoration: none;
+    
+}
+
+#game_search>a{
+margin-left:auto;
+color:yellow}
+
+#classic_box{
+    background-color: rgba(255, 255, 255, 0.8);
+    padding:2em;
+    margin-left:25%;
+    margin-right:25%
+}
+
+#home_button{margin-right:auto;}

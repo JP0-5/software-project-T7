@@ -17,3 +17,8 @@ class LoginForm(FlaskForm):
     password = StringField('Type in a password: ', validators = 
     [InputRequired(),validators.Length(min=5,max=25)])
     submit = SubmitField('Log In')
+
+
+class gameSearchForm(FlaskForm):
+    game_title = StringField('Game Title or ID: ')
+    submit=SubmitField('Search')
