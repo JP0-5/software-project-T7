@@ -1,15 +1,36 @@
-{% extends 'base.html' %}
-{% block main_content %}
-    <p>Game status: <b id="connectionStatus">Disconnected</b></p>
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset = "utf-8">
+        <title>{{ title }}</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='play.css') }}">
+        <link rel="icon" href="{{ url_for('static',filename='favicon.ico') }}">
+        <script src="{{ url_for('static', filename='settings.js') }}"></script>
+        <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+        <script src="{{ url_for('static', filename='play.js') }}"></script>
+    </head>
+    <body>
+        <main>
+            <canvas height="695" width="1536"></canvas>
+            <img id="hit" src="{{ url_for('static', filename='hit_btn.png') }}">
+            <img id="stand" src="{{ url_for('static', filename='stand_btn.png') }}">
 
-    <input id="messageInput" type="text" placeholder="Enter your message">
-    <button id="sendButton" disabled>Send</button>
 
-    <section id="messages">
-        {% for message in messages %}
-            <p>
-                {{message[1][1:]}}: {{message[2]}}
-            </p>
-        {% endfor %}
-    </section>
-{% endblock %}
+
+            <!-- <p>Game status: <b id="connectionStatus">Disconnected</b></p>
+
+            <input id="messageInput" type="text" placeholder="Enter your message">
+            <button id="sendButton" disabled>Send</button>
+
+            <section id="messages">
+                {% for message in messages %}
+                    <p>
+                        {{message[1][1:]}}: {{message[2]}}
+                    </p>
+                {% endfor %}
+            </section> -->
+        </main>
+
+        
+    </body>
+</html>

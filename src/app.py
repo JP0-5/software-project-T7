@@ -171,10 +171,7 @@ def play(game_id):
 
     messages = db.execute("SELECT * FROM chat_messages WHERE game_id = ?", (game_id,)).fetchall()
 
-    return render_template("play.html", game_id=game_id, messages=messages, scripts=[
-        "https://cdn.socket.io/4.8.1/socket.io.min.js",
-        url_for("static", filename="play.js")
-    ])
+    return render_template("play.html", game_id=game_id, messages=messages)
 
 
 # SocketIO event handlers

@@ -3,12 +3,17 @@
     <head>
         <meta charset = "utf-8">
         <title>{{ title }}</title>
-        <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='title_screen.css') }}">
         <link rel="icon" href="{{ url_for('static',filename='favicon.ico') }}">
         <script src="{{ url_for('static', filename='settings.js') }}"></script>
-        <!-- <script src=""></script> -->
+        <script src="{{ url_for('static', filename='title_screen.js') }}"></script>
     </head>
     <body>
+        <canvas height="695" width="1536"></canvas>
+        <img class="rotate1" src="{{ url_for('static', filename='card_spiral.png')}}" width="550" height="550">
+        <img class="rotate2" src="{{ url_for('static', filename='card_spiral.png')}}" width="550" height="550">
+        <img class="rotate3" src="{{ url_for('static', filename='card_spiral.png')}}" width="550" height="550">
+        <img class="rotate4" src="{{ url_for('static', filename='card_spiral.png')}}" width="550" height="550">
         <header class ="header">
             
             
@@ -34,6 +39,7 @@
         </header>
 
         <main class = "base_content">
+
             <section id = "settings_box">
                 <section id = "settings_content">
                     <h2>Settings</h2>
@@ -49,6 +55,7 @@
                 <a  href="/classic">Classic BlackJack</a>
                 <a  href="/modified">Modified BlackJack</a>
             </section>
+            
         </main>
     </body>
 </html>

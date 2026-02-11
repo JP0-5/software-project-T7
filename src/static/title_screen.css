@@ -1,0 +1,305 @@
+body{
+    width: 100%;
+    height: 100%;
+}
+canvas{
+    /*border: 5px solid black;*/
+    background-image: url("bjf\ bg.jpg");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    display: block;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -2;
+}
+.rotate1{
+    animation: rotation1 10s infinite linear;
+    left: -300px;
+    top: -300px;
+    position: fixed;
+    z-index: -1;
+}
+.rotate2{
+    animation: rotation2 10s infinite linear;
+    left: -300px;
+    bottom: -300px;
+    position: fixed;
+    z-index: -1;
+}
+.rotate3{
+    animation: rotation2 10s infinite linear;
+    right: -300px;
+    top: -300px;
+    position: fixed;
+    z-index: -1;
+}
+.rotate4{
+    animation: rotation1 10s infinite linear;
+    right: -300px;
+    bottom: -300px;
+    position: fixed;
+    z-index: -1;
+}
+@keyframes rotation1 {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(359deg);
+  }
+}
+@keyframes rotation2 {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-359deg);
+  }
+}
+
+.logo >img{
+    height:260px;
+    display:block;
+    margin-left: auto;
+    margin-right:auto;
+    margin-top:5rem;
+}
+body{
+    margin:0;
+    background-color: green; 
+    background-size: cover;
+}
+
+header .reg_nav{
+    background: red;
+    color:yellow;
+    text-decoration:none;
+    
+    padding:0.3em;
+    margin-left:2rem;
+    margin-right:0.5rem;
+
+    border-style: solid;
+    border-color:black;
+    border-radius:2em;
+    border-width:0.15em;
+
+    font-weight: bold;
+    font-size: 1.5rem;
+    font-family: Arial, Helvetica, sans-serif;
+}
+.nav_bar {  
+    margin-top: 1rem;
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+.modes{
+     margin-top: 2rem;
+     flex-direction: column;
+    display: flex;
+    gap: 1rem;
+    align-items: center;  
+}
+
+.modes a {
+    background: red;
+    text-align: center;
+    width:12em;
+    text-decoration: none;
+    color:yellow;
+    font-family: Arial, Helvetica, sans-serif;border-style: solid; padding:0.3em;
+    font-size: 1.8rem;border-color:black;border-radius:2em;border-width:0.15em;font-weight: bold;
+}
+
+#signup>h1{
+    text-align: center;
+    color:white;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+#registration {
+    text-align: center;
+    width:40em;
+    padding-bottom: 10em;
+    padding-top:6em;
+    padding-left:4em;
+    padding-right: 4em;
+    box-sizing: border-box;
+    margin-top:2em;
+    margin: 6em auto;
+    margin-top:2em;
+    display: flex;
+    flex-direction: column;
+
+    border-width: 2px;
+    border-radius: 10px;
+    border-color: black;
+    border-style: solid;
+    background-color: white;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+
+
+#settings_box {
+    position:absolute;
+    display: None;
+
+    width:100%;
+    height:100%;
+
+    justify-content: center;
+    text-align:center;
+
+    top: 5em;
+    margin: auto;
+}
+
+#settings_content {
+    display: flex;
+
+    backdrop-filter: blur(10px);
+    background-color: rgba(255, 0, 0, 0.8);
+
+    width: 500px;
+    height: 700px;
+    
+    flex-direction: column;
+
+    border-style: solid;
+    border-radius: 2em;
+    border-width: 0.25em;
+    border-color: black;
+    
+    color: yellow;
+    font-family: Arial, Helvetica, sans-serif;
+}   
+
+#settings_content > p {
+    padding: 0.5em;
+    margin: 1em;
+    text-align: left;
+    font-size: 1.5em;
+
+    border-style: solid;
+    border-radius: 2em;
+    border-color: black;
+    color: black;
+    background-color: yellow
+}
+
+#account_name{
+    padding: 0.3em 0.3em 0.3em 2em;
+
+    font-size: 1.5rem;
+    font-weight: bold;
+    font-family: Arial, Helvetica, sans-serif;
+
+    background: red;
+    color:yellow;
+    text-decoration:none;
+    
+    
+    border-style: solid;
+    border-radius:2em;
+    border-width:0.15em;
+    border-color:black;
+
+    margin: 0 0 auto 0.7rem;
+    z-index: 1;
+   }
+
+#account_img {
+    height:48px;
+    width:48px;
+    border-radius: 50%;
+    position:absolute;
+    top:-2.7px;
+    left:6px;
+    z-index: 2;
+    border-style:solid;
+}
+
+#account_button {
+    position:relative;
+    
+}
+
+#classic_games{
+ 
+    display: flex;
+    flex-direction: column;
+    column-gap: 6em;
+    gap:1.3em;
+    overflow:auto;
+    height:470px;
+    font-size: 1.3em;
+    font-weight: bold;
+    
+    
+}
+#game_entry{
+    justify-content: center;
+text-align: center;
+align-items: center;
+display: flex;
+color:yellow;
+gap:3em;
+background-color: red;
+border-style: solid;
+border-color:white;
+border-radius:3px;
+
+padding:auto;
+font-family: Arial, Helvetica, sans-serif;
+
+}
+#game_entry>a{
+    text-decoration: none;
+    color:yellow;
+}
+
+#game_title{
+    text-align: center;
+    color: yellow;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+#game_search{
+    display: flex;
+    text-align: center;
+    align-items: center;
+    gap:1em;
+    margin-left:25%;
+    margin-right:25%;
+    color:yellow;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+#game_search>*{
+    font-weight: bold;
+    font-size: 20px;
+    text-decoration: none;
+    
+}
+
+#game_search>a{
+margin-left:auto;
+color:yellow}
+
+#classic_box{
+    background-color: rgba(255, 255, 255, 0.8);
+    padding:2em;
+    margin-left:25%;
+    margin-right:25%
+}
+
+#home_button{margin-right:auto;}
