@@ -61,7 +61,6 @@ def page_not_found(error):
 # Routes
 @app.route("/")
 def main():
-    print("URL", url_for("static", filename="settings.js"))
     return render_template("main.html", title="BlackJack")
 
 @app.route('/sign_in', methods=['GET','POST'])
