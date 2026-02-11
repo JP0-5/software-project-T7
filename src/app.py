@@ -61,7 +61,8 @@ def page_not_found(error):
 # Routes
 @app.route("/")
 def main():
-    return render_template("main.html",title="BlackJack")
+    print("URL", url_for("static", filename="settings.js"))
+    return render_template("main.html", title="BlackJack", scripts=[url_for("static", filename="settings.js")])
 
 @app.route('/sign_in', methods=['GET','POST'])
 @logged_out_required
@@ -122,7 +123,7 @@ def logout():
 @app.route("/classic")
 def classic():
     db=get_db()
-    games = db.execute(''' SELECT * FROM games WHERE game_mode == 0 ORDER BY game_id ;''').fetchall()
+    games = db.execute(''' SELECT * FROM games WHERE game_mode = 0 AND finished = 0 ORDER BY game_id ;''').fetchall()
     games = [list(row) for row in games]
     length=len(games)
     form=gameSearchForm()
@@ -131,7 +132,7 @@ def classic():
 @app.route("/modified")
 def modified():
     db=get_db()
-    games = db.execute(''' SELECT * FROM games WHERE game_mode == 1 ORDER BY game_id ;''').fetchall()
+    games = db.execute(''' SELECT * FROM games WHERE game_mode = 1 AND finished = 0 ORDER BY game_id ;''').fetchall()
     games = [list(row) for row in games]
     length=len(games)
     form=gameSearchForm()
@@ -171,7 +172,10 @@ def play(game_id):
 
     messages = db.execute("SELECT * FROM chat_messages WHERE game_id = ?", (game_id,)).fetchall()
 
-    return render_template("play.html", game_id=game_id, messages=messages)
+    return render_template("play.html", game_id=game_id, messages=messages, scripts=[
+        "https://cdn.socket.io/4.8.1/socket.io.min.js",
+        url_for("static", filename="play.js")
+    ])
 
 
 # SocketIO event handlers

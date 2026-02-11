@@ -5,16 +5,16 @@ from wtforms.validators import InputRequired, EqualTo, NumberRange,optional,Data
 class RegistrationForm(FlaskForm):
     user_id = StringField('Username: ', validators=
     [InputRequired(),validators.Length(max=15)])
-    password = StringField('Type in a password: ', validators = 
+    password = PasswordField('Type in a password: ', validators = 
     [InputRequired(),validators.Length(min=5,max=25)])
-    passwordRepeat = StringField('Repeat the password: ', validators = 
+    passwordRepeat = PasswordField('Repeat the password: ', validators = 
     [InputRequired(),EqualTo('password')])
     submit = SubmitField('Register')
 
 class LoginForm(FlaskForm):
     user_id = StringField('Username: ', validators=
     [InputRequired(),validators.Length(max=15)])
-    password = StringField('Type in a password: ', validators = 
+    password = PasswordField('Type in a password: ', validators = 
     [InputRequired(),validators.Length(min=5,max=25)])
     submit = SubmitField('Log In')
 

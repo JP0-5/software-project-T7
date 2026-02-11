@@ -1,18 +1,5 @@
-<!-- I have created a bare-bones version of this page so that I can test that the WebSockets work. 
-    Feel free to change anything and everything about how it looks and how it is laid out. - Jack -->
-<!-- For the moment, this page does not use the base.html template since it needs to include scripts in the <head> tag.
-    This can be improved later. -->
-
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset = "utf-8">
-        <title>{{ title }}</title>
-        <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-        <link rel="icon" href="{{ url_for('static',filename='favicon.ico') }}">
-        <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
-        <script src="{{ url_for('static', filename='play.js') }}"></script>
-    </head>
+{% extends 'base.html' %}
+{% block main_content %}
     <body>
         <header class ="header">
             
@@ -39,4 +26,4 @@
             </section>
         </main>
     </body>
-</html>
+{% endblock %}
