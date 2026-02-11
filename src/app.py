@@ -61,7 +61,7 @@ def page_not_found(error):
 # Routes
 @app.route("/")
 def main():
-    return render_template("main.html", title="BlackJack")
+    return render_template("main.html", title="BlackJack Fever")
 
 @app.route('/sign_in', methods=['GET','POST'])
 @logged_out_required
@@ -171,7 +171,7 @@ def play(game_id):
 
     messages = db.execute("SELECT * FROM chat_messages WHERE game_id = ?", (game_id,)).fetchall()
 
-    return render_template("play.html", game_id=game_id, messages=messages)
+    return render_template("play.html", game_id=game_id, messages=messages, title="BlackJack Fever")
 
 
 # SocketIO event handlers
