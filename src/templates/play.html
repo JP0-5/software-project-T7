@@ -16,19 +16,20 @@
             <img id="stand" src="{{ url_for('static', filename='stand_btn.png') }}">
 
 
+            <section id="side">
+                <p>Game status: <b id="connectionStatus">Disconnected</b></p>
 
-            <!-- <p>Game status: <b id="connectionStatus">Disconnected</b></p>
+                <input id="messageInput" type="text" placeholder="Enter your message">
+                <button id="sendButton" disabled>Send</button>
 
-            <input id="messageInput" type="text" placeholder="Enter your message">
-            <button id="sendButton" disabled>Send</button>
-
-            <section id="messages">
-                {% for message in messages %}
-                    <p>
-                        {{message[1][1:]}}: {{message[2]}}
-                    </p>
-                {% endfor %}
-            </section> -->
+                <section id="messages">
+                    {% for message in messages %}
+                        <p>
+                            {{message[1][1:]}}: {{message[2]}}
+                        </p>
+                    {% endfor %}
+                </section>
+            </section>
         </main>
 
         

@@ -38,9 +38,70 @@ let cards = [ha, h2, h3, h4, h5, h6, h7, h8, h9, h10, hk, hq, hj,
             da, d2, d3, d4, d5, d6, d7, d8, d9, d10, dk, dq, dj,
             sa, s2, s3, s4, s5, s6, s7, s8, s9, s10, sk, sq, sj,
             ca, c2, c3, c4, c5, c6, c7, c8, c9, c10, ck, cq, cj]
+
+let connectionStatus;
+let messageInput;
+let sendButton;
+let messages;
+let socket;
+const gameID = window.location.pathname.split("/").at(-1);
+
 document.addEventListener("DOMContentLoaded", init, false);
 
 function init() {
+    connectionStatus = document.getElementById("connectionStatus");
+    messages = document.getElementById("messages");
+    sendButton = document.getElementById("sendButton");
+    sendButton.addEventListener("click", sendMessage, false);
+    messageInput = document.getElementById("messageInput");
+
+    socket = io();
+
+    socket.on("connect", () => {
+        socket.emit("join_request", gameID);
+    })
+
+    socket.on("disconnect", (reason) => {
+        sendButton.disabled = true;
+        connectionStatus.innerHTML = "Disconnected";
+
+        if (reason === "io server disconnect") {
+            // The disconnect was initiated by the server, you need to reconnect manually.
+            // This can occur if the player (same player ID) is already connected to this game in another session or tab
+
+            // This can also occur if the client disconnects suddenly and the server is not able to detect the disconnect immediately.
+            // When the clients attempts to reconnect, the server thinks the same player is trying to connect on two sockets at once,
+            // so the connection is refused. (see handle_join() in app.py)
+
+            // TODO: Inform the user at this point that they need to close the other connection if they have one, or to wait if they are trying to reconnect.
+
+            // Try to reconnect in a few seconds, when the server can check again
+            setTimeout(() => {
+                socket.connect();
+            }, 3000)
+        }
+    })
+
+    socket.on("join_accepted", (playerID, socketID) => {
+        if (socketID == socket.id) {
+            // This client was allowed to join
+            sendButton.disabled = false;
+            connectionStatus.innerHTML = "Connected";
+        } else {
+            // Another player joined the game
+
+        }
+    })
+
+    // Called when another player in this game disconnects
+    socket.on("other_player_disconnect", (playerID) => {
+
+    })
+
+    socket.on("chat_message_from_server", (playerID, content) => {
+        messages.innerHTML += `<p>${playerID.slice(1)}: ${content}</p>`;
+    });
+
     canvas = document.querySelector("canvas");
     context = canvas.getContext("2d");
     load_assets([
@@ -267,3 +328,10 @@ function stop() {
 }
 
 function randint(min, max) { return Math.round(Math.random() * (max - min)) + min; }
+
+function sendMessage() {
+    if (messageInput.value != "") {
+        socket.emit("chat_message_from_client", messageInput.value);
+        messageInput.value = "";
+    }
+}
