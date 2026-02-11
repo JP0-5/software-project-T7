@@ -62,7 +62,7 @@ def page_not_found(error):
 @app.route("/")
 def main():
     print("URL", url_for("static", filename="settings.js"))
-    return render_template("main.html", title="BlackJack", scripts=[url_for("static", filename="settings.js")])
+    return render_template("main.html", title="BlackJack")
 
 @app.route('/sign_in', methods=['GET','POST'])
 @logged_out_required
@@ -227,6 +227,7 @@ def handle_join(game_id):
                     INSERT INTO players (game_id, player_id, socket_id, connected, user, score)
                     VALUES (?, ?, ?, 1, ?, 0)""",
                     (game_id, player_id, request.sid, session["username"]))
+        db.execute("UPDATE games SET player_count = `player_count` + 1 WHERE game_id = ?", (game_id,))
     db.commit()
 
     session["sockets"][request.sid] = game_id

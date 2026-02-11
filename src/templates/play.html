@@ -1,29 +1,15 @@
 {% extends 'base.html' %}
 {% block main_content %}
-    <body>
-        <header class ="header">
-            
-            
-            <nav class = "nav_bar">
-            <a href="{{ url_for('log_in') }}">Log In</a>
-            <a href="{{ url_for('sign_up') }}">Sign Up</a>
-            <a href="{{ url_for('main') }}">Settings</a>
-            </nav>
-        </header>
+    <p>Game status: <b id="connectionStatus">Disconnected</b></p>
 
-        <main class = "base_content">
-            <p>Game status: <b id="connectionStatus">Disconnected</b></p>
+    <input id="messageInput" type="text" placeholder="Enter your message">
+    <button id="sendButton" disabled>Send</button>
 
-            <input id="messageInput" type="text" placeholder="Enter your message">
-            <button id="sendButton" disabled>Send</button>
-
-            <section id="messages">
-                {% for message in messages %}
-                    <p>
-                        {{message[1][1:]}}: {{message[2]}}
-                    </p>
-                {% endfor %}
-            </section>
-        </main>
-    </body>
+    <section id="messages">
+        {% for message in messages %}
+            <p>
+                {{message[1][1:]}}: {{message[2]}}
+            </p>
+        {% endfor %}
+    </section>
 {% endblock %}
