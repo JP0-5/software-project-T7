@@ -1,9 +1,58 @@
-{% extends "base.html" %}
-{% block main_content %}
-    <a class = "logo" href="/"><img src="{{ url_for('static', filename='bjf logo.png')}}"></a>
-    <section class = "modes">
-    <a  href="/classic">Classic BlackJack</a>
-    <a  href="/modified">Modified BlackJack</a>
-    </section>
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset = "utf-8">
+        <title>{{ title }}</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+        <link rel="icon" href="{{ url_for('static',filename='favicon.ico') }}">
+        <script src="{{ url_for('static', filename='settings.js') }}"></script>
+        {% if scripts %}
+            {% for script in scripts %}
+                <script src="{{ script }}"></script>
+            {% endfor %}
+        {% endif %}
+    </head>
+    <body>
+        <header class ="header">
+            
+            
+           <nav class = "nav_bar">
+            {% if g.user == None %}
 
-{% endblock %}
+            <a class="reg_nav" id="home_button" href="{{ url_for('main')}}">Home</a>
+            
+            <a class ="reg_nav" href="{{ url_for('log_in') }}">Log In</a>
+            <a class ="reg_nav" href="{{ url_for('sign_up') }}">Sign Up</a>
+            {% else %}
+            <a id = "account_button">
+            <img id = "account_img" src = "{{ url_for('static',filename='logo.jpg')}}"></img>
+            <p id = "account_name"> {{ session["username"] }}</p>
+            </a>
+
+            <a class="reg_nav" id="home_button" href="{{ url_for('main')}}">Home</a>
+            
+            <a class ="reg_nav" href="{{ url_for('logout') }}">Log Out</a>
+            {% endif %}
+            <a class ="reg_nav" id ="settings" onclick = "openSettings()" href="#">Settings</a>
+            </nav>
+        </header>
+
+        <main class = "base_content">
+            <section id = "settings_box">
+                <section id = "settings_content">
+                    <h2>Settings</h2>
+                    <p>Music</p>
+                    <p>Sound</p>
+                    <p>Font Size</p>
+                </section>
+            </section>
+            
+
+            <a class = "logo" href="/"><img src="{{ url_for('static', filename='bjf logo.png')}}"></a>
+            <section class = "modes">
+                <a  href="/classic">Classic BlackJack</a>
+                <a  href="/modified">Modified BlackJack</a>
+            </section>
+        </main>
+    </body>
+</html>
