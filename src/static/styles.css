@@ -169,7 +169,7 @@ header .reg_nav{
     
 }
 
-#classic_games{
+#games_list{
  
     display: flex;
     flex-direction: column;
@@ -231,7 +231,7 @@ font-family: Arial, Helvetica, sans-serif;
 margin-left:auto;
 color:yellow}
 
-#classic_box{
+#games_box {
     background-color: rgba(255, 255, 255, 0.8);
     padding:2em;
     margin-left:25%;

@@ -119,23 +119,18 @@ def logout():
     session.clear()
     return redirect(url_for('main'))
 
-@app.route("/classic")
-def classic():
+@app.route("/games", methods = ['GET', 'POST'])
+def games():
+    query = "SELECT * FROM games WHERE finished = 0 ORDER BY game_id;"
+    form = GamesFilter()
     db=get_db()
-    games = db.execute(''' SELECT * FROM games WHERE game_mode = 0 AND finished = 0 ORDER BY game_id ;''').fetchall()
-    games = [list(row) for row in games]
-    length=len(games)
-    form=gameSearchForm()
-    return render_template("classic.html", title = "Classic BlackJack",games=games,length=length,form=form)
 
-@app.route("/modified")
-def modified():
-    db=get_db()
-    games = db.execute(''' SELECT * FROM games WHERE game_mode = 1 AND finished = 0 ORDER BY game_id ;''').fetchall()
-    games = [list(row) for row in games]
-    length=len(games)
-    form=gameSearchForm()
-    return render_template("modified.html", title = "Modified BlackJack",games=games,length=length,form=form)
+    if form.validate_on_submit() and form.game_mode.data != "-1":
+        games = db.execute("SELECT * FROM games WHERE finished = 0 AND game_mode = ? ORDER BY game_id;", (form.game_mode.data,))
+    else:
+        games = db.execute("SELECT * FROM games WHERE finished = 0 ORDER BY game_id;")
+
+    return render_template("game_list.html", title = "BlackJack Fever",games=games,form=form)
 
 
 @app.route("/play/<game_id>")

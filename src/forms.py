@@ -19,6 +19,6 @@ class LoginForm(FlaskForm):
     submit = SubmitField('Log In')
 
 
-class gameSearchForm(FlaskForm):
-    game_title = StringField('Game Title or ID: ')
-    submit=SubmitField('Search')
+class GamesFilter(FlaskForm):
+    game_mode = SelectField("Game Mode", choices=[(-1, "All"), (0, "Classic"), (1, "Modified")], validators=[InputRequired()])
+    submit = SubmitField("Filter")
