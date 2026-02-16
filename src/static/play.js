@@ -39,6 +39,7 @@ let cards = [ha, h2, h3, h4, h5, h6, h7, h8, h9, h10, hk, hq, hj,
             sa, s2, s3, s4, s5, s6, s7, s8, s9, s10, sk, sq, sj,
             ca, c2, c3, c4, c5, c6, c7, c8, c9, c10, ck, cq, cj]
 
+let gameIDLabel;
 let connectionStatus;
 let messageInput;
 let sendButton;
@@ -49,11 +50,14 @@ const gameID = window.location.pathname.split("/").at(-1);
 document.addEventListener("DOMContentLoaded", init, false);
 
 function init() {
+    gameIDLabel = document.getElementById("gameId");
     connectionStatus = document.getElementById("connectionStatus");
     messages = document.getElementById("messages");
     sendButton = document.getElementById("sendButton");
     sendButton.addEventListener("click", sendMessage, false);
     messageInput = document.getElementById("messageInput");
+
+    gameIDLabel.innerHTML = gameID;
 
     socket = io();
 
