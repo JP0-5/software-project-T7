@@ -18,7 +18,15 @@ class LoginForm(FlaskForm):
     [InputRequired(),validators.Length(min=5,max=25)])
     submit = SubmitField('Log In')
 
+class CreateGameForm(FlaskForm):
+    visibility = SelectField("Visibility", choices=[(1, "Public"), (0, "Private")])
+    game_mode = SelectField("Game Mode", choices=[(0, "Classic"), (1, "Modified")])
+    submit = SubmitField("Create")
 
 class GamesFilter(FlaskForm):
-    game_mode = SelectField("Game Mode", choices=[(-1, "All"), (0, "Classic"), (1, "Modified")], validators=[InputRequired()])
+    game_mode = SelectField("Game Mode", choices=[(-1, "All"), (0, "Classic"), (1, "Modified")])
     submit = SubmitField("Filter")
+
+class EnterCodeForm(FlaskForm):
+    code = StringField('Game Code: ', validators=[InputRequired()])
+    submit = SubmitField("Join")

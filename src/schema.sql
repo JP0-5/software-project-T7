@@ -11,8 +11,8 @@ CREATE TABLE users (user_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, user TEX
 -- Game state
 
 CREATE TABLE games (
-    game_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,                                 -- Name of the game, given by the host
+    game_id INTEGER PRIMARY KEY,
+    public INTEGER NOT NULL,                            -- 0 for private, 1 for public
     host TEXT NOT NULL,                                 -- Player ID of the host
     start_time INTEGER NOT NULL,                        -- When the game was started (this one may or may not be needed)
     next_turn TEXT NOT NULL,                            -- Player ID of the player whose turn it is next
@@ -23,16 +23,17 @@ CREATE TABLE games (
 );
 
 -- Insert dummy games for testing
-INSERT INTO games
-VALUES (0, "Test Game", "-", "2026-01-31 12:39:00", "-", 0,0,0,0),
-(1, "Test Game", "-", "2026-01-31 12:39:00", "-", 0,0,0,0),
-(2, "Test Game", "-", "2026-01-31 12:39:00", "-", 0,0,0,0),
-(3, "Test Game", "-", "2026-01-31 12:39:00", "-", 0,0,0,0),
-(4, "Test Game", "-", "2026-01-31 12:39:00", "-", 0,0,0,0),
-(5, "Test Game", "-", "2026-01-31 12:39:00", "-", 0,0,0,0),
-(6, "Test Game", "-", "2026-01-31 12:39:00", "-", 0,0,0,1),
-(7, "Test Game", "-", "2026-01-31 12:39:00", "-", 0,0,0,1),
-(8, "Test Game", "-", "2026-01-31 12:39:00", "-", 0,0,0,1);
+-- INSERT INTO games
+-- VALUES
+-- (0, 1, "-", "2026-01-31 12:39:00", "-", 0,0,0,0),
+-- (1, 0, "-", "2026-01-31 12:39:00", "-", 0,0,0,0),
+-- (2, 1, "-", "2026-01-31 12:39:00", "-", 0,0,0,0),
+-- (3, 0, "-", "2026-01-31 12:39:00", "-", 0,0,0,0),
+-- (4, 1, "-", "2026-01-31 12:39:00", "-", 0,0,0,0),
+-- (5, 0, "-", "2026-01-31 12:39:00", "-", 0,0,0,0),
+-- (6, 1, "-", "2026-01-31 12:39:00", "-", 0,0,0,1),
+-- (7, 0, "-", "2026-01-31 12:39:00", "-", 0,0,0,1),
+-- (8, 1, "-", "2026-01-31 12:39:00", "-", 0,0,0,1);
 
 -- Keeps track of what cards are in the deck in each game
 CREATE TABLE decks (

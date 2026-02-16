@@ -12,8 +12,9 @@ from flask_socketio import SocketIO, join_room, disconnect
 from flask_session import Session
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
-from time import time
+from datetime import datetime
 from gevent.lock import BoundedSemaphore
+from random import randint
 from database import *
 from forms import *
 
@@ -25,8 +26,9 @@ Session(app)
 
 socketio = SocketIO(app, async_mode="gevent", cors_allowed_origins="*", logger=True, engineio_logger=True, ping_timeout=5)
 
-# Used to ensure guests are always given unique player IDs
+# Locks to used to ensure guest IDs and game IDs are always unique
 guest_id_lock = BoundedSemaphore()
+game_id_lock = BoundedSemaphore()
 
 @app.before_request
 def get_username():
@@ -36,6 +38,22 @@ def get_username():
 
     if "sockets" not in session:
         session["sockets"] = {}        #Maps socket IDs to game IDs
+
+    # Assign a player ID based on the username, or on number if not logged in
+    if g.user is not None:
+        session["player_id"] = "u" + g.user
+        # Add "u" to the username to ensure this can never match a guest's player ID
+    elif "player_id" not in session:
+        # If not logged in and a player ID has not already been assigned
+
+        # Use a lock to ensure two guests will not accidentally get the same player ID
+        with guest_id_lock:
+            db = get_db()
+            id = db.execute("SELECT * FROM next_guest_id").fetchone()["id"]
+            db.execute("UPDATE next_guest_id SET id = ?", (id+1,))
+            db.commit()
+
+        session["player_id"] = "_Guest" + str(id)
 
 def login_required(view):
     @wraps(view)
@@ -121,17 +139,51 @@ def logout():
 
 @app.route("/games", methods = ['GET', 'POST'])
 def games():
-    query = "SELECT * FROM games WHERE finished = 0 ORDER BY game_id;"
     form = GamesFilter()
     db=get_db()
 
     if form.validate_on_submit() and form.game_mode.data != "-1":
-        games = db.execute("SELECT * FROM games WHERE finished = 0 AND game_mode = ? ORDER BY game_id;", (form.game_mode.data,))
+        games = db.execute("SELECT * FROM games WHERE public = 1 AND finished = 0 AND game_mode = ? ORDER BY game_id;", (form.game_mode.data,))
     else:
-        games = db.execute("SELECT * FROM games WHERE finished = 0 ORDER BY game_id;")
+        games = db.execute("SELECT * FROM games WHERE public = 1 AND finished = 0 ORDER BY game_id;")
 
     return render_template("game_list.html", title = "BlackJack Fever",games=games,form=form)
 
+
+@app.route("/create", methods = ['GET', 'POST'])
+def create():
+    form = CreateGameForm()
+
+    if form.validate_on_submit():
+        player_id = session["player_id"]
+        t = datetime.strftime(datetime.now(), "%d-%m-%Y %H:%M:%S")
+        db = get_db()
+
+        with game_id_lock:
+            while True:
+                game_id = randint(10000, 99999)
+                conflict_game = db.execute("SELECT * FROM games WHERE game_id = ?", (game_id,)).fetchone()
+                if conflict_game is None:
+                    break
+
+        db.execute("""
+                   INSERT INTO games (game_id, public, host, start_time, next_turn, finished, status, player_count, game_mode)
+                   VALUES (?, ?, ?, ?, ?, 0, 0, 0, ?)
+                   """, (game_id, form.visibility.data, player_id, t, player_id, form.game_mode.data))
+        db.commit()
+
+        return redirect(url_for("play", game_id=game_id))
+
+    return render_template("create.html", form=form, title="BlackJack Fever")
+
+@app.route("/code", methods = ['GET', 'POST'])
+def enter_code():
+    form = EnterCodeForm()
+
+    if form.validate_on_submit():
+        return redirect(url_for("play", game_id=form.code.data))
+
+    return render_template("enter_code.html", form=form, title="BlackJack Fever")
 
 @app.route("/play/<game_id>")
 def play(game_id):
@@ -144,23 +196,6 @@ def play(game_id):
     
     if game["finished"] == 1:
         return render_template("error.html", title="Game Finished", error="This game has finished."), 404
-
-    # Assign a player ID based on the username, or on number if not logged in
-    if g.user is not None:
-        session["player_id"] = "u" + g.user
-        # Add "u" to the username to ensure this can never match a guest's player ID
-    elif "player_id" not in session:
-        # If not logged in and a player ID has not already been assigned
-
-        # Use a lock to ensure two guests will not accidentally get the same player ID
-        with guest_id_lock:
-            id = db.execute("SELECT * FROM next_guest_id").fetchone()["id"]
-            db.execute("UPDATE next_guest_id SET id = ?", (id+1,))
-            db.commit()
-
-        session["player_id"] = "_Guest" + str(id)
-
-    
 
     # To be expanded
 
