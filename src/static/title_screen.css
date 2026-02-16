@@ -88,11 +88,11 @@ header .reg_nav{
     border-style: solid;
     border-color:black;
     border-radius:2em;
-    border-width:0.15em;
+    
 
     font-weight: bold;
     font-size: 1.5rem;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: pixelated,Arial, Helvetica, sans-serif;
 }
 .nav_bar {  
     margin-top: 1rem;
@@ -303,3 +303,171 @@ color:yellow}
 }
 
 #home_button{margin-right:auto;}
+
+.reg_nav,
+.reg_nav--wrapper {
+  clip-path: polygon(0px calc(100% - 20px),
+    4px calc(100% - 20px),
+    4px calc(100% - 12px),
+    8px calc(100% - 12px),
+    8px calc(100% - 8px),
+    12px calc(100% - 8px),
+    12px calc(100% - 4px),
+    20px calc(100% - 4px),
+    20px 100%,
+    calc(100% - 20px) 100%,
+    calc(100% - 20px) calc(100% - 4px),
+    calc(100% - 12px) calc(100% - 4px),
+    calc(100% - 12px) calc(100% - 8px),
+    calc(100% - 8px) calc(100% - 8px),
+    calc(100% - 8px) calc(100% - 12px),
+    calc(100% - 4px) calc(100% - 12px),
+    calc(100% - 4px) calc(100% - 20px),
+    100% calc(100% - 20px),
+    100% 20px,
+    calc(100% - 4px) 20px,
+    calc(100% - 4px) 12px,
+    calc(100% - 8px) 12px,
+    calc(100% - 8px) 8px,
+    calc(100% - 12px) 8px,
+    calc(100% - 12px) 4px,
+    calc(100% - 20px) 4px,
+    calc(100% - 20px) 0px,
+    20px 0px,
+    20px 4px,
+    12px 4px,
+    12px 8px,
+    8px 8px,
+    8px 12px,
+    4px 12px,
+    4px 20px,
+    0px 20px);
+  position: relative;
+}
+.reg_nav {
+  border: 8px solid transparent;
+}
+.reg_nav--wrapper {
+  width: fit-content;
+  height: fit-content;
+}
+.reg_nav--wrapper .reg_nav {
+  display: block;
+  clip-path: polygon(8px 24px,
+    12px 24px,
+    12px 16px,
+    16px 16px,
+    16px 12px,
+    24px 12px,
+    24px 8px,
+    calc(100% - 24px) 8px,
+    calc(100% - 24px) 12px,
+    calc(100% - 16px) 12px,
+    calc(100% - 16px) 16px,
+    calc(100% - 12px) 16px,
+    calc(100% - 12px) 24px,
+    calc(100% - 8px) 24px,
+    calc(100% - 8px) calc(100% - 24px),
+    calc(100% - 12px) calc(100% - 24px),
+    calc(100% - 12px) calc(100% - 16px),
+    calc(100% - 16px) calc(100% - 16px),
+    calc(100% - 16px) calc(100% - 12px),
+    calc(100% - 24px) calc(100% - 12px),
+    calc(100% - 24px) calc(100% - 8px),
+    24px calc(100% - 8px),
+    24px calc(100% - 12px),
+    16px calc(100% - 12px),
+    16px calc(100% - 16px),
+    12px calc(100% - 16px),
+    12px calc(100% - 24px),
+    8px calc(100% - 24px));
+}
+.reg_nav::after,
+.reg_nav--wrapper::after {
+  content: "";
+  position: absolute;
+  clip-path: polygon(0px calc(100% - 20px),
+    4px calc(100% - 20px),
+    4px calc(100% - 12px),
+    8px calc(100% - 12px),
+    8px calc(100% - 8px),
+    12px calc(100% - 8px),
+    12px calc(100% - 4px),
+    20px calc(100% - 4px),
+    20px 100%,
+    calc(100% - 20px) 100%,
+    calc(100% - 20px) calc(100% - 4px),
+    calc(100% - 12px) calc(100% - 4px),
+    calc(100% - 12px) calc(100% - 8px),
+    calc(100% - 8px) calc(100% - 8px),
+    calc(100% - 8px) calc(100% - 12px),
+    calc(100% - 4px) calc(100% - 12px),
+    calc(100% - 4px) calc(100% - 20px),
+    100% calc(100% - 20px),
+    100% 20px,
+    calc(100% - 4px) 20px,
+    calc(100% - 4px) 12px,
+    calc(100% - 8px) 12px,
+    calc(100% - 8px) 8px,
+    calc(100% - 12px) 8px,
+    calc(100% - 12px) 4px,
+    calc(100% - 20px) 4px,
+    calc(100% - 20px) 0px,
+    20px 0px,
+    20px 4px,
+    12px 4px,
+    12px 8px,
+    8px 8px,
+    8px 12px,
+    4px 12px,
+    4px 20px,
+    0px 20px,
+    0px 50%,
+    8px 50%,
+    8px 24px,
+    12px 24px,
+    12px 16px,
+    16px 16px,
+    16px 12px,
+    24px 12px,
+    24px 8px,
+    calc(100% - 24px) 8px,
+    calc(100% - 24px) 12px,
+    calc(100% - 16px) 12px,
+    calc(100% - 16px) 16px,
+    calc(100% - 12px) 16px,
+    calc(100% - 12px) 24px,
+    calc(100% - 8px) 24px,
+    calc(100% - 8px) calc(100% - 24px),
+    calc(100% - 12px) calc(100% - 24px),
+    calc(100% - 12px) calc(100% - 16px),
+    calc(100% - 16px) calc(100% - 16px),
+    calc(100% - 16px) calc(100% - 12px),
+    calc(100% - 24px) calc(100% - 12px),
+    calc(100% - 24px) calc(100% - 8px),
+    24px calc(100% - 8px),
+    24px calc(100% - 12px),
+    16px calc(100% - 12px),
+    16px calc(100% - 16px),
+    12px calc(100% - 16px),
+    12px calc(100% - 24px),
+    8px calc(100% - 24px),
+    8px 50%,
+    0px 50%);
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #000000;
+  display: block;
+  pointer-events: none;
+}
+.reg_nav::after {
+  margin: -8px;
+}
+
+@font-face {
+    font-family: pixelated;
+    src: url(pixel_font.ttf);
+}
+
