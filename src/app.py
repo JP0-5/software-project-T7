@@ -284,6 +284,43 @@ def handle_chat_message(content):
 #     if game_id is not None:
 #         (code here)
 
+@socketio.on("gameStart")
+def handle_start():
+    game_id = session["sockets"].get(request.sid, None)
+    player_id = session["player_id"]
+
+    if game_id is not None:
+        db = get_db()
+        players = [db.execute("""SELECT player_id FROM games WHERE game_id == (?)""", (game_id))]
+        # Trying to get order of players for turns - Jordan     
+
+@socketio.on("hit")
+def handle_hit(cardN, cardS): # Card Number and suit, my plan is for these to be taken from the JS code - Jordan
+    game_id = session["sockets"].get(request.sid, None)
+    player_id = session["player_id"]
+
+    if game_id is not None:
+        db = get_db()
+        db.execute("""
+                    INSERT INTO hands (game_id, player_id, value, suit)
+                    VALUES (?, ?, ?, ?)""",
+                    (game_id, player_id, cardN, cardS))
+        db.execute("""
+                    DELETE FROM decks WHERE (game_id, value, suit) == ( ?, ?, ?)""",
+                    (game_id, cardN, cardS))
+        db.commit()
+
+# I've tried a few things back and forth with this but what I was in the middle of doing before I left was just updating the game state to go to the next players turn - Jordan
+@socketio.on("stand")
+def handle_stand():
+    game_id = session["sockets"].get(request.sid, None)
+    player_id = session["player_id"]
+
+    if game_id is not None:
+        db = get_db()
+        db.execute("""UPDATE games SET (current_turn, next_turn) = (?, ?) WHERE game_id = (?) """, ()) # In progress
+        db.commit()
+
 # Run the server locally
 if __name__ == "__main__":
     # On a restart of the development server, mark all players as disconnected
