@@ -143,9 +143,9 @@ def games():
     db=get_db()
 
     if form.validate_on_submit() and form.game_mode.data != "-1":
-        games = db.execute("SELECT * FROM games WHERE public = 1 AND finished = 0 AND game_mode = ? AND player_count < allowed_players ORDER BY game_id;", (form.game_mode.data,))
+        games = db.execute("SELECT * FROM games WHERE public = 1 AND finished = 0 AND game_mode = ? AND player_count < allowed_players ORDER BY start_time DESC;", (form.game_mode.data,))
     else:
-        games = db.execute("SELECT * FROM games WHERE public = 1 AND finished = 0  AND player_count < allowed_players ORDER BY game_id;")
+        games = db.execute("SELECT * FROM games WHERE public = 1 AND finished = 0  AND player_count < allowed_players ORDER BY start_time DESC;")
 
     return render_template("game_list.html", title = "BlackJack Fever",games=games,form=form, scripts=[
         "https://cdn.socket.io/4.8.1/socket.io.min.js",
@@ -176,7 +176,8 @@ def create():
         db.commit()
 
         if form.visibility.data == "1":
-            socketio.emit("new_public_game", to="game_list")
+            game = db.execute("SELECT * FROM games WHERE game_id = ?", (game_id,)).fetchone()
+            socketio.emit("new_public_game", render_template("game_entry.html", game=game), to="game_list")
 
         return redirect(url_for("play", game_id=game_id))
 
@@ -282,7 +283,7 @@ def handle_join(game_id):
     if update_game_list:
         player_count = db.execute("SELECT player_count, allowed_players FROM games WHERE game_id = ?", (game_id,)).fetchone()
         if player_count["player_count"] == player_count["allowed_players"]:
-            socketio.emit("game_full", game_id, to="game_list")
+            socketio.emit("game_removed", game_id, to="game_list")
         else:
             socketio.emit("player_count_update", (game_id, player_count["player_count"]), to="game_list")
 
