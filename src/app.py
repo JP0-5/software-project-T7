@@ -1,4 +1,4 @@
-# NOTE: Do not use `flask run` to start the server.
+# NOTE: Do not use `flask run` to start the server.  
 # Instead, run this file and code at the end of the file will start the server.
 
 # NOTE: You may need to run the schema.sql file to setup app.db first.
@@ -139,19 +139,13 @@ def logout():
 
 @app.route("/games", methods = ['GET', 'POST'])
 def games():
-    form = GamesFilter()
     db=get_db()
+    games = db.execute("SELECT * FROM games WHERE public = 1 AND finished = 0  AND player_count < allowed_players ORDER BY start_time DESC;")
 
-    if form.validate_on_submit() and form.game_mode.data != "-1":
-        games = db.execute("SELECT * FROM games WHERE public = 1 AND finished = 0 AND game_mode = ? AND player_count < allowed_players ORDER BY start_time DESC;", (form.game_mode.data,))
-    else:
-        games = db.execute("SELECT * FROM games WHERE public = 1 AND finished = 0  AND player_count < allowed_players ORDER BY start_time DESC;")
-
-    return render_template("game_list.html", title = "BlackJack Fever",games=games,form=form, scripts=[
+    return render_template("game_list.html", title = "BlackJack Fever",games=games,scripts=[
         "https://cdn.socket.io/4.8.1/socket.io.min.js",
         url_for("static", filename="game_list.js")
     ])
-
 
 @app.route("/create", methods = ['GET', 'POST'])
 def create():

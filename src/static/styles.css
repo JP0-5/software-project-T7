@@ -183,21 +183,21 @@ header .reg_nav{
     
 }
 .game_entry{
+    display: none;
     justify-content: center;
-text-align: center;
-align-items: center;
-display: flex;
-color:yellow;
-gap:3em;
-background-color: red;
-border-style: solid;
-border-color:white;
-border-radius:3px;
-
-padding:auto;
-font-family: Arial, Helvetica, sans-serif;
-
+    text-align: center;
+    align-items: center;
+    /* display: flex; */
+    color:yellow;
+    gap:3em;
+    background-color: red;
+    border-style: solid;
+    border-color:white;
+    border-radius:3px;
+    padding:auto;
+    font-family: Arial, Helvetica, sans-serif;
 }
+
 .game_entry>a{
     text-decoration: none;
     color:yellow;
@@ -216,6 +216,7 @@ font-family: Arial, Helvetica, sans-serif;
     gap:1em;
     margin-left:25%;
     margin-right:25%;
+    margin-bottom: 1%;
     color:yellow;
     font-family: Arial, Helvetica, sans-serif;
 }

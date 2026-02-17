@@ -5,13 +5,24 @@
     
 <section id="game_search">
 
-<form action="" id="games_filter" method="post" novalidate>
-    {{ form.hidden_tag() }}
-<p>
-    {{ form.game_mode() }}
-    {{ form.submit() }}
-</p>
-</form>
+
+  <legend>Game Mode</legend>
+
+  <div>
+    <input type="radio" id="all" name="filter" value="all" checked onchange="filterChange();" />
+    <label for="all">All</label>
+  </div>
+
+  <div>
+    <input type="radio" id="classic" name="filter" value="classic" onchange="filterChange();" />
+    <label for="classic">Classic</label>
+  </div>
+
+  <div>
+    <input type="radio" id="modified" name="filter" value="modified" onchange="filterChange();" />
+    <label for="modified">Modified</label>
+  </div>
+
 
 </section>
 

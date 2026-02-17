@@ -23,10 +23,6 @@ class CreateGameForm(FlaskForm):
     game_mode = SelectField("Game Mode", choices=[(0, "Classic"), (1, "Modified")])
     submit = SubmitField("Create")
 
-class GamesFilter(FlaskForm):
-    game_mode = SelectField("Game Mode", choices=[(-1, "All"), (0, "Classic"), (1, "Modified")])
-    submit = SubmitField("Filter")
-
 class EnterCodeForm(FlaskForm):
     code = StringField('Game Code: ', validators=[InputRequired()])
     submit = SubmitField("Join")
