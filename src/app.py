@@ -143,11 +143,14 @@ def games():
     db=get_db()
 
     if form.validate_on_submit() and form.game_mode.data != "-1":
-        games = db.execute("SELECT * FROM games WHERE public = 1 AND finished = 0 AND game_mode = ? ORDER BY game_id;", (form.game_mode.data,))
+        games = db.execute("SELECT * FROM games WHERE public = 1 AND finished = 0 AND game_mode = ? AND player_count < allowed_players ORDER BY game_id;", (form.game_mode.data,))
     else:
-        games = db.execute("SELECT * FROM games WHERE public = 1 AND finished = 0 ORDER BY game_id;")
+        games = db.execute("SELECT * FROM games WHERE public = 1 AND finished = 0  AND player_count < allowed_players ORDER BY game_id;")
 
-    return render_template("game_list.html", title = "BlackJack Fever",games=games,form=form)
+    return render_template("game_list.html", title = "BlackJack Fever",games=games,form=form, scripts=[
+        "https://cdn.socket.io/4.8.1/socket.io.min.js",
+        url_for("static", filename="game_list.js")
+    ])
 
 
 @app.route("/create", methods = ['GET', 'POST'])
@@ -167,8 +170,8 @@ def create():
                     break
 
         db.execute("""
-                   INSERT INTO games (game_id, public, host, start_time, next_turn, finished, status, player_count, game_mode)
-                   VALUES (?, ?, ?, ?, ?, 0, 0, 0, ?)
+                   INSERT INTO games (game_id, public, host, start_time, next_turn, finished, status, player_count, allowed_players, game_mode)
+                   VALUES (?, ?, ?, ?, ?, 0, 0, 0, 4, ?)
                    """, (game_id, form.visibility.data, player_id, t, player_id, form.game_mode.data))
         db.commit()
 
@@ -195,7 +198,13 @@ def play(game_id):
         return render_template("error.html", title="Not Found", error="This game does not exist."), 404
     
     if game["finished"] == 1:
-        return render_template("error.html", title="Game Finished", error="This game has finished."), 404
+        return render_template("error.html", title="Game Finished", error="This game has finished."), 403
+    
+    # If the game is full and this player was not connected to this game previously, don't allow them to connect
+    if game["player_count"] == game["allowed_players"]:
+        player_entry = db.execute("SELECT * FROM players WHERE game_id = ? AND player_id = ?", (game_id, session["player_id"])).fetchone()
+        if player_entry is None:
+            return render_template("error.html", title="Game Full", error="This game is full."), 403
 
     # To be expanded
 
@@ -209,6 +218,8 @@ def play(game_id):
 def handle_join(game_id):
     player_id = session["player_id"]
     db = get_db()
+
+    update_game_list = False
 
     # Get player and game info
     player_entry = db.execute("""
@@ -254,12 +265,22 @@ def handle_join(game_id):
                     VALUES (?, ?, ?, 1, ?, 0)""",
                     (game_id, player_id, request.sid, session["username"]))
         db.execute("UPDATE games SET player_count = `player_count` + 1 WHERE game_id = ?", (game_id,))
+        update_game_list = True
     db.commit()
 
     session["sockets"][request.sid] = game_id
     session.modified = True
     join_room(game_id)
     socketio.emit("join_accepted", (player_id, request.sid), to=game_id)
+
+    # Inform clients currently looking at the games list that the player count has changed
+    # Handling this at the end so the other events and database updates can be handled first
+    if update_game_list:
+        player_count = db.execute("SELECT player_count, allowed_players FROM games WHERE game_id = ?", (game_id,)).fetchone()
+        if player_count["player_count"] == player_count["allowed_players"]:
+            socketio.emit("game_full", game_id, to="game_list")
+        else:
+            socketio.emit("player_count_update", (game_id, player_count["player_count"]), to="game_list")
 
 @socketio.on("disconnect")
 def handle_disconnect(*args):
@@ -304,6 +325,10 @@ def handle_chat_message(content):
                     VALUES (?, ?, ?)""",
                     (game_id, player_id, content))
         db.commit()
+
+@socketio.on("game_list_connect")
+def handle_game_list_connect():
+    join_room("game_list")
 
 # Other event handlers can probably follow this template:
 # @socketio.on("event_name")

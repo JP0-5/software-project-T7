@@ -117,7 +117,7 @@ CREATE TABLE invites (
     invitee TEXT NOT NULL,                           -- The username of the player who is being invited to this game
     time TEXT NOT NULL,
     message TEXT,
-    PRIMARY KEY (game_id, invitee_id),
+    PRIMARY KEY (game_id, invitee),
     FOREIGN KEY (game_id) REFERENCES games(game_id),
     FOREIGN KEY (invitee) REFERENCES users(user)
 );

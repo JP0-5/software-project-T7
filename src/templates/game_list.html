@@ -18,10 +18,18 @@
 <section id = "games_box">
 <section id = "games_list">
 
+<section class="game_entry">
+    <p>Game ID</p>
+    <p>Host</p>
+    <p>Mode</p>
+    <p>Players</p>
+    <p>Join Game</p>
+</section>
+
 
 {% for game in games %}
-<section class="game_entry" id="{{ game['game_id'] }}">
-<p>{{game["game_id"]}} </p>
+<section class="game_entry" id="game_{{ game['game_id'] }}">
+<p>{{game["game_id"]}}</p>
 <p>{{game["host"][1:]}}</p>
 <p>
 {% if game["game_mode"] == 0 %}
@@ -30,7 +38,7 @@ Classic
 Modified
 {% endif %}
 </p>
-<p class="player_count">{{game["player_count"]}}/4</p>
+<p><span class="player_count">{{game["player_count"]}}</span>/{{game["allowed_players"]}}</p>
 <a href="{{ url_for('play',game_id=game['game_id'] )}}">Join Game</a>
 
 </section>
