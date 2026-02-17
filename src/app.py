@@ -175,6 +175,9 @@ def create():
                    """, (game_id, form.visibility.data, player_id, t, player_id, form.game_mode.data))
         db.commit()
 
+        if form.visibility.data == "1":
+            socketio.emit("new_public_game", to="game_list")
+
         return redirect(url_for("play", game_id=game_id))
 
     return render_template("create.html", form=form, title="BlackJack Fever")
@@ -265,7 +268,8 @@ def handle_join(game_id):
                     VALUES (?, ?, ?, 1, ?, 0)""",
                     (game_id, player_id, request.sid, session["username"]))
         db.execute("UPDATE games SET player_count = `player_count` + 1 WHERE game_id = ?", (game_id,))
-        update_game_list = True
+        if game["public"] == 1:
+            update_game_list = True
     db.commit()
 
     session["sockets"][request.sid] = game_id

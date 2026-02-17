@@ -11,10 +11,19 @@ function init() {
 
     socket.on("player_count_update", (gameID, count) => {
         const playerCount = document.querySelector(`#game_${gameID} .player_count`);
-        playerCount.innerHTML = count;
+        if (playerCount != null) {
+            playerCount.innerHTML = count;
+        }
     })
 
     socket.on("game_full", (gameID) => {
-        document.getElementById(`game_${gameID}`).remove();
+        const gameEntry = document.getElementById(`game_${gameID}`);
+        if (gameEntry != null) {
+            gameEntry.remove();
+        }
+    })
+
+    socket.on("new_public_game", () => {
+        console.log("New public game");
     })
 }
