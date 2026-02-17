@@ -5,8 +5,12 @@ DROP TABLE IF EXISTS players;
 DROP TABLE IF EXISTS next_guest_id;
 DROP TABLE IF EXISTS hands;
 DROP TABLE IF EXISTS chat_messages;
+DROP TABLE IF EXISTS invites;
 
-CREATE TABLE users (user_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, user TEXT NOT NULL, password TEXT NOT NULL);
+CREATE TABLE users (
+    user TEXT PRIMARY KEY NOT NULL,
+    password TEXT NOT NULL
+);
 
 -- Game state
 
@@ -14,11 +18,12 @@ CREATE TABLE games (
     game_id INTEGER PRIMARY KEY,
     public INTEGER NOT NULL,                            -- 0 for private, 1 for public
     host TEXT NOT NULL,                                 -- Player ID of the host
-    start_time INTEGER NOT NULL,                        -- When the game was started (this one may or may not be needed)
+    start_time TEXT NOT NULL,                           -- When the game was started (this one may or may not be needed)
     next_turn TEXT NOT NULL,                            -- Player ID of the player whose turn it is next
     finished INTEGER NOT NULL,                          -- Whether the game is finished or not - Boolean value (0 or 1)
     status INTEGER NOT NULL,                            -- Whether the game has started or not - 0 for not started, 1 for started
-    player_count INTEGER NOT NULL,                      -- Number of players in game
+    player_count INTEGER NOT NULL,                      -- Number of players currently in game
+    allowed_players INTEGER NOT NULL,                   -- Number of players allowed in the game (for now will be fixed at 4)
     game_mode INTEGER NOT NULL                          -- Mode of the game - 0 is Classic, 1 is Modified                       
 );
 
@@ -63,14 +68,14 @@ CREATE TABLE decks (
 -- Each user will have one row in this table for each game they play in
 CREATE TABLE players (
     game_id INTEGER NOT NULL,
-    player_id INTEGER NOT NULL,
-    socket_id INTEGER NOT NULL,                         -- Socket ID of the socket on which the player is connected to this game
+    player_id TEXT NOT NULL,
+    socket_id TEXT NOT NULL,                            -- Socket ID of the socket on which the player is connected to this game
     connected INTEGER NOT NULL,                         -- Whether the player is currently connected or not - Boolean value (0 or 1)
     user TEXT,                                          -- Username if logged in - otherwise NULL
     score INTEGER NOT NULL,                             -- Players score - starts at 0
     PRIMARY KEY (game_id, player_id),
     FOREIGN KEY (game_id) REFERENCES games(game_id),
-    FOREIGN KEY (user) REFERENCES users(user_id)
+    FOREIGN KEY (user) REFERENCES users(user)
 );
 
 -- Stores the next number that can be used to assign a guest ID
@@ -84,7 +89,7 @@ VALUES (0);
 -- The cards currently in the hand of each player in each game
 CREATE TABLE hands (
     game_id INTEGER NOT NULL,
-    player_id INTEGER NOT NULL,
+    player_id TEXT NOT NULL,
     value INTEGER NOT NULL,
     suit TEXT NOT NULL,
     CHECK(
@@ -98,7 +103,7 @@ CREATE TABLE hands (
 
 CREATE TABLE chat_messages (
     game_id INTEGER NOT NULL,
-    player_id INTEGER NOT NULL,
+    player_id TEXT NOT NULL,
     content TEXT NOT NULL,
     FOREIGN KEY (game_id) REFERENCES games(game_id),
     FOREIGN KEY (player_id) REFERENCES players(player_id)
@@ -106,3 +111,13 @@ CREATE TABLE chat_messages (
 
 CREATE INDEX game_chat_messages
 ON chat_messages(game_id);
+
+CREATE TABLE invites (
+    game_id INTEGER NOT NULL,
+    invitee TEXT NOT NULL,                           -- The username of the player who is being invited to this game
+    time TEXT NOT NULL,
+    message TEXT,
+    PRIMARY KEY (game_id, invitee_id),
+    FOREIGN KEY (game_id) REFERENCES games(game_id),
+    FOREIGN KEY (invitee) REFERENCES users(user)
+);

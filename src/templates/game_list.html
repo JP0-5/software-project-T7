@@ -20,7 +20,7 @@
 
 
 {% for game in games %}
-<section id ="game_entry">
+<section class="game_entry" id="{{ game['game_id'] }}">
 <p>{{game["game_id"]}} </p>
 <p>{{game["host"][1:]}}</p>
 <p>
@@ -30,7 +30,7 @@ Classic
 Modified
 {% endif %}
 </p>
-<p>{{game["player_count"]}}/4</p>
+<p class="player_count">{{game["player_count"]}}/4</p>
 <a href="{{ url_for('play',game_id=game['game_id'] )}}">Join Game</a>
 
 </section>
