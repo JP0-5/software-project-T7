@@ -138,8 +138,12 @@ function init() {
 }
 
 pixelFont.load().then(function(font) {
-  console.log('font ready');
-  document.fonts.add(font);
+    console.log('font ready');
+    document.fonts.add(font);context.font = "70px Pixelz";
+    context.fillStyle = "white";
+    context.fillText("Waiting for game", 450, 200)
+    context.fillText("lobby to fill", 550, 300)
+    context.fillText("Please wait..", 550, 400)
 });
 
 function draw() {
@@ -251,6 +255,8 @@ function draw() {
             updateP1Score();
         }
     }
+    context.fillStyle = "grey";
+    context.fillRect(canvas.width-300, 0, 300, canvas.height);
     document.getElementById("hit").onclick = function() {drawCard()};
 }
 

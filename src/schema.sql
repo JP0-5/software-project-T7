@@ -15,7 +15,8 @@ CREATE TABLE games (
     name TEXT NOT NULL,                                 -- Name of the game, given by the host
     host TEXT NOT NULL,                                 -- Player ID of the host
     start_time INTEGER NOT NULL,                        -- When the game was started (this one may or may not be needed)
-    current_turn INTEGER NOT NULL,                            -- Player ID of the player whose turn it is next
+    current_turn INTEGER NOT NULL,                      -- Player ID of the player whose turn it is next
+    players_stood INTEGER NOT NULL,                     -- Keeping count of players who are stood/ above 21
     finished INTEGER NOT NULL,                          -- Whether the game is finished or not - Boolean value (0 or 1)
     status INTEGER NOT NULL,                            -- Whether the game has started or not - 0 for not started, 1 for started
     player_count INTEGER NOT NULL,                      -- Number of players in game
@@ -24,15 +25,15 @@ CREATE TABLE games (
 
 -- Insert dummy games for testing
 INSERT INTO games
-VALUES (0, "Test Game", "-", "2026-01-31 12:39:00", "-", 0,0,0,0),
-(1, "Test Game", "-", "2026-01-31 12:39:00", "-", 0,0,0,0),
-(2, "Test Game", "-", "2026-01-31 12:39:00", "-", 0,0,0,0),
-(3, "Test Game", "-", "2026-01-31 12:39:00", "-", 0,0,0,0),
-(4, "Test Game", "-", "2026-01-31 12:39:00", "-", 0,0,0,0),
-(5, "Test Game", "-", "2026-01-31 12:39:00", "-", 0,0,0,0),
-(6, "Test Game", "-", "2026-01-31 12:39:00", "-", 0,0,0,1),
-(7, "Test Game", "-", "2026-01-31 12:39:00", "-", 0,0,0,1),
-(8, "Test Game", "-", "2026-01-31 12:39:00", "-", 0,0,0,1);
+VALUES (0, "Test Game", "-", "2026-01-31 12:39:00", "-", 0,0,0,0,0),
+(1, "Test Game", "-", "2026-01-31 12:39:00", "-", 0,0,0,0,0),
+(2, "Test Game", "-", "2026-01-31 12:39:00", "-", 0,0,0,0,0),
+(3, "Test Game", "-", "2026-01-31 12:39:00", "-", 0,0,0,0,0),
+(4, "Test Game", "-", "2026-01-31 12:39:00", "-", 0,0,0,0,0),
+(5, "Test Game", "-", "2026-01-31 12:39:00", "-", 0,0,0,0,0),
+(6, "Test Game", "-", "2026-01-31 12:39:00", "-", 0,0,0,0,1),
+(7, "Test Game", "-", "2026-01-31 12:39:00", "-", 0,0,0,0,1),
+(8, "Test Game", "-", "2026-01-31 12:39:00", "-", 0,0,0,0,1);
 
 -- Keeps track of what cards are in the deck in each game
 CREATE TABLE decks (
@@ -65,6 +66,7 @@ CREATE TABLE players (
     player_id INTEGER NOT NULL,
     socket_id INTEGER NOT NULL,                         -- Socket ID of the socket on which the player is connected to this game
     connected INTEGER NOT NULL,                         -- Whether the player is currently connected or not - Boolean value (0 or 1)
+    stood INTEGER NOT NULL,                             -- Keeping track of if the player has stood
     user TEXT,                                          -- Username if logged in - otherwise NULL
     score INTEGER NOT NULL,                             -- Players score - starts at 0
     PRIMARY KEY (game_id, player_id),
