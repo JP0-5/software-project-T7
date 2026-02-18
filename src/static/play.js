@@ -1,5 +1,8 @@
+//const playerID initialised in play.html
 let canvas;
 let context;
+let hitButton;
+let standButton;
 let request_id;
 let fpsInterval = 1000 / 60;
 let now;
@@ -30,14 +33,20 @@ let c6 = new Image(); let c7 = new Image(); let c8 = new Image(); let c9 = new I
 let c10 = new Image(); let ck = new Image(); let cq = new Image(); let cj = new Image();
 let remainingCards = 52;
 var pixelFont = new FontFace('Pixelz', 'url(/static/pixel_font.ttf)');
-let p1 = {score:0, cards:[], pfp:pfp1};
-let p2 = {score:0, cards:[], pfp:pfp2};
-let p3 = {score:0, cards:[], pfp:pfp3};
-let p4 = {score:0, cards:[], pfp:pfp4};
-let cards = [ha, h2, h3, h4, h5, h6, h7, h8, h9, h10, hk, hq, hj,
-            da, d2, d3, d4, d5, d6, d7, d8, d9, d10, dk, dq, dj,
-            sa, s2, s3, s4, s5, s6, s7, s8, s9, s10, sk, sq, sj,
-            ca, c2, c3, c4, c5, c6, c7, c8, c9, c10, ck, cq, cj]
+// let p1 = {score:0, cards:[], pfp:pfp1};
+// let p2 = {score:0, cards:[], pfp:pfp2};
+// let p3 = {score:0, cards:[], pfp:pfp3};
+// let p4 = {score:0, cards:[], pfp:pfp4};
+
+let players = {};
+let thisPlayer;
+
+let cards = {
+    "clubs": [null, ca, c2, c3, c4, c5, c6, c7, c8, c9, c10, ck, cq, cj],
+    "diamonds": [null, da, d2, d3, d4, d5, d6, d7, d8, d9, d10, dk, dq, dj],
+    "hearts": [null, ha, h2, h3, h4, h5, h6, h7, h8, h9, h10, hk, hq, hj],
+    "spades": [null, sa, s2, s3, s4, s5, s6, s7, s8, s9, s10, sk, sq, sj]
+}
 
 let connectionStatus;
 let messageInput;
@@ -49,6 +58,9 @@ const gameID = window.location.pathname.split("/").at(-1);
 document.addEventListener("DOMContentLoaded", init, false);
 
 function init() {
+    hitButton = document.getElementById("hit");
+    standButton = document.getElementById("stand");
+
     connectionStatus = document.getElementById("connectionStatus");
     messages = document.getElementById("messages");
     sendButton = document.getElementById("sendButton");
@@ -82,7 +94,7 @@ function init() {
         }
     })
 
-    socket.on("join_accepted", (playerID, socketID) => {
+    socket.on("join_accepted", (pID, socketID) => {
         if (socketID == socket.id) {
             // This client was allowed to join
             sendButton.disabled = false;
@@ -94,17 +106,29 @@ function init() {
     })
 
     // Called when another player in this game disconnects
-    socket.on("other_player_disconnect", (playerID) => {
+    socket.on("other_player_disconnect", (pID) => {
 
     })
 
-    socket.on("chat_message_from_server", (playerID, content) => {
-        messages.innerHTML += `<p>${playerID.slice(1)}: ${content}</p>`;
+    socket.on("chat_message_from_server", (pID, content) => {
+        messages.innerHTML += `<p>${pID.slice(1)}: ${content}</p>`;
     });
 
-    socket.on("gameStart", () => {
-        document.getElementById("hit").style.display = "inline";
-        document.getElementById("stand").style.display = "inline";
+    socket.on("gameStart", (game, playerList) => {
+        for (let player of playerList) {
+            players[player.player_id] = {name: player.player_id.slice(1), score: player.score, cards: [], pfp: null}
+        }
+
+        thisPlayer = players[playerID];
+
+        //temp
+        let values = Object.values(players);
+        values[0].pfp = pfp1;
+        values[1].pfp = pfp2;
+        values[2].pfp = pfp3;
+        values[3].pfp = pfp4;
+
+        enableButtons();
         draw();
     });
 
@@ -135,6 +159,9 @@ function init() {
     ], draw);
     context.fillStyle = "grey";
     context.fillRect(canvas.width-300, 0, 300, canvas.height);
+
+    hitButton.onclick = hitButtonPress;
+    standButton.onclick = standButtonPress;
 }
 
 pixelFont.load().then(function(font) {
@@ -162,87 +189,118 @@ function draw() {
     context.font = "32px Pixelz";
     context.fillStyle = "white";
     context.fillText("Remaining Cards: " + remainingCards, 25, canvas.height - 20);
+
     //draw pfps
-    context.drawImage(pfp1,
-            0, 0, pfp1.width, pfp1.height,
+    context.drawImage(thisPlayer.pfp,
+            0, 0, thisPlayer.pfp.width, thisPlayer.pfp.height,
             15, 15, 100, 100);
-    context.fillText("Player 1", 130, 45);
+    context.fillText(thisPlayer.name, 130, 45);
     context.font = "50px Pixelz";
-    if (p1.score === 21) {
+    if (thisPlayer.score === 21) {
         context.fillStyle = "green";
     }
-    else if (p1.score > 21) {
+    else if (thisPlayer.score > 21) {
         context.fillStyle = "red";
     }
     else {
         context.fillStyle = "white";
     }
-    context.fillText(p1.score, 160, 105);
-    context.fillStyle = "white";
-    context.drawImage(pfp2,
-            0, 0, pfp2.width, pfp2.height,
-            15, 130, 75, 75);
-    context.font = "27px Pixelz";
-    context.fillText("Player 2", 105, 155);
-    context.font = "35px Pixelz";
-    if (p2.score === 21) {
-        context.fillStyle = "green";
+    context.fillText(thisPlayer.score, 160, 105);
+
+    let dy = 130;
+    for (let [pID, player] of Object.entries(players)) {
+        if (pID !== playerID) {
+            context.fillStyle = "white";
+            context.drawImage(player.pfp,
+                    0, 0, player.pfp.width, player.pfp.height,
+                    15, dy, 75, 75);
+            context.font = "27px Pixelz";
+            context.fillText(player.name, 105, dy + 25);
+            context.font = "35px Pixelz";
+            if (player.score === 21) {
+                context.fillStyle = "green";
+            }
+            else if (player.score > 21) {
+                context.fillStyle = "red";
+            }
+            else {
+                context.fillStyle = "white";
+            }
+            context.fillText(player.score, 130, dy + 65);
+
+            dy += 90;
+        }
     }
-    else if (p2.score > 21) {
-        context.fillStyle = "red";
-    }
-    else {
-        context.fillStyle = "white";
-    }
-    context.fillText(p2.score, 130, 195);
-    context.fillStyle = "white";
-    context.drawImage(pfp3,
-            0, 0, pfp3.width, pfp3.height,
-            15, 220, 75, 75);
-    context.font = "27px Pixelz";
-    context.fillText("Player 3", 105, 245);
-    context.font = "35px Pixelz";
-    if (p3.score === 21) {
-        context.fillStyle = "green";
-    }
-    else if (p3.score > 21) {
-        context.fillStyle = "red";
-    }
-    else {
-        context.fillStyle = "white";
-    }
-    context.fillText(p3.score, 130, 285);
-    context.fillStyle = "white";
-    context.drawImage(pfp4,
-            0, 0, pfp4.width, pfp4.height,
-            15, 310, 75, 75);
-    context.font = "27px Pixelz";
-    context.fillText("Player 4", 105, 335);
-    context.font = "35px Pixelz";
-    if (p4.score === 21) {
-        context.fillStyle = "green";
-    }
-    else if (p4.score > 21) {
-        context.fillStyle = "red";
-    }
-    else {
-        context.fillStyle = "white";
-    }
-    context.fillText(p4.score, 130, 375);
+
+    // context.fillStyle = "white";
+    // context.drawImage(pfp2,
+    //         0, 0, pfp2.width, pfp2.height,
+    //         15, 130, 75, 75);
+    // context.font = "27px Pixelz";
+    // context.fillText("Player 2", 105, 155);
+    // context.font = "35px Pixelz";
+    // if (p2.score === 21) {
+    //     context.fillStyle = "green";
+    // }
+    // else if (p2.score > 21) {
+    //     context.fillStyle = "red";
+    // }
+    // else {
+    //     context.fillStyle = "white";
+    // }
+    // context.fillText(p2.score, 130, 195);
+
+    // context.fillStyle = "white";
+    // context.drawImage(pfp3,
+    //         0, 0, pfp3.width, pfp3.height,
+    //         15, 220, 75, 75);
+    // context.font = "27px Pixelz";
+    // context.fillText("Player 3", 105, 245);
+    // context.font = "35px Pixelz";
+    // if (p3.score === 21) {
+    //     context.fillStyle = "green";
+    // }
+    // else if (p3.score > 21) {
+    //     context.fillStyle = "red";
+    // }
+    // else {
+    //     context.fillStyle = "white";
+    // }
+    // context.fillText(p3.score, 130, 285);
+
+    // context.fillStyle = "white";
+    // context.drawImage(pfp4,
+    //         0, 0, pfp4.width, pfp4.height,
+    //         15, 310, 75, 75);
+    // context.font = "27px Pixelz";
+    // context.fillText("Player 4", 105, 335);
+    // context.font = "35px Pixelz";
+    // if (p4.score === 21) {
+    //     context.fillStyle = "green";
+    // }
+    // else if (p4.score > 21) {
+    //     context.fillStyle = "red";
+    // }
+    // else {
+    //     context.fillStyle = "white";
+    // }
+    // context.fillText(p4.score, 130, 375);
+
+
     context.fillStyle = "white";
     //draw cards
     let numCardsDrew = 0;
-    for (let card of p1.cards){
+    for (let card of thisPlayer.cards){
         context.drawImage(card,
             card.width*(5/6), 0, card.width/6, card.height,
-            ((canvas.width/2)-((card.width/6)*3)/2) - ((p1.cards.length-1)*drawDestOffset) + (numCardsDrew*drawDestOffset*2), 
+            ((canvas.width/2)-((card.width/6)*3)/2) - ((thisPlayer.cards.length-1)*drawDestOffset) + (numCardsDrew*drawDestOffset*2), 
                 canvas.height - 400, (card.width/6)*3, (card.height)*3);
         numCardsDrew += 1;
     } 
     if (cardDrawing === true) {
         context.drawImage(cardToDraw,
             cardToDraw.width*(cardToDrawFrame/6), 0, cardToDraw.width/6, cardToDraw.height,
-            100+((canvas.width/2)-100-((cardToDraw.width/6)*3)/2 - ((p1.cards.length-1)*drawDestOffset) 
+            100+((canvas.width/2)-100-((cardToDraw.width/6)*3)/2 - ((thisPlayer.cards.length-1)*drawDestOffset) 
                     + (numCardsDrew*drawDestOffset*2))*(framesInDraw/30), 
                 canvas.height - 400, (cardToDraw.width/6)*3, (cardToDraw.height)*3);
         if (framesInDraw > 0 && framesInDraw % 5 === 0) {
@@ -251,60 +309,78 @@ function draw() {
         framesInDraw += 1;
         if (framesInDraw === 30) {
             cardDrawing = false;
-            p1.cards.push(cardToDraw);
-            updateP1Score();
+            thisPlayer.cards.push(cardToDraw);
+            // updateP1Score();
         }
     }
     context.fillStyle = "grey";
     context.fillRect(canvas.width-300, 0, 300, canvas.height);
-    document.getElementById("hit").onclick = function() {drawCard()};
 }
 
-function updateP1Score() {
-    if (cardToDraw === ha || cardToDraw === da || cardToDraw === sa || cardToDraw === ca) {
-        p1.score += 1;
-    }
-    else if (cardToDraw === h2 || cardToDraw === d2 || cardToDraw === s2 || cardToDraw === c2) {
-        p1.score += 2;
-    }
-    else if (cardToDraw === h3 || cardToDraw === d3 || cardToDraw === s3 || cardToDraw === c3) {
-        p1.score += 3;
-    }
-    else if (cardToDraw === h4 || cardToDraw === d4 || cardToDraw === s4 || cardToDraw === c4) {
-        p1.score += 4;
-    }
-    else if (cardToDraw === h5 || cardToDraw === d5 || cardToDraw === s5 || cardToDraw === c5) {
-        p1.score += 5;
-    }
-    else if (cardToDraw === h6 || cardToDraw === d6 || cardToDraw === s6 || cardToDraw === c6) {
-        p1.score += 6;
-    }
-    else if (cardToDraw === h7 || cardToDraw === d7 || cardToDraw === s7 || cardToDraw === c7) {
-        p1.score += 7;
-    }
-    else if (cardToDraw === h8 || cardToDraw === d8 || cardToDraw === s8 || cardToDraw === c8) {
-        p1.score += 8;
-    }
-    else if (cardToDraw === h9 || cardToDraw === d9 || cardToDraw === s9 || cardToDraw === c9) {
-        p1.score += 9;
-    }
-    else if (cardToDraw === h10 || cardToDraw === d10 || cardToDraw === s10 || cardToDraw === c10) {
-        p1.score += 10;
-    }
-    else if (cardToDraw === hk || cardToDraw === dk || cardToDraw === sk || cardToDraw === ck) {
-        p1.score += 10;
-    }
-    else if (cardToDraw === hq || cardToDraw === dq || cardToDraw === sq || cardToDraw === cq) {
-        p1.score += 10;
-    }
-    else if (cardToDraw === hj || cardToDraw === dj || cardToDraw === sj || cardToDraw === cj) {
-        p1.score += 10;
-    }
+function enableButtons() {
+    hitButton.style.display = "inline";
+    standButton.style.display = "inline";
 }
 
-function drawCard() {
-    cardToDrawID = randint(0, 51);
-    cardToDraw = cards[cardToDrawID];
+function disableButtons() {
+    hitButton.style.display = "none";
+    standButton.style.display = "none";
+}
+
+function hitButtonPress() {
+    disableButtons();
+    socket.emit("hit");
+}
+
+function standButtonPress() {
+    disableButtons();
+    socket.emit("stand");
+}
+
+// function updateP1Score() {
+//     if (cardToDraw === ha || cardToDraw === da || cardToDraw === sa || cardToDraw === ca) {
+//         p1.score += 1;
+//     }
+//     else if (cardToDraw === h2 || cardToDraw === d2 || cardToDraw === s2 || cardToDraw === c2) {
+//         p1.score += 2;
+//     }
+//     else if (cardToDraw === h3 || cardToDraw === d3 || cardToDraw === s3 || cardToDraw === c3) {
+//         p1.score += 3;
+//     }
+//     else if (cardToDraw === h4 || cardToDraw === d4 || cardToDraw === s4 || cardToDraw === c4) {
+//         p1.score += 4;
+//     }
+//     else if (cardToDraw === h5 || cardToDraw === d5 || cardToDraw === s5 || cardToDraw === c5) {
+//         p1.score += 5;
+//     }
+//     else if (cardToDraw === h6 || cardToDraw === d6 || cardToDraw === s6 || cardToDraw === c6) {
+//         p1.score += 6;
+//     }
+//     else if (cardToDraw === h7 || cardToDraw === d7 || cardToDraw === s7 || cardToDraw === c7) {
+//         p1.score += 7;
+//     }
+//     else if (cardToDraw === h8 || cardToDraw === d8 || cardToDraw === s8 || cardToDraw === c8) {
+//         p1.score += 8;
+//     }
+//     else if (cardToDraw === h9 || cardToDraw === d9 || cardToDraw === s9 || cardToDraw === c9) {
+//         p1.score += 9;
+//     }
+//     else if (cardToDraw === h10 || cardToDraw === d10 || cardToDraw === s10 || cardToDraw === c10) {
+//         p1.score += 10;
+//     }
+//     else if (cardToDraw === hk || cardToDraw === dk || cardToDraw === sk || cardToDraw === ck) {
+//         p1.score += 10;
+//     }
+//     else if (cardToDraw === hq || cardToDraw === dq || cardToDraw === sq || cardToDraw === cq) {
+//         p1.score += 10;
+//     }
+//     else if (cardToDraw === hj || cardToDraw === dj || cardToDraw === sj || cardToDraw === cj) {
+//         p1.score += 10;
+//     }
+// }
+
+function drawCard(suit, value) {
+    cardToDraw = cards[suit][value];
     cardDrawing = true;
     framesInDraw = 0;
     cardToDrawFrame = 0;

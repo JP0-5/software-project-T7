@@ -1,4 +1,4 @@
-# NOTE: Do not use `flask run` to start the server.  
+# NOTE: Do not use `flask run` to start the server.
 # Instead, run this file and code at the end of the file will start the server.
 
 # NOTE: You may need to run the schema.sql file to setup app.db first.
@@ -220,17 +220,24 @@ def handle_join(game_id):
                     VALUES (?, ?, ?, 1, 0, ?, 0)""",
                     (game_id, player_id, request.sid, session["username"]))
         db.execute("UPDATE games SET player_count = `player_count` + 1 WHERE game_id = ?", (game_id,))
-        if game["player_count"] == 3:
-            socketio.emit("gameStart", to=game_id)
-            socketio.emit("gameStart", to=request.sid)
-            db.execute("UPDATE games SET status = 1 WHERE game_id = ?", (game_id,))
+        # If the newly updated player count is 4, the game can start
+        if game["player_count"] + 1 == 4:
+            join_room(game_id)
+            game_start(game_id, game)
     db.commit()
 
     session["sockets"][request.sid] = game_id
     session.modified = True
     join_room(game_id)
     socketio.emit("join_accepted", (player_id, request.sid), to=game_id)
-    print("Status", game["status"])
+
+def game_start(game_id, game):
+    db = get_db()
+    db.execute("UPDATE games SET status = 1 WHERE game_id = ?", (game_id,))
+    players = db.execute("SELECT * FROM players WHERE game_id = ?", (game_id,)).fetchall()
+    players_info = [dict(player) for player in players]
+
+    socketio.emit("gameStart", (dict(game), players_info), to=game_id)
 
 @socketio.on("disconnect")
 def handle_disconnect(*args):
@@ -300,22 +307,24 @@ def handle_hit():
                               ORDER BY RANDOM() LIMIT 1; """, (game_id)).fetchone()
             db.execute(""" INSERT INTO hands (?, ?, ?, ?)""", (game_id, player_id, card["value"], card["suit"]))
             db.execute(""" DELETE FROM decks WHERE (?, ?, ?) """, (game_id, card["value"], card["suit"]))
-            db.execute(""" UPDATE players SET score = `score` + (?) 
-                       WHERE game_id == (?) AND player_id == (?) """, (card["value", game_id, player_id]))
 
-            if db.execute(""" SELECT score FROM players WHERE game_id == (?) AND player_id == (?)""", (game_id, player_id)).fetchone > 21:
-                db.execute("""UPDATE players SET (stood) = (?) WHERE game_id == (?) AND player_id == (?)""", (1, game_id, player_id))
+            cardValue = card["value"] if card["value"] < 10 else 10
+            db.execute(""" UPDATE players SET score = `score` + (?) 
+                       WHERE game_id == (?) AND player_id == (?) """, (cardValue, game_id, player_id))
+
+            if db.execute(""" SELECT score FROM players WHERE game_id == (?) AND player_id == (?)""", (game_id, player_id)).fetchone()["score"] > 21:
+                db.execute("""UPDATE players SET stood = (?) WHERE game_id == (?) AND player_id == (?)""", (1, game_id, player_id))
                 
                 playersStood = db.execute(""" SELECT players_stood FROM games WHERE game_id == (?)""", (game_id)).fetchone()
-                db.execute("""UPDATE games SET (players_stood) = (?) WHERE game_id == (?)""", (playersStood + 1, game_id))
+                db.execute("""UPDATE games SET players_stood = (?) WHERE game_id == (?)""", (playersStood + 1, game_id))
 
                 if playersStood + 1 == 4:
                     game_finish()
 
-            if db.execute(""" SELECT score FROM players WHERE game_id == (?) AND player_id == (?)""", (game_id, player_id)).fetchone == 21:
+            if db.execute(""" SELECT score FROM players WHERE game_id == (?) AND player_id == (?)""", (game_id, player_id)).fetchone()["score"] == 21:
                 game_finish()
 
-            currentT = db.execute("""SELECT current_turn FROM games WHERE game_id == (?)""", (game_id))
+            currentT = db.execute("""SELECT current_turn FROM games WHERE game_id == (?)""", (game_id)).fetchone()["current_turn"]
             if currentT > 3:
                 db.execute("""UPDATE games SET (current_turn) = (?) WHERE game_id = (?) """, (currentT + 1))
             else:
