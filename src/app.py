@@ -1,4 +1,4 @@
-# NOTE: Do not use `flask run` to start the server. 
+# NOTE: Do not use `flask run` to start the server.  
 # Instead, run this file and code at the end of the file will start the server.
 
 # NOTE: You may need to run the schema.sql file to setup app.db first.
@@ -123,19 +123,15 @@ def logout():
 def classic():
     db=get_db()
     games = db.execute(''' SELECT * FROM games WHERE game_mode = 0 AND finished = 0 ORDER BY game_id ;''').fetchall()
-    games = [list(row) for row in games]
-    length=len(games)
     form=gameSearchForm()
-    return render_template("classic.html", title = "Classic BlackJack",games=games,length=length,form=form)
+    return render_template("classic.html", title = "Classic BlackJack",games=games,form=form)
 
 @app.route("/modified")
 def modified():
     db=get_db()
     games = db.execute(''' SELECT * FROM games WHERE game_mode = 1 AND finished = 0 ORDER BY game_id ;''').fetchall()
-    games = [list(row) for row in games]
-    length=len(games)
     form=gameSearchForm()
-    return render_template("modified.html", title = "Modified BlackJack",games=games,length=length,form=form)
+    return render_template("modified.html", title = "Modified BlackJack",games=games,form=form)
 
 
 @app.route("/play/<game_id>")
@@ -220,8 +216,8 @@ def handle_join(game_id):
             return
         
         db.execute("""
-                    INSERT INTO players (game_id, player_id, socket_id, connected, user, score)
-                    VALUES (?, ?, ?, 1, ?, 0)""",
+                    INSERT INTO players (game_id, player_id, socket_id, connected, stood, user, score)
+                    VALUES (?, ?, ?, 1, 0, ?, 0)""",
                     (game_id, player_id, request.sid, session["username"]))
         db.execute("UPDATE games SET player_count = `player_count` + 1 WHERE game_id = ?", (game_id,))
         if game["player_count"] == 3:

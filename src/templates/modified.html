@@ -13,12 +13,12 @@
 <section id = "classic_games">
 
 
-{% for i in range(length) %}
+{% for game in games %}
 <section id ="game_entry">
-<p>Game ID: {{games[i][0]}} </p>
-<p>{{games[i][1]}} </p>
-<p>Players: {{games[i][7]}}/4</p>
-<a href="{{ url_for('play',game_id= games[i][0] )}}">Join Game</a>
+<p>Game ID: {{game["game_id"]}} </p>
+<p>{{game["name"]}} </p>
+<p>Players: {{game["player_count"]}}/4</p>
+<a href="{{ url_for('play',game_id=game['game_id'] )}}">Join Game</a>
 
 </section>
 {% endfor %}
