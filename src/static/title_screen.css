@@ -115,8 +115,9 @@ header .reg_nav{
     width:12em;
     text-decoration: none;
     color:yellow;
-    font-family: Arial, Helvetica, sans-serif;border-style: solid; padding:0.3em;
+    font-family: Pixelated, Arial, Helvetica, sans-serif;border-style: solid; padding:0.3em;
     font-size: 1.8rem;border-color:black;border-radius:2em;border-width:0.15em;font-weight: bold;
+    letter-spacing: 2px;
 }
 
 #signup>h1{
@@ -305,7 +306,9 @@ color:yellow}
 #home_button{margin-right:auto;}
 
 .reg_nav,
-.reg_nav--wrapper {
+.reg_nav--wrapper, 
+.modes > a,
+.modes > a--wrapper{
   clip-path: polygon(0px calc(100% - 20px),
     4px calc(100% - 20px),
     4px calc(100% - 12px),
@@ -344,14 +347,17 @@ color:yellow}
     0px 20px);
   position: relative;
 }
-.reg_nav {
+.reg_nav, 
+.modes > a {
   border: 8px solid transparent;
 }
-.reg_nav--wrapper {
+.reg_nav--wrapper, 
+.modes > a--wrapper {
   width: fit-content;
   height: fit-content;
 }
-.reg_nav--wrapper .reg_nav {
+.reg_nav--wrapper .reg_nav,
+.modes > a--wrapper .modes > a{
   display: block;
   clip-path: polygon(8px 24px,
     12px 24px,
@@ -383,7 +389,9 @@ color:yellow}
     8px calc(100% - 24px));
 }
 .reg_nav::after,
-.reg_nav--wrapper::after {
+.reg_nav--wrapper::after,
+.modes > a::after,
+.modes > a--wrapper::after {
   content: "";
   position: absolute;
   clip-path: polygon(0px calc(100% - 20px),
@@ -462,7 +470,8 @@ color:yellow}
   display: block;
   pointer-events: none;
 }
-.reg_nav::after {
+.reg_nav::after,
+.modes > a::after {
   margin: -8px;
 }
 
