@@ -33,10 +33,6 @@ let c6 = new Image(); let c7 = new Image(); let c8 = new Image(); let c9 = new I
 let c10 = new Image(); let ck = new Image(); let cq = new Image(); let cj = new Image();
 let remainingCards = 52;
 var pixelFont = new FontFace('Pixelz', 'url(/static/pixel_font.ttf)');
-// let p1 = {score:0, cards:[], pfp:pfp1};
-// let p2 = {score:0, cards:[], pfp:pfp2};
-// let p3 = {score:0, cards:[], pfp:pfp3};
-// let p4 = {score:0, cards:[], pfp:pfp4};
 
 let players = {};
 let thisPlayer;
@@ -232,61 +228,6 @@ function draw() {
         }
     }
 
-    // context.fillStyle = "white";
-    // context.drawImage(pfp2,
-    //         0, 0, pfp2.width, pfp2.height,
-    //         15, 130, 75, 75);
-    // context.font = "27px Pixelz";
-    // context.fillText("Player 2", 105, 155);
-    // context.font = "35px Pixelz";
-    // if (p2.score === 21) {
-    //     context.fillStyle = "green";
-    // }
-    // else if (p2.score > 21) {
-    //     context.fillStyle = "red";
-    // }
-    // else {
-    //     context.fillStyle = "white";
-    // }
-    // context.fillText(p2.score, 130, 195);
-
-    // context.fillStyle = "white";
-    // context.drawImage(pfp3,
-    //         0, 0, pfp3.width, pfp3.height,
-    //         15, 220, 75, 75);
-    // context.font = "27px Pixelz";
-    // context.fillText("Player 3", 105, 245);
-    // context.font = "35px Pixelz";
-    // if (p3.score === 21) {
-    //     context.fillStyle = "green";
-    // }
-    // else if (p3.score > 21) {
-    //     context.fillStyle = "red";
-    // }
-    // else {
-    //     context.fillStyle = "white";
-    // }
-    // context.fillText(p3.score, 130, 285);
-
-    // context.fillStyle = "white";
-    // context.drawImage(pfp4,
-    //         0, 0, pfp4.width, pfp4.height,
-    //         15, 310, 75, 75);
-    // context.font = "27px Pixelz";
-    // context.fillText("Player 4", 105, 335);
-    // context.font = "35px Pixelz";
-    // if (p4.score === 21) {
-    //     context.fillStyle = "green";
-    // }
-    // else if (p4.score > 21) {
-    //     context.fillStyle = "red";
-    // }
-    // else {
-    //     context.fillStyle = "white";
-    // }
-    // context.fillText(p4.score, 130, 375);
-
-
     context.fillStyle = "white";
     //draw cards
     let numCardsDrew = 0;
@@ -336,48 +277,6 @@ function standButtonPress() {
     disableButtons();
     socket.emit("stand");
 }
-
-// function updateP1Score() {
-//     if (cardToDraw === ha || cardToDraw === da || cardToDraw === sa || cardToDraw === ca) {
-//         p1.score += 1;
-//     }
-//     else if (cardToDraw === h2 || cardToDraw === d2 || cardToDraw === s2 || cardToDraw === c2) {
-//         p1.score += 2;
-//     }
-//     else if (cardToDraw === h3 || cardToDraw === d3 || cardToDraw === s3 || cardToDraw === c3) {
-//         p1.score += 3;
-//     }
-//     else if (cardToDraw === h4 || cardToDraw === d4 || cardToDraw === s4 || cardToDraw === c4) {
-//         p1.score += 4;
-//     }
-//     else if (cardToDraw === h5 || cardToDraw === d5 || cardToDraw === s5 || cardToDraw === c5) {
-//         p1.score += 5;
-//     }
-//     else if (cardToDraw === h6 || cardToDraw === d6 || cardToDraw === s6 || cardToDraw === c6) {
-//         p1.score += 6;
-//     }
-//     else if (cardToDraw === h7 || cardToDraw === d7 || cardToDraw === s7 || cardToDraw === c7) {
-//         p1.score += 7;
-//     }
-//     else if (cardToDraw === h8 || cardToDraw === d8 || cardToDraw === s8 || cardToDraw === c8) {
-//         p1.score += 8;
-//     }
-//     else if (cardToDraw === h9 || cardToDraw === d9 || cardToDraw === s9 || cardToDraw === c9) {
-//         p1.score += 9;
-//     }
-//     else if (cardToDraw === h10 || cardToDraw === d10 || cardToDraw === s10 || cardToDraw === c10) {
-//         p1.score += 10;
-//     }
-//     else if (cardToDraw === hk || cardToDraw === dk || cardToDraw === sk || cardToDraw === ck) {
-//         p1.score += 10;
-//     }
-//     else if (cardToDraw === hq || cardToDraw === dq || cardToDraw === sq || cardToDraw === cq) {
-//         p1.score += 10;
-//     }
-//     else if (cardToDraw === hj || cardToDraw === dj || cardToDraw === sj || cardToDraw === cj) {
-//         p1.score += 10;
-//     }
-// }
 
 function drawCard(suit, value) {
     cardToDraw = cards[suit][value];
