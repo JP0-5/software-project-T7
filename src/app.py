@@ -224,14 +224,16 @@ def handle_join(game_id):
                     VALUES (?, ?, ?, 1, ?, 0)""",
                     (game_id, player_id, request.sid, session["username"]))
         db.execute("UPDATE games SET player_count = `player_count` + 1 WHERE game_id = ?", (game_id,))
-        if game["player_count"] == 3:
-            socketio.emit("gameStart", to=game_id)   
+        socketio.emit("gameStart", to=game_id)
+        socketio.emit("gameStart", to=request.sid)
+        db.execute("UPDATE games SET status = 1 WHERE game_id = ?", (game_id,))
     db.commit()
 
     session["sockets"][request.sid] = game_id
     session.modified = True
     join_room(game_id)
     socketio.emit("join_accepted", (player_id, request.sid), to=game_id)
+    print("Status", game["status"])
 
 @socketio.on("disconnect")
 def handle_disconnect(*args):
