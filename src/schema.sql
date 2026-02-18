@@ -121,3 +121,6 @@ CREATE TABLE invites (
     FOREIGN KEY (game_id) REFERENCES games(game_id),
     FOREIGN KEY (invitee) REFERENCES users(user)
 );
+
+CREATE INDEX user_invites
+ON invites(invitee);

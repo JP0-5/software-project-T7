@@ -153,7 +153,7 @@ def create():
 
     if form.validate_on_submit():
         player_id = session["player_id"]
-        t = datetime.strftime(datetime.now(), "%d-%m-%Y %H:%M:%S")
+        t = datetime.strftime(datetime.now(), "%Y-%m-%d %H:%M:%S")
         db = get_db()
 
         with game_id_lock:
@@ -185,6 +185,10 @@ def enter_code():
         return redirect(url_for("play", game_id=form.code.data))
 
     return render_template("enter_code.html", form=form, title="BlackJack Fever")
+
+@app.route("/inbox")
+def inbox():
+    return render_template("inbox.html", title="BlackJack Fever")
 
 @app.route("/play/<game_id>")
 def play(game_id):
