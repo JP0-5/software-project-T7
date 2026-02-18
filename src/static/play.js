@@ -45,6 +45,7 @@ let cards = {
 }
 
 let connectionStatus;
+let currentTurnIndicator;
 let messageInput;
 let sendButton;
 let messages;
@@ -58,6 +59,7 @@ function init() {
     standButton = document.getElementById("stand");
 
     connectionStatus = document.getElementById("connectionStatus");
+    currentTurnIndicator = document.getElementById("currentTurn");
     messages = document.getElementById("messages");
     sendButton = document.getElementById("sendButton");
     sendButton.addEventListener("click", sendMessage, false);
@@ -118,13 +120,18 @@ function init() {
         thisPlayer = players[playerID];
 
         //temp
-        let values = Object.values(players);
+        const values = Object.values(players);
         values[0].pfp = pfp1;
         values[1].pfp = pfp2;
         values[2].pfp = pfp3;
         values[3].pfp = pfp4;
 
-        enableButtons();
+        const currentTurn = playerList[game.current_turn].player_id;
+        currentTurnIndicator.innerHTML = currentTurn.slice(1);
+
+        if (currentTurn === playerID) {
+            enableButtons();
+        }
         draw();
     });
 

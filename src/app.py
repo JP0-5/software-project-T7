@@ -1,4 +1,4 @@
-# NOTE: Do not use `flask run` to start the server.
+# NOTE: Do not use `flask run` to start the server. 
 # Instead, run this file and code at the end of the file will start the server.
 
 # NOTE: You may need to run the schema.sql file to setup app.db first.
@@ -299,7 +299,7 @@ def handle_hit():
 
     if game_id is not None:
         db = get_db()
-        currentT = db.execute("""SELECT current_turn FROM games WHERE game_id == (?)""", (game_id)).fetchone()
+        currentT = db.execute("""SELECT current_turn FROM games WHERE game_id == (?)""", (game_id)).fetchone()["current_turn"]
         playersTurn = db.execute(""" SELECT player_id FROM players WHERE game_id == (?)""", (game_id)).fetchall()
 
         if player_id == playersTurn[currentT]["player_id"]:
@@ -340,7 +340,7 @@ def handle_stand():
 
     if game_id is not None:
         db = get_db()
-        currentT = db.execute("""SELECT current_turn FROM games WHERE game_id == (?)""", (game_id)).fetchone()
+        currentT = db.execute("""SELECT current_turn FROM games WHERE game_id == (?)""", (game_id)).fetchone()["current_turn"]
         playersTurn = db.execute(""" SELECT player_id FROM players WHERE game_id == (?)""", (game_id)).fetchall()
 
         if player_id == playersTurn[currentT]["player_id"]:
