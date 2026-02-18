@@ -188,7 +188,13 @@ def enter_code():
 
 @app.route("/inbox")
 def inbox():
-    return render_template("inbox.html", title="BlackJack Fever")
+    db = get_db()
+    invites = db.execute("""
+                            SELECT *
+                            FROM invites JOIN games
+                            ON games.game_id = invites.game_id
+                            WHERE invitee = ?""", (g.user,)).fetchall()
+    return render_template("inbox.html", invites=invites, title="BlackJack Fever")
 
 @app.route("/play/<game_id>")
 def play(game_id):

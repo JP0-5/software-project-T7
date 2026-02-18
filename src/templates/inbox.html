@@ -3,7 +3,17 @@
 
 <section id = "inbox">
 
+{% for invite in invites %}
 
+<section class="game_entry" style="display: flex;">
+    <p>{{ invite["game_id"] }}</p>
+    <p>{{ invite["host"][1:] }}</p>
+    <p>{{ invite["message"] }}</p>
+    <p>{{ invite["time"] }}</p>
+    <p><a href="{{ url_for('play', game_id=invite['game_id']) }}">Join</a></p>
+</section>
+
+{% endfor %}
 
 </section>
 {% endblock %}
