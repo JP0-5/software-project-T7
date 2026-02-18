@@ -102,6 +102,10 @@ function init() {
         messages.innerHTML += `<p>${playerID.slice(1)}: ${content}</p>`;
     });
 
+    socket.on("gameStart", () => {
+        draw();
+    });
+
     canvas = document.querySelector("canvas");
     context = canvas.getContext("2d");
     load_assets([
@@ -304,9 +308,9 @@ function load_assets(assets, callback) {
     let loaded = function () {
         console.log("loaded");
         num_assets = num_assets - 1;
-        if (num_assets === 0) {
-            callback();
-        }
+//        if (num_assets === 0) {
+//            callback();
+//        }
     }
     for (let asset of assets) {
         let element = asset.var;

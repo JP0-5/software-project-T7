@@ -224,6 +224,8 @@ def handle_join(game_id):
                     VALUES (?, ?, ?, 1, ?, 0)""",
                     (game_id, player_id, request.sid, session["username"]))
         db.execute("UPDATE games SET player_count = `player_count` + 1 WHERE game_id = ?", (game_id,))
+        if game["player_count"] == 3:
+            socketio.emit("gameStart", to=game_id)   
     db.commit()
 
     session["sockets"][request.sid] = game_id
@@ -291,26 +293,33 @@ def handle_start():
 
     if game_id is not None:
         db = get_db()
-        players = [db.execute("""SELECT player_id FROM games WHERE game_id == (?)""", (game_id))]
-        # Trying to get order of players for turns - Jordan     
+
 
 @socketio.on("hit")
-def handle_hit(cardN, cardS): # Card Number and suit, my plan is for these to be taken from the JS code - Jordan
+def handle_hit(): 
     game_id = session["sockets"].get(request.sid, None)
     player_id = session["player_id"]
 
     if game_id is not None:
         db = get_db()
-        db.execute("""
-                    INSERT INTO hands (game_id, player_id, value, suit)
-                    VALUES (?, ?, ?, ?)""",
-                    (game_id, player_id, cardN, cardS))
-        db.execute("""
-                    DELETE FROM decks WHERE (game_id, value, suit) == ( ?, ?, ?)""",
-                    (game_id, cardN, cardS))
-        db.commit()
+        currentT = db.execute("""SELECT current_turn FROM games WHERE game_id == (?)""", (game_id)).fetchone()
+        playersTurn = db.execute(""" SELECT player_id FROM players WHERE game_id == (?)""", (game_id)).fetchall()
 
-# I've tried a few things back and forth with this but what I was in the middle of doing before I left was just updating the game state to go to the next players turn - Jordan
+        if player_id == playersTurn[currentT]["player_id"]:
+            card = db.execute(""" SELECT * FROM decks WHERE game_id == (?)
+                              ORDER BY RANDOM LIMIT = 1; """, (game_id)).fetchone()
+            db.execute(""" INSERT INTO hands (?, ?, ?, ?)""", (game_id, player_id, card["value"], card["suit"]))
+            db.execute(""" DELETE FROM decks WHERE (?, ?, ?) """, (game_id, card["value"], card["suit"]))
+
+            currentT = db.execute("""SELECT current_turn FROM games WHERE game_id == (?)""", (game_id))
+            if currentT > 3:
+                db.execute("""UPDATE games SET (current_turn) = (?) WHERE game_id = (?) """, (currentT + 1))
+            else:
+                currentT = 0
+                db.execute("""UPDATE games SET (current_turn) = (?) WHERE game_id = (?) """, (currentT))
+
+            db.commit()
+
 @socketio.on("stand")
 def handle_stand():
     game_id = session["sockets"].get(request.sid, None)
@@ -318,8 +327,16 @@ def handle_stand():
 
     if game_id is not None:
         db = get_db()
-        db.execute("""UPDATE games SET (current_turn, next_turn) = (?, ?) WHERE game_id = (?) """, ()) # In progress
-        db.commit()
+        currentT = db.execute("""SELECT current_turn FROM games WHERE game_id == (?)""", (game_id)).fetchone()
+        playersTurn = db.execute(""" SELECT player_id FROM players WHERE game_id == (?)""", (game_id)).fetchall()
+
+        if player_id == playersTurn[currentT]["player_id"]:
+            if currentT > 3:
+                db.execute("""UPDATE games SET (current_turn) = (?) WHERE game_id = (?) """, (currentT + 1))
+            else:
+                currentT = 0
+                db.execute("""UPDATE games SET (current_turn) = (?) WHERE game_id = (?) """, (currentT))
+            db.commit()
 
 # Run the server locally
 if __name__ == "__main__":
