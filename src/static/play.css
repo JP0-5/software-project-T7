@@ -15,12 +15,14 @@ canvas{
     z-index: -1;
 }
 #hit{
+    display: none;
     position: fixed;
     width: 201px;
     bottom: 30px;
     left: 500px;
 }
 #stand{
+    display: none;
     position: fixed;
     width: 201px;
     bottom: 30px;

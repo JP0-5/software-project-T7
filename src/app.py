@@ -1,4 +1,4 @@
-# NOTE: Do not use `flask run` to start the server.
+# NOTE: Do not use `flask run` to start the server. 
 # Instead, run this file and code at the end of the file will start the server.
 
 # NOTE: You may need to run the schema.sql file to setup app.db first.
@@ -224,9 +224,10 @@ def handle_join(game_id):
                     VALUES (?, ?, ?, 1, ?, 0)""",
                     (game_id, player_id, request.sid, session["username"]))
         db.execute("UPDATE games SET player_count = `player_count` + 1 WHERE game_id = ?", (game_id,))
-        socketio.emit("gameStart", to=game_id)
-        socketio.emit("gameStart", to=request.sid)
-        db.execute("UPDATE games SET status = 1 WHERE game_id = ?", (game_id,))
+        if game["player_count"] == 3:
+            socketio.emit("gameStart", to=game_id)
+            socketio.emit("gameStart", to=request.sid)
+            db.execute("UPDATE games SET status = 1 WHERE game_id = ?", (game_id,))
     db.commit()
 
     session["sockets"][request.sid] = game_id

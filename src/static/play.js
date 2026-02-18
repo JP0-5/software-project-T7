@@ -103,6 +103,8 @@ function init() {
     });
 
     socket.on("gameStart", () => {
+        document.getElementById("hit").style.display = "inline";
+        document.getElementById("stand").style.display = "inline";
         draw();
     });
 
@@ -131,6 +133,8 @@ function init() {
         { "var": c10, "url": "/static/cards/10C.png" }, { "var": ck, "url": "/static/cards/KC.png" }, { "var": cq, "url": "/static/cards/QC.png" },
         { "var": cj, "url": "/static/cards/JC.png" }
     ], draw);
+    context.fillStyle = "grey";
+    context.fillRect(canvas.width-300, 0, 300, canvas.height);
 }
 
 pixelFont.load().then(function(font) {
@@ -247,8 +251,6 @@ function draw() {
             updateP1Score();
         }
     }
-    context.fillStyle = "grey";
-    context.fillRect(canvas.width-300, 0, 300, canvas.height);
     document.getElementById("hit").onclick = function() {drawCard()};
 }
 
