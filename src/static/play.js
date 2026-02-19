@@ -31,7 +31,7 @@ let sk = new Image(); let sq = new Image(); let sj = new Image(); let ca = new I
 let c2 = new Image(); let c3 = new Image(); let c4 = new Image(); let c5 = new Image();
 let c6 = new Image(); let c7 = new Image(); let c8 = new Image(); let c9 = new Image();
 let c10 = new Image(); let ck = new Image(); let cq = new Image(); let cj = new Image();
-let remainingCards = 52;
+let remainingCards;
 var pixelFont = new FontFace('Pixelz', 'url(/static/pixel_font.ttf)');
 
 let players = {};
@@ -112,28 +112,30 @@ function init() {
         messages.innerHTML += `<p>${pID.slice(1)}: ${content}</p>`;
     });
 
-    socket.on("gameStart", (game, playerList) => {
-        for (let player of playerList) {
-            players[player.player_id] = {name: player.player_id.slice(1), score: player.score, cards: [], pfp: null}
-        }
+    socket.on("game_start", (game, playerList) => {
+        startGame(game, playerList, 52, null);
+    });
 
-        thisPlayer = players[playerID];
-
-        //temp
-        const values = Object.values(players);
-        values[0].pfp = pfp1;
-        values[1].pfp = pfp2;
-        values[2].pfp = pfp3;
-        values[3].pfp = pfp4;
-
+    socket.on("game_update", (game, playerList, cardTaken) => {
         const currentTurn = playerList[game.current_turn].player_id;
         currentTurnIndicator.innerHTML = currentTurn.slice(1);
 
         if (currentTurn === playerID) {
             enableButtons();
         }
-        draw();
-    });
+
+        for (let player of playerList) {
+            players[player.player_id].score = player.score;
+        }
+
+        //cardTaken is a triple of (player id, value, suit)
+        if (cardTaken != null) {
+            remainingCards -= 1;
+            if (cardTaken[0] === playerID) {
+                drawCard(cardTaken[1], cardTaken[2])
+            }
+        }
+    })
 
     canvas = document.querySelector("canvas");
     context = canvas.getContext("2d");
@@ -175,6 +177,38 @@ pixelFont.load().then(function(font) {
     context.fillText("lobby to fill", 550, 300)
     context.fillText("Please wait..", 550, 400)
 });
+
+function startGame(game, playerList, cardsRemaining, hands) {
+    remainingCards = cardsRemaining;
+
+    for (let player of playerList) {
+        players[player.player_id] = {name: player.player_id.slice(1), score: player.score, cards: [], pfp: null}
+    }
+
+    // We can set this up later to be used if a player goes onto the page after the game has alread started (e.g. if they reload the page)
+    if (hands != null) {
+        for (let card of hands) {
+            players[card.player_id].cards.push(cards[card.suit][card.value]);
+        }
+    }
+
+    thisPlayer = players[playerID];
+
+    //temp
+    const values = Object.values(players);
+    values[0].pfp = pfp1;
+    values[1].pfp = pfp2;
+    values[2].pfp = pfp3;
+    values[3].pfp = pfp4;
+
+    const currentTurn = playerList[game.current_turn].player_id;
+    currentTurnIndicator.innerHTML = currentTurn.slice(1);
+
+    if (currentTurn === playerID) {
+        enableButtons();
+    }
+    draw();
+}
 
 function draw() {
     request_id = window.requestAnimationFrame(draw);
@@ -285,12 +319,12 @@ function standButtonPress() {
     socket.emit("stand");
 }
 
-function drawCard(suit, value) {
+function drawCard(value, suit) {
     cardToDraw = cards[suit][value];
     cardDrawing = true;
     framesInDraw = 0;
     cardToDrawFrame = 0;
-    remainingCards -= 1;
+    // remainingCards -= 1;
 }
 
 function load_assets(assets, callback) {
