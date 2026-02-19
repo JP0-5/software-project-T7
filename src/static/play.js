@@ -92,8 +92,8 @@ function init() {
         }
     })
 
-    socket.on("join_accepted", (pID, socketID) => {
-        if (socketID == socket.id) {
+    socket.on("join_accepted", (pID) => {
+        if (pID === playerID) {
             // This client was allowed to join
             sendButton.disabled = false;
             connectionStatus.innerHTML = "Connected";
