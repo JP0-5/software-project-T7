@@ -1,4 +1,4 @@
-# NOTE: Do not use `flask run` to start the server.  
+# NOTE: Do not use `flask run` to start the server.
 # Instead, run this file and code at the end of the file will start the server.
 
 # NOTE: You may need to run the schema.sql file to setup app.db first.
@@ -25,6 +25,63 @@ app.teardown_appcontext(close_db)
 Session(app)
 
 socketio = SocketIO(app, async_mode="gevent", cors_allowed_origins="*", logger=True, engineio_logger=True, ping_timeout=5)
+
+deck_creation_statement = """
+INSERT INTO decks
+VALUES
+(X, 1, "clubs"),
+(X, 2, "clubs"),
+(X, 3, "clubs"),
+(X, 4, "clubs"),
+(X, 5, "clubs"),
+(X, 6, "clubs"),
+(X, 7, "clubs"),
+(X, 8, "clubs"),
+(X, 9, "clubs"),
+(X, 10, "clubs"),
+(X, 11, "clubs"),
+(X, 12, "clubs"),
+(X, 13, "clubs"),
+(X, 1, "diamonds"),
+(X, 2, "diamonds"),
+(X, 3, "diamonds"),
+(X, 4, "diamonds"),
+(X, 5, "diamonds"),
+(X, 6, "diamonds"),
+(X, 7, "diamonds"),
+(X, 8, "diamonds"),
+(X, 9, "diamonds"),
+(X, 10, "diamonds"),
+(X, 11, "diamonds"),
+(X, 12, "diamonds"),
+(X, 13, "diamonds"),
+(X, 1, "hearts"),
+(X, 2, "hearts"),
+(X, 3, "hearts"),
+(X, 4, "hearts"),
+(X, 5, "hearts"),
+(X, 6, "hearts"),
+(X, 7, "hearts"),
+(X, 8, "hearts"),
+(X, 9, "hearts"),
+(X, 10, "hearts"),
+(X, 11, "hearts"),
+(X, 12, "hearts"),
+(X, 13, "hearts"),
+(X, 1, "spades"),
+(X, 2, "spades"),
+(X, 3, "spades"),
+(X, 4, "spades"),
+(X, 5, "spades"),
+(X, 6, "spades"),
+(X, 7, "spades"),
+(X, 8, "spades"),
+(X, 9, "spades"),
+(X, 10, "spades"),
+(X, 11, "spades"),
+(X, 12, "spades"),
+(X, 13, "spades");
+"""
 
 # Locks to used to ensure guest IDs and game IDs are always unique
 guest_id_lock = BoundedSemaphore()
@@ -167,6 +224,7 @@ def create():
                    INSERT INTO games (game_id, public, host, start_time, next_turn, finished, status, player_count, allowed_players, game_mode)
                    VALUES (?, ?, ?, ?, ?, 0, 0, 0, 4, ?)
                    """, (game_id, form.visibility.data, player_id, t, player_id, form.game_mode.data))
+        db.execute(deck_creation_statement.replace("X", str(game_id)))
         db.commit()
 
         if form.visibility.data == "1":
