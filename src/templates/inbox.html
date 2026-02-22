@@ -1,19 +1,12 @@
 {% extends 'base.html' %}
 {% block main_content %}
 
-<section id = "inbox">
+<h1 id="game_title">Inbox</h1>
 
-{% for invite in invites %}
+<section id = "games_box">
 
-<section class="game_entry" style="display: flex;">
-    <p>{{ invite["game_id"] }}</p>
-    <p>{{ invite["host"][1:] }}</p>
-    <p>{{ invite["message"] }}</p>
-    <p>{{ invite["time"] }}</p>
-    <p><a href="{{ url_for('play', game_id=invite['game_id']) }}">Join</a></p>
-</section>
-
-{% endfor %}
+{% include "invite_list.html" %}
 
 </section>
+
 {% endblock %}

@@ -1,0 +1,16 @@
+<section id = "games_list">
+
+{% for game in invites %}
+
+<section class="invite">
+
+{% include "game_entry.html" %}
+
+<p>{{ game["message"] }}</p>
+<p><i>From <b>{{ game["host"][1:] }}</b> at {{ datetime.strftime(datetime.strptime(game["time"], "%Y-%m-%d %H:%M:%S"), "%H:%M on %d %B %Y") }}</i></p>
+
+</section>
+
+{% endfor %}
+
+</section>

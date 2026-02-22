@@ -116,7 +116,7 @@ def login_required(view):
     @wraps(view)
     def wrapped_view(*args, **kwargs):
         if g.user is None:
-            return redirect( url_for("login", next=request.url) )
+            return redirect( url_for("log_in", next=request.url) )
         return view(*args, **kwargs)
     return wrapped_view
 
@@ -209,29 +209,43 @@ def create():
     form = CreateGameForm()
 
     if form.validate_on_submit():
-        player_id = session["player_id"]
-        t = datetime.strftime(datetime.now(), "%Y-%m-%d %H:%M:%S")
+        invited_users = [user for user in form.invites.data if user]
+
         db = get_db()
+        # user_entries = db.execute("SELECT * FROM users WHERE user IN ?;", (str(tuple(invited_users)),).fetchall()
+        if invited_users:
+            user_entries_query = "SELECT * FROM users WHERE user IN (" + ("?," * (len(invited_users)-1)) + "?);"
+            user_entries = db.execute(user_entries_query, tuple(invited_users)).fetchall()
+        else:
+            user_entries = []
 
-        with game_id_lock:
-            while True:
-                game_id = randint(10000, 99999)
-                conflict_game = db.execute("SELECT * FROM games WHERE game_id = ?", (game_id,)).fetchone()
-                if conflict_game is None:
-                    break
+        if len(user_entries) < len(invited_users):
+            form.invites.errors.append("Some usernames do not exist or have been entered multiple times")
+        else:
+            player_id = session["player_id"]
+            t = datetime.strftime(datetime.now(), "%Y-%m-%d %H:%M:%S")
 
-        db.execute("""
-                   INSERT INTO games (game_id, public, host, start_time, next_turn, finished, status, player_count, allowed_players, game_mode)
-                   VALUES (?, ?, ?, ?, ?, 0, 0, 0, 4, ?)
-                   """, (game_id, form.visibility.data, player_id, t, player_id, form.game_mode.data))
-        db.execute(deck_creation_statement.replace("X", str(game_id)))
-        db.commit()
+            with game_id_lock:
+                while True:
+                    game_id = randint(10000, 99999)
+                    conflict_game = db.execute("SELECT * FROM games WHERE game_id = ?", (game_id,)).fetchone()
+                    if conflict_game is None:
+                        break
 
-        if form.visibility.data == "1":
-            game = db.execute("SELECT * FROM games WHERE game_id = ?", (game_id,)).fetchone()
-            socketio.emit("new_public_game", render_template("game_entry.html", game=game), to="game_list")
+            db.execute("""
+                    INSERT INTO games (game_id, public, host, start_time, next_turn, finished, status, player_count, allowed_players, game_mode)
+                    VALUES (?, ?, ?, ?, ?, 0, 0, 0, 4, ?)
+                    """, (game_id, form.visibility.data, player_id, t, player_id, form.game_mode.data))
+            db.execute(deck_creation_statement.replace("X", str(game_id)))
+            for user in invited_users:
+                db.execute("INSERT INTO invites (game_id, invitee, time, message) VALUES (?, ?, ?, ?)", (game_id, user, t, form.invite_message.data))
+            db.commit()
 
-        return redirect(url_for("play", game_id=game_id))
+            if form.visibility.data == "1":
+                game = db.execute("SELECT * FROM games WHERE game_id = ?", (game_id,)).fetchone()
+                socketio.emit("new_public_game", render_template("game_entry.html", game=game), to="game_list")
+
+            return redirect(url_for("play", game_id=game_id))
 
     return render_template("create.html", form=form, title="BlackJack Fever")
 
@@ -245,14 +259,32 @@ def enter_code():
     return render_template("enter_code.html", form=form, title="BlackJack Fever")
 
 @app.route("/inbox")
+@login_required
 def inbox():
     db = get_db()
     invites = db.execute("""
                             SELECT *
                             FROM invites JOIN games
                             ON games.game_id = invites.game_id
-                            WHERE invitee = ?""", (g.user,)).fetchall()
-    return render_template("inbox.html", invites=invites, title="BlackJack Fever")
+                            WHERE invitee = ?
+                            AND finished = 0
+                            AND player_count < allowed_players
+                            ORDER BY time DESC""", (g.user,)).fetchall()
+    return render_template("inbox.html", invites=invites, datetime=datetime, title="BlackJack Fever", scripts=[url_for("static", filename="inbox.js")])
+
+@app.route("/invite_list")
+@login_required
+def invite_list():
+    db = get_db()
+    invites = db.execute("""
+                            SELECT *
+                            FROM invites JOIN games
+                            ON games.game_id = invites.game_id
+                            WHERE invitee = ?
+                            AND finished = 0
+                            AND player_count < allowed_players
+                            ORDER BY time DESC""", (g.user,)).fetchall()
+    return render_template("invite_list.html", invites=invites, datetime=datetime)
 
 @app.route("/play/<game_id>")
 def play(game_id):

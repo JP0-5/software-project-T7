@@ -183,11 +183,11 @@ header .reg_nav{
     
 }
 .game_entry{
-    display: none;
+    display: flex;
+    /* display: none; */
     justify-content: center;
     text-align: center;
     align-items: center;
-    /* display: flex; */
     color:yellow;
     gap:3em;
     background-color: red;
@@ -240,3 +240,14 @@ color:yellow}
 }
 
 #home_button{margin-right:auto;}
+
+.invite {
+    padding: 1em;
+    border-style: solid;
+    border-color:black;
+    border-radius:3px;
+}
+
+.invite > p {
+    font-size: 0.8em;
+}

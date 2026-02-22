@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import SelectField,StringField,PasswordField,IntegerField,SubmitField,DecimalField,TextAreaField,validators,BooleanField,RadioField
+from wtforms import SelectField,StringField,PasswordField,IntegerField,SubmitField,DecimalField,TextAreaField,validators,BooleanField,RadioField,FieldList
 from wtforms.validators import InputRequired, EqualTo, NumberRange,optional,DataRequired
 
 class RegistrationForm(FlaskForm):
@@ -21,6 +21,8 @@ class LoginForm(FlaskForm):
 class CreateGameForm(FlaskForm):
     visibility = SelectField("Visibility", choices=[(1, "Public"), (0, "Private")])
     game_mode = SelectField("Game Mode", choices=[(0, "Classic"), (1, "Modified")])
+    invites = FieldList(StringField(), "Users to invite (optional)", min_entries=4)
+    invite_message = StringField("Invite message (optional)")
     submit = SubmitField("Create")
 
 class EnterCodeForm(FlaskForm):

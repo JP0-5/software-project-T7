@@ -28,8 +28,29 @@
             {% endfor %}
         </p>
 
+        <p id="label">{{ form.invites.label }}</p>
 
-        {{ form.submit() }}
+        {% for invite in form.invites %}
+            {{ invite() }}
+        {% endfor %}
+
+        <p>
+            {% for error in form.invites.errors %}
+                {{ error }}
+            {% endfor %}
+        </p>
+
+        <p id="label">{{ form.invite_message.label }}</p>
+
+        
+        {{ form.invite_message() }}
+        {% for error in form.invite_message.errors %}
+        {{ error }}
+        {% endfor %}
+
+        <p>
+            {{ form.submit() }}
+        </p>
 
     </form>
 
