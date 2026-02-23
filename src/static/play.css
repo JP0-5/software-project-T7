@@ -16,13 +16,13 @@ canvas{
 }
 #hit{
     position: fixed;
-    width: 201px;
-    height: 90px;
+    width: 190px;
+    height: 70px;
     bottom: 20px;
     left: 500px;
     background-color: red;
-    font-family: Pixelated;
-    font-size: 60px;
+    font-family: pixelated;
+    font-size: 50px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -31,13 +31,13 @@ canvas{
 }
 #stand{
     position: fixed;
-    width: 230px;
-    height: 90px;
+    width: 190px;
+    height: 70px;
     bottom: 20px;
     right: 500px;
     background-color: red;
     font-family: Pixelated;
-    font-size: 60px;
+    font-size: 50px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -96,6 +96,10 @@ canvas{
 #hit, 
 #stand {
   border: 8px solid transparent;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  line-height: 1;
 }
 #hit--wrapper, 
 #stand--wrapper {
@@ -226,3 +230,8 @@ canvas{
     src: url(pixel_font.ttf);
 }
 
+#hit span,
+#stand span {
+    position: relative;
+    top: 4px;
+}

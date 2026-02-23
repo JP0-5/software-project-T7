@@ -30,14 +30,15 @@ let c6 = new Image(); let c7 = new Image(); let c8 = new Image(); let c9 = new I
 let c10 = new Image(); let ck = new Image(); let cq = new Image(); let cj = new Image();
 let remainingCards = 52;
 var pixelFont = new FontFace('Pixelz', 'url(/static/pixel_font.ttf)');
-let p1 = {score:0, cards:[], pfp:pfp1};
-let p2 = {score:0, cards:[], pfp:pfp2};
-let p3 = {score:0, cards:[], pfp:pfp3};
-let p4 = {score:0, cards:[], pfp:pfp4};
+let p1 = { score: 0, cards: [], pfp: pfp1 };
+let p2 = { score: 0, cards: [], pfp: pfp2 };
+let p3 = { score: 0, cards: [], pfp: pfp3 };
+let p4 = { score: 0, cards: [], pfp: pfp4 };
+let players = [p1, p2, p3, p4];
 let cards = [ha, h2, h3, h4, h5, h6, h7, h8, h9, h10, hk, hq, hj,
-            da, d2, d3, d4, d5, d6, d7, d8, d9, d10, dk, dq, dj,
-            sa, s2, s3, s4, s5, s6, s7, s8, s9, s10, sk, sq, sj,
-            ca, c2, c3, c4, c5, c6, c7, c8, c9, c10, ck, cq, cj]
+    da, d2, d3, d4, d5, d6, d7, d8, d9, d10, dk, dq, dj,
+    sa, s2, s3, s4, s5, s6, s7, s8, s9, s10, sk, sq, sj,
+    ca, c2, c3, c4, c5, c6, c7, c8, c9, c10, ck, cq, cj]
 
 let connectionStatus;
 let messageInput;
@@ -45,7 +46,18 @@ let sendButton;
 let messages;
 let socket;
 const gameID = window.location.pathname.split("/").at(-1);
-
+///////////
+let turnIndicator = new Image();
+let turnIndicatorCounter = 0;
+let turnIndicatorOn = true;
+let roundOver = new Image();
+let gameComplete = new Image()
+let roundOverFrames = 30;
+let roundOverGrow = true;
+let roundOverHold = false;
+let roundOverHoldTimer = 0;
+let roundNum = 1;
+///////////
 document.addEventListener("DOMContentLoaded", init, false);
 
 function init() {
@@ -125,13 +137,16 @@ function init() {
         { "var": c4, "url": "/static/cards/4C.png" }, { "var": c5, "url": "/static/cards/5C.png" }, { "var": c6, "url": "/static/cards/6C.png" },
         { "var": c7, "url": "/static/cards/7C.png" }, { "var": c8, "url": "/static/cards/8C.png" }, { "var": c9, "url": "/static/cards/9C.png" },
         { "var": c10, "url": "/static/cards/10C.png" }, { "var": ck, "url": "/static/cards/KC.png" }, { "var": cq, "url": "/static/cards/QC.png" },
-        { "var": cj, "url": "/static/cards/JC.png" }
+        { "var": cj, "url": "/static/cards/JC.png" },
+        { "var": turnIndicator, "url": "/static/Turn_indicator.png" },
+        { "var": roundOver, "url": "/static/round_over.jpg" },
+        { "var": gameComplete, "url": "/static/game_complete.jpg" }
     ], draw);
 }
 
-pixelFont.load().then(function(font) {
-  console.log('font ready');
-  document.fonts.add(font);
+pixelFont.load().then(function (font) {
+    console.log('font ready');
+    document.fonts.add(font);
 });
 
 function draw() {
@@ -145,15 +160,15 @@ function draw() {
     context.clearRect(0, 0, canvas.width, canvas.height)
     //draw card stack
     context.drawImage(card_stack,
-            0, 0, 74, 98,
-            100, canvas.height - 300, 74 * 2.5, 98 * 2.5);
+        0, 0, 74, 98,
+        100, canvas.height - 300, 74 * 2.5, 98 * 2.5);
     context.font = "32px Pixelz";
     context.fillStyle = "white";
     context.fillText("Remaining Cards: " + remainingCards, 25, canvas.height - 20);
     //draw pfps
     context.drawImage(pfp1,
-            0, 0, pfp1.width, pfp1.height,
-            15, 15, 100, 100);
+        0, 0, pfp1.width, pfp1.height,
+        15, 15, 100, 100);
     context.fillText("Player 1", 130, 45);
     context.font = "50px Pixelz";
     if (p1.score === 21) {
@@ -168,8 +183,8 @@ function draw() {
     context.fillText(p1.score, 160, 105);
     context.fillStyle = "white";
     context.drawImage(pfp2,
-            0, 0, pfp2.width, pfp2.height,
-            15, 130, 75, 75);
+        0, 0, pfp2.width, pfp2.height,
+        15, 130, 75, 75);
     context.font = "27px Pixelz";
     context.fillText("Player 2", 105, 155);
     context.font = "35px Pixelz";
@@ -185,8 +200,8 @@ function draw() {
     context.fillText(p2.score, 130, 195);
     context.fillStyle = "white";
     context.drawImage(pfp3,
-            0, 0, pfp3.width, pfp3.height,
-            15, 220, 75, 75);
+        0, 0, pfp3.width, pfp3.height,
+        15, 220, 75, 75);
     context.font = "27px Pixelz";
     context.fillText("Player 3", 105, 245);
     context.font = "35px Pixelz";
@@ -202,8 +217,8 @@ function draw() {
     context.fillText(p3.score, 130, 285);
     context.fillStyle = "white";
     context.drawImage(pfp4,
-            0, 0, pfp4.width, pfp4.height,
-            15, 310, 75, 75);
+        0, 0, pfp4.width, pfp4.height,
+        15, 310, 75, 75);
     context.font = "27px Pixelz";
     context.fillText("Player 4", 105, 335);
     context.font = "35px Pixelz";
@@ -220,19 +235,19 @@ function draw() {
     context.fillStyle = "white";
     //draw cards
     let numCardsDrew = 0;
-    for (let card of p1.cards){
+    for (let card of p1.cards) {
         context.drawImage(card,
-            card.width*(5/6), 0, card.width/6, card.height,
-            ((canvas.width/2)-((card.width/6)*3)/2) - ((p1.cards.length-1)*drawDestOffset) + (numCardsDrew*drawDestOffset*2), 
-                canvas.height - 400, (card.width/6)*3, (card.height)*3);
+            card.width * (5 / 6), 0, card.width / 6, card.height,
+            ((canvas.width / 2) - ((card.width / 6) * 3) / 2) - ((p1.cards.length - 1) * drawDestOffset) + (numCardsDrew * drawDestOffset * 2),
+            canvas.height - 400, (card.width / 6) * 3, (card.height) * 3);
         numCardsDrew += 1;
-    } 
+    }
     if (cardDrawing === true) {
         context.drawImage(cardToDraw,
-            cardToDraw.width*(cardToDrawFrame/6), 0, cardToDraw.width/6, cardToDraw.height,
-            100+((canvas.width/2)-100-((cardToDraw.width/6)*3)/2 - ((p1.cards.length-1)*drawDestOffset) 
-                    + (numCardsDrew*drawDestOffset*2))*(framesInDraw/30), 
-                canvas.height - 400, (cardToDraw.width/6)*3, (cardToDraw.height)*3);
+            cardToDraw.width * (cardToDrawFrame / 6), 0, cardToDraw.width / 6, cardToDraw.height,
+            100 + ((canvas.width / 2) - 100 - ((cardToDraw.width / 6) * 3) / 2 - ((p1.cards.length - 1) * drawDestOffset)
+                + (numCardsDrew * drawDestOffset * 2)) * (framesInDraw / 30),
+            canvas.height - 400, (cardToDraw.width / 6) * 3, (cardToDraw.height) * 3);
         if (framesInDraw > 0 && framesInDraw % 5 === 0) {
             cardToDrawFrame += 1;
         }
@@ -244,8 +259,93 @@ function draw() {
         }
     }
     context.fillStyle = "grey";
-    context.fillRect(canvas.width-300, 0, 300, canvas.height);
-    document.getElementById("hit").onclick = function() {drawCard()};
+    context.fillRect(canvas.width - 300, 0, 300, canvas.height);
+    document.getElementById("hit").onclick = function () { drawCard() };
+    // Turn Indicators
+    if (turnIndicatorOn) {
+        // player1
+        context.drawImage(turnIndicator,
+            0, 0, turnIndicator.width, turnIndicator.height,
+            230, 60, turnIndicator.width * 2.5, turnIndicator.height * 2.5);
+        // player2
+        context.drawImage(turnIndicator,
+            0, 0, turnIndicator.width, turnIndicator.height,
+            185, 162, turnIndicator.width * 2, turnIndicator.height * 2);
+        // player3
+        context.drawImage(turnIndicator,
+            0, 0, turnIndicator.width, turnIndicator.height,
+            185, 252, turnIndicator.width * 2, turnIndicator.height * 2);
+        // player4
+        context.drawImage(turnIndicator,
+            0, 0, turnIndicator.width, turnIndicator.height,
+            185, 342, turnIndicator.width * 2, turnIndicator.height * 2);
+    }
+    turnIndicatorCounter += 1;
+    if (turnIndicatorCounter === 60) {
+        turnIndicatorCounter = 0;
+        turnIndicatorOn = !turnIndicatorOn;
+    }
+    // For when it's not your turn
+    context.font = "50px Pixelz";
+    context.fillStyle = "white";
+    context.fillText("Please wait for your next turn", 400, canvas.height - 50);
+    // round end screen
+    document.getElementById("stand").onclick = function () { endRoundAnimation() };
+    if (roundOverFrames < 30) {
+        endRoundAnimation();
+    }
+    //
+}
+
+function endRoundAnimation() {
+    if (roundNum === 5) {
+        context.drawImage(gameComplete, 0, 0, roundOver.width, roundOver.height,
+            (-(0 - (canvas.width / 2)) * (roundOverFrames / 30)), (-(0 - (canvas.height / 2))) * (roundOverFrames / 30),
+            canvas.width - 300 - ((canvas.width - 300) * (roundOverFrames / 30)), canvas.height - (canvas.height * (roundOverFrames / 30))
+        )
+    }
+    else {
+        context.drawImage(roundOver, 0, 0, roundOver.width, roundOver.height,
+            (-(0 - (canvas.width / 2)) * (roundOverFrames / 30)), (-(0 - (canvas.height / 2))) * (roundOverFrames / 30),
+            canvas.width - 300 - ((canvas.width - 300) * (roundOverFrames / 30)), canvas.height - (canvas.height * (roundOverFrames / 30))
+        )
+    }
+    if (roundOverGrow) {
+        roundOverFrames -= 1;
+        if (roundOverFrames === 0) {
+            roundOverGrow = false;
+            roundOverHold = true;
+        }
+    }
+    else {
+        roundOverFrames += 1
+        if (roundOverFrames === 30) {
+            roundOverGrow = true;
+            roundOverFrames = 30;
+            roundNum += 1;
+            if (roundNum === 6) {
+                roundNum = 1;
+            }
+        }
+    }
+    if (roundOverHold) {
+        roundOverFrames -= 1
+        roundOverHoldTimer += 1
+        console.log(roundOverHoldTimer, roundOverFrames, roundOverGrow);
+        context.font = "50px Pixelz";
+        context.fillStyle = "yellow";
+        context.fillText("Player1", 500, canvas.height - 250);
+        if (roundOverHoldTimer === 120) {
+            roundOverHoldTimer = 0;
+            roundOverHold = false;
+            roundOverFrames += 2;
+        }
+        remainingCards = 52;
+        for (let p of players) {
+            p.cards = [];
+            p.score = 0;
+        }
+    }
 }
 
 function updateP1Score() {
