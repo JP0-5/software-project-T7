@@ -1,4 +1,4 @@
-# NOTE: Do not use `flask run` to start the server.
+# NOTE: Do not use `flask run` to start the server. 
 # Instead, run this file and code at the end of the file will start the server.
 
 # NOTE: You may need to run the schema.sql file to setup app.db first.
@@ -212,7 +212,6 @@ def create():
         invited_users = [user for user in form.invites.data if user]
 
         db = get_db()
-        # user_entries = db.execute("SELECT * FROM users WHERE user IN ?;", (str(tuple(invited_users)),).fetchall()
         if invited_users:
             user_entries_query = "SELECT * FROM users WHERE user IN (" + ("?," * (len(invited_users)-1)) + "?);"
             user_entries = db.execute(user_entries_query, tuple(invited_users)).fetchall()
@@ -458,12 +457,12 @@ def handle_hit():
 
     if game_id is not None:
         db = get_db()
-        currentT = db.execute("""SELECT current_turn FROM games WHERE game_id == (?)""", (game_id)).fetchone()["current_turn"]
-        playersTurn = db.execute(""" SELECT player_id FROM players WHERE game_id == (?)""", (game_id)).fetchall()
+        currentT = db.execute("""SELECT current_turn FROM games WHERE game_id == (?)""", (game_id,)).fetchone()["current_turn"]
+        playersTurn = db.execute(""" SELECT player_id FROM players WHERE game_id == (?)""", (game_id,)).fetchall()
 
         if player_id == playersTurn[currentT]["player_id"]:
             card = db.execute(""" SELECT * FROM decks WHERE game_id == (?)
-                              ORDER BY RANDOM() LIMIT 1; """, (game_id)).fetchone()
+                              ORDER BY RANDOM() LIMIT 1; """, (game_id,)).fetchone()
             db.execute(""" INSERT INTO hands VALUES (?, ?, ?, ?)""", (game_id, player_id, card["value"], card["suit"]))
             db.execute(""" DELETE FROM decks WHERE game_id = ? AND value = ? AND suit = ?""", (game_id, card["value"], card["suit"]))
 
@@ -474,8 +473,8 @@ def handle_hit():
             if int(db.execute(""" SELECT score FROM players WHERE game_id == (?) AND player_id == (?)""", (game_id, player_id)).fetchone()["score"]) > 21:
                 db.execute("""UPDATE players SET stood = (?) WHERE game_id == (?) AND player_id == (?)""", (1, game_id, player_id))
                 
-                playersStood = db.execute(""" SELECT players_stood FROM games WHERE game_id == (?)""", (game_id)).fetchone()["players_stood"]
-                db.execute("""UPDATE games SET players_stood = `players_stood` + 1 WHERE game_id == (?)""", (game_id))
+                playersStood = db.execute(""" SELECT players_stood FROM games WHERE game_id == (?)""", (game_id,)).fetchone()["players_stood"]
+                db.execute("""UPDATE games SET players_stood = `players_stood` + 1 WHERE game_id == (?)""", (game_id,))
 
                 if int(playersStood) + 1 == 4:
                     round_finish()
@@ -487,11 +486,11 @@ def handle_hit():
                 db.commit()
                 return
 
-            currentT = db.execute("""SELECT current_turn FROM games WHERE game_id == ?""", (game_id)).fetchone()["current_turn"]
+            currentT = db.execute("""SELECT current_turn FROM games WHERE game_id == ?""", (game_id,)).fetchone()["current_turn"]
             if int(currentT) == 3:
-                db.execute("""UPDATE games SET current_turn = 0 WHERE game_id = ? """, (game_id))
+                db.execute("""UPDATE games SET current_turn = 0 WHERE game_id = ? """, (game_id,))
             else:
-                db.execute("""UPDATE games SET current_turn = `current_turn` + 1 WHERE game_id = ? """, (game_id))
+                db.execute("""UPDATE games SET current_turn = `current_turn` + 1 WHERE game_id = ? """, (game_id,))
 
             db.commit()
 
@@ -504,22 +503,22 @@ def handle_stand():
 
     if game_id is not None:
         db = get_db()
-        currentT = db.execute("""SELECT current_turn FROM games WHERE game_id == (?)""", (game_id)).fetchone()["current_turn"]
-        playersTurn = db.execute(""" SELECT player_id FROM players WHERE game_id == (?)""", (game_id)).fetchall()
+        currentT = db.execute("""SELECT current_turn FROM games WHERE game_id == (?)""", (game_id,)).fetchone()["current_turn"]
+        playersTurn = db.execute(""" SELECT player_id FROM players WHERE game_id == (?)""", (game_id,)).fetchall()
 
         if player_id == playersTurn[currentT]["player_id"]:
-            playersStood = db.execute(""" SELECT players_stood FROM games WHERE game_id == (?)""", (game_id)).fetchone()["players_stood"]
+            playersStood = db.execute(""" SELECT players_stood FROM games WHERE game_id == (?)""", (game_id,)).fetchone()["players_stood"]
             if db.execute("""SELECT stood FROM players WHERE game_id == (?) AND player_id ==(?)""", (game_id, player_id)).fetchone()["stood"] == 0:
                 db.execute("""UPDATE players SET stood = (?) WHERE game_id == (?) AND player_id == (?)""", (1, game_id, player_id))
                 
-                db.execute("""UPDATE games SET players_stood = `players_stood` + 1 WHERE game_id == (?)""", (game_id))
+                db.execute("""UPDATE games SET players_stood = `players_stood` + 1 WHERE game_id == (?)""", (game_id,))
             if int(playersStood) + 1 == 4:
                 round_finish()
 
             if int(currentT) == 3:
-                db.execute("""UPDATE games SET current_turn = 0 WHERE game_id = ? """, (game_id))
+                db.execute("""UPDATE games SET current_turn = 0 WHERE game_id = ? """, (game_id,))
             else:
-                db.execute("""UPDATE games SET current_turn = `current_turn` + 1 WHERE game_id = ? """, (game_id))
+                db.execute("""UPDATE games SET current_turn = `current_turn` + 1 WHERE game_id = ? """, (game_id,))
             
             db.commit()
 
@@ -539,7 +538,7 @@ def round_finish():
     if game_id is not None:
         db = get_db()
 
-        allscores = db.execute(""" SELECT player_id, score, rounds_won FROM players WHERE game_id = (?) """, (game_id)).fetchall()
+        allscores = db.execute(""" SELECT player_id, score, rounds_won FROM players WHERE game_id = (?) """, (game_id,)).fetchall()
         p1score = allscores[0]
         p2score = allscores[1]
         p3score = allscores[2]
@@ -551,7 +550,7 @@ def round_finish():
             if players[i]["score"] == 21:
                 winningPlayer == players[i]
                 db.execute(""" UPDATE players SET rounds_won = `rounds_won` + 1 WHERE player_id = ? AND game_id = ? """, (players[i]["player_id"], game_id))
-                db.execute(""" UPDATE games SET round = `round` + 1 WHERE game_id = ? """, (game_id))
+                db.execute(""" UPDATE games SET round = `round` + 1 WHERE game_id = ? """, (game_id,))
                 
                 if db.execute(""" SELECT round FROM games WHERE game_id = ? """, game_id).fetchone() == 5:
                     game_finish()
@@ -564,11 +563,11 @@ def round_finish():
                 if int(players[i]["score"]) > int(players[i - 3]["score"]) and int(players[i]["score"]) > int(winningPlayer["score"]):
                     winningPlayer = players[i]
         db.execute(""" UPDATE players SET rounds_won = `rounds_won` + 1 WHERE player_id = ? AND game_id = ? """, (players[i]["player_id"], game_id))
-        db.execute(""" UPDATE games SET round = `round` + 1 WHERE game_id = ? """, (game_id))
+        db.execute(""" UPDATE games SET round = `round` + 1 WHERE game_id = ? """, (game_id,))
         
         print("-----------------------------Round Finish") # Call New Round function normally, this is here for testing
 
-        if db.execute(""" SELECT round FROM games WHERE game_id = ? """, game_id).fetchone() == 5:
+        if db.execute(""" SELECT round FROM games WHERE game_id = ? """, (game_id,)).fetchone() == 5:
             game_finish()
 
 def game_finish():
@@ -576,7 +575,7 @@ def game_finish():
     if game_id is not None:
         db = get_db()
 
-        allscores = db.execute(""" SELECT player_id, score, rounds_won FROM players WHERE game_id = (?) """, (game_id)).fetchall()
+        allscores = db.execute(""" SELECT player_id, score, rounds_won FROM players WHERE game_id = (?) """, (game_id,)).fetchall()
         p1score = allscores[0]
         p2score = allscores[1]
         p3score = allscores[2]

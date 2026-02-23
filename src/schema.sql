@@ -19,7 +19,7 @@ CREATE TABLE games (
     public INTEGER NOT NULL,                            -- 0 for private, 1 for public
     host TEXT NOT NULL,                                 -- Player ID of the host
     start_time TEXT NOT NULL,                           -- When the game was started (this one may or may not be needed)
-    current_turn TEXT NOT NULL,                         -- Index (typically 0 to 3) of the player whose turn it is
+    current_turn INTEGER NOT NULL,                      -- Index (typically 0 to 3) of the player whose turn it is
     players_stood INTEGER NOT NULL,                     -- Keeping count of the number of players who are stood / above 21
     round INTEGER NOT NULL,                             -- The round number of the game
     finished INTEGER NOT NULL,                          -- Whether the game is finished or not - Boolean value (0 or 1)
