@@ -1,4 +1,6 @@
 //const playerID initialised in play.html
+let assetsLoaded = false;
+let gameStarted = false;
 let canvas;
 let context;
 let hitButton;
@@ -56,6 +58,18 @@ const gameID = window.location.pathname.split("/").at(-1);
 document.addEventListener("DOMContentLoaded", init, false);
 
 function init() {
+    canvas = document.querySelector("canvas");
+    context = canvas.getContext("2d");
+
+    pixelFont.load().then(function(font) {
+        console.log('font ready');
+        document.fonts.add(font);context.font = "70px Pixelz";
+        context.fillStyle = "white";
+        context.fillText("Waiting for game", 450, 200)
+        context.fillText("lobby to fill", 550, 300)
+        context.fillText("Please wait..", 550, 400)
+    });
+
     hitButton = document.getElementById("hit");
     standButton = document.getElementById("stand");
 
@@ -141,8 +155,6 @@ function init() {
         }
     })
 
-    canvas = document.querySelector("canvas");
-    context = canvas.getContext("2d");
     load_assets([
         { "var": card_stack, "url": "/static/card_stack.png" },
         { "var": pfp1, "url": "/static/pfp1.png" }, { "var": pfp2, "url": "/static/pfp2.png" },
@@ -166,23 +178,14 @@ function init() {
         { "var": c10, "url": "/static/cards/10C.png" }, { "var": ck, "url": "/static/cards/KC.png" }, { "var": cq, "url": "/static/cards/QC.png" },
         { "var": cj, "url": "/static/cards/JC.png" }
     ], draw);
-    context.fillStyle = "grey";
-    context.fillRect(canvas.width-300, 0, 300, canvas.height);
 
     hitButton.onclick = hitButtonPress;
     standButton.onclick = standButtonPress;
 }
 
-pixelFont.load().then(function(font) {
-    console.log('font ready');
-    document.fonts.add(font);context.font = "70px Pixelz";
-    context.fillStyle = "white";
-    context.fillText("Waiting for game", 450, 200)
-    context.fillText("lobby to fill", 550, 300)
-    context.fillText("Please wait..", 550, 400)
-});
-
 function startGame(game, playerList, cardsRemaining, hands) {
+    gameStarted = true;
+
     remainingCards = cardsRemaining;
 
     for (let player of playerList) {
@@ -211,7 +214,10 @@ function startGame(game, playerList, cardsRemaining, hands) {
     if (currentTurn === playerID) {
         enableButtons();
     }
-    draw();
+
+    if (assetsLoaded) {
+        draw();
+    }
 }
 
 function draw() {
@@ -296,11 +302,8 @@ function draw() {
         if (framesInDraw === 30) {
             cardDrawing = false;
             thisPlayer.cards.push(cardToDraw);
-            // updateP1Score();
         }
     }
-    context.fillStyle = "grey";
-    context.fillRect(canvas.width-300, 0, 300, canvas.height);
 }
 
 function enableButtons() {
@@ -328,7 +331,6 @@ function drawCard(value, suit) {
     cardDrawing = true;
     framesInDraw = 0;
     cardToDrawFrame = 0;
-    // remainingCards -= 1;
 }
 
 function load_assets(assets, callback) {
@@ -336,9 +338,12 @@ function load_assets(assets, callback) {
     let loaded = function () {
         console.log("loaded");
         num_assets = num_assets - 1;
-//        if (num_assets === 0) {
-//            callback();
-//        }
+        if (num_assets === 0) {
+            assetsLoaded = true;
+            if (gameStarted) {
+                callback();
+            }
+        }
     }
     for (let asset of assets) {
         let element = asset.var;
