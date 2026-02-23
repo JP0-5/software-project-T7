@@ -349,7 +349,7 @@ def handle_stand():
         playersTurn = db.execute(""" SELECT player_id FROM players WHERE game_id == (?)""", (game_id)).fetchall()
 
         if player_id == playersTurn[currentT]["player_id"]:
-            playersStood = db.execute(""" SELECT players_stood FROM games WHERE game_id == (?)""", (game_id)).fetchone()
+            playersStood = db.execute(""" SELECT players_stood FROM games WHERE game_id == (?)""", (game_id)).fetchone()["players_stood"]
             if db.execute("""SELECT stood FROM players WHERE game_id == (?) AND player_id ==(?)""", (game_id, player_id)).fetchone()["stood"] == 0:
                 db.execute("""UPDATE players SET stood = (?) WHERE game_id == (?) AND player_id == (?)""", (1, game_id, player_id))
                 
@@ -407,7 +407,7 @@ def round_finish():
         db.execute(""" UPDATE players SET rounds_won = `rounds_won` + 1 WHERE player_id = ? AND game_id = ? """, (players[i]["player_id"], game_id))
         db.execute(""" UPDATE games SET round = `round` + 1 WHERE game_id = ? """, (game_id))
         
-        print("Round Finish") # Call New Round function normally, this is here for testing
+        print("-----------------------------Round Finish") # Call New Round function normally, this is here for testing
 
         if db.execute(""" SELECT round FROM games WHERE game_id = ? """, game_id).fetchone() == 5:
             game_finish()
