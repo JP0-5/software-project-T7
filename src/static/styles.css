@@ -169,7 +169,7 @@ header .reg_nav{
     
 }
 
-#classic_games{
+#games_list{
  
     display: flex;
     flex-direction: column;
@@ -182,23 +182,23 @@ header .reg_nav{
     
     
 }
-#game_entry{
+.game_entry{
+    display: flex;
+    /* display: none; */
     justify-content: center;
-text-align: center;
-align-items: center;
-display: flex;
-color:yellow;
-gap:3em;
-background-color: red;
-border-style: solid;
-border-color:white;
-border-radius:3px;
-
-padding:auto;
-font-family: Arial, Helvetica, sans-serif;
-
+    text-align: center;
+    align-items: center;
+    color:yellow;
+    gap:3em;
+    background-color: red;
+    border-style: solid;
+    border-color:white;
+    border-radius:3px;
+    padding:auto;
+    font-family: Arial, Helvetica, sans-serif;
 }
-#game_entry>a{
+
+.game_entry>a{
     text-decoration: none;
     color:yellow;
 }
@@ -216,6 +216,7 @@ font-family: Arial, Helvetica, sans-serif;
     gap:1em;
     margin-left:25%;
     margin-right:25%;
+    margin-bottom: 1%;
     color:yellow;
     font-family: Arial, Helvetica, sans-serif;
 }
@@ -231,7 +232,7 @@ font-family: Arial, Helvetica, sans-serif;
 margin-left:auto;
 color:yellow}
 
-#classic_box{
+#games_box {
     background-color: rgba(255, 255, 255, 0.8);
     padding:2em;
     margin-left:25%;
@@ -239,3 +240,14 @@ color:yellow}
 }
 
 #home_button{margin-right:auto;}
+
+.invite {
+    padding: 1em;
+    border-style: solid;
+    border-color:black;
+    border-radius:3px;
+}
+
+.invite > p {
+    font-size: 0.8em;
+}

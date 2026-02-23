@@ -5,37 +5,29 @@ DROP TABLE IF EXISTS players;
 DROP TABLE IF EXISTS next_guest_id;
 DROP TABLE IF EXISTS hands;
 DROP TABLE IF EXISTS chat_messages;
+DROP TABLE IF EXISTS invites;
 
-CREATE TABLE users (user_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, user TEXT NOT NULL, password TEXT NOT NULL);
+CREATE TABLE users (
+    user TEXT PRIMARY KEY NOT NULL,
+    password TEXT NOT NULL
+);
 
 -- Game state
 
 CREATE TABLE games (
-    game_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,                                 -- Name of the game, given by the host
+    game_id INTEGER PRIMARY KEY,
+    public INTEGER NOT NULL,                            -- 0 for private, 1 for public
     host TEXT NOT NULL,                                 -- Player ID of the host
-    start_time INTEGER NOT NULL,                        -- When the game was started (this one may or may not be needed)
-    current_turn INTEGER NOT NULL,                      -- Index (typically 0 to 3) of the player whose turn it is
-    players_stood INTEGER NOT NULL,                     -- Keeping count of players who are stood/ above 21
-    round INTEGER NOT NULL, 
+    start_time TEXT NOT NULL,                           -- When the game was started (this one may or may not be needed)
+    current_turn TEXT NOT NULL,                         -- Index (typically 0 to 3) of the player whose turn it is
+    players_stood INTEGER NOT NULL,                     -- Keeping count of the number of players who are stood / above 21
+    round INTEGER NOT NULL,                             -- The round number of the game
     finished INTEGER NOT NULL,                          -- Whether the game is finished or not - Boolean value (0 or 1)
     status INTEGER NOT NULL,                            -- Whether the game has started or not - 0 for not started, 1 for started
-    player_count INTEGER NOT NULL,                      -- Number of players in game
+    player_count INTEGER NOT NULL,                      -- Number of players currently in game
+    allowed_players INTEGER NOT NULL,                   -- Number of players allowed in the game (for now will be fixed at 4)
     game_mode INTEGER NOT NULL                          -- Mode of the game - 0 is Classic, 1 is Modified                       
 );
-
--- Insert dummy games for testing
-INSERT INTO games
-VALUES
-(0, "Test Game", "-", "2026-01-31 12:39:00", 0,0,0,0,0,0,0),
-(1, "Test Game", "-", "2026-01-31 12:39:00", 0,0,0,0,0,0,0),
-(2, "Test Game", "-", "2026-01-31 12:39:00", 0,0,0,0,0,0,0),
-(3, "Test Game", "-", "2026-01-31 12:39:00", 0,0,0,0,0,0,0),
-(4, "Test Game", "-", "2026-01-31 12:39:00", 0,0,0,0,0,0,0),
-(5, "Test Game", "-", "2026-01-31 12:39:00", 0,0,0,0,0,0,0),
-(6, "Test Game", "-", "2026-01-31 12:39:00", 0,0,0,0,0,0,1),
-(7, "Test Game", "-", "2026-01-31 12:39:00", 0,0,0,0,0,0,1),
-(8, "Test Game", "-", "2026-01-31 12:39:00", 0,0,0,0,0,0,1);
 
 -- Keeps track of what cards are in the deck in each game
 CREATE TABLE decks (
@@ -65,8 +57,8 @@ CREATE TABLE decks (
 -- Each user will have one row in this table for each game they play in
 CREATE TABLE players (
     game_id INTEGER NOT NULL,
-    player_id INTEGER NOT NULL,
-    socket_id INTEGER NOT NULL,                         -- Socket ID of the socket on which the player is connected to this game
+    player_id TEXT NOT NULL,
+    socket_id TEXT NOT NULL,                            -- Socket ID of the socket on which the player is connected to this game
     connected INTEGER NOT NULL,                         -- Whether the player is currently connected or not - Boolean value (0 or 1)
     stood INTEGER NOT NULL,                             -- Keeping track of if the player has stood
     user TEXT,                                          -- Username if logged in - otherwise NULL
@@ -74,7 +66,7 @@ CREATE TABLE players (
     rounds_won INTEGER NOT NULL,
     PRIMARY KEY (game_id, player_id),
     FOREIGN KEY (game_id) REFERENCES games(game_id),
-    FOREIGN KEY (user) REFERENCES users(user_id)
+    FOREIGN KEY (user) REFERENCES users(user)
 );
 
 -- Stores the next number that can be used to assign a guest ID
@@ -88,7 +80,7 @@ VALUES (0);
 -- The cards currently in the hand of each player in each game
 CREATE TABLE hands (
     game_id INTEGER NOT NULL,
-    player_id INTEGER NOT NULL,
+    player_id TEXT NOT NULL,
     value INTEGER NOT NULL,
     suit TEXT NOT NULL,
     CHECK(
@@ -102,7 +94,7 @@ CREATE TABLE hands (
 
 CREATE TABLE chat_messages (
     game_id INTEGER NOT NULL,
-    player_id INTEGER NOT NULL,
+    player_id TEXT NOT NULL,
     content TEXT NOT NULL,
     FOREIGN KEY (game_id) REFERENCES games(game_id),
     FOREIGN KEY (player_id) REFERENCES players(player_id)
@@ -111,60 +103,15 @@ CREATE TABLE chat_messages (
 CREATE INDEX game_chat_messages
 ON chat_messages(game_id);
 
+CREATE TABLE invites (
+    game_id INTEGER NOT NULL,
+    invitee TEXT NOT NULL,                           -- The username of the player who is being invited to this game
+    time TEXT NOT NULL,
+    message TEXT,
+    PRIMARY KEY (game_id, invitee),
+    FOREIGN KEY (game_id) REFERENCES games(game_id),
+    FOREIGN KEY (invitee) REFERENCES users(user)
+);
 
-
--- For testing - this can normally be done when the game is created
-INSERT INTO decks
-VALUES
-(0, 1, "clubs"),
-(0, 2, "clubs"),
-(0, 3, "clubs"),
-(0, 4, "clubs"),
-(0, 5, "clubs"),
-(0, 6, "clubs"),
-(0, 7, "clubs"),
-(0, 8, "clubs"),
-(0, 9, "clubs"),
-(0, 10, "clubs"),
-(0, 11, "clubs"),
-(0, 12, "clubs"),
-(0, 13, "clubs"),
-(0, 1, "diamonds"),
-(0, 2, "diamonds"),
-(0, 3, "diamonds"),
-(0, 4, "diamonds"),
-(0, 5, "diamonds"),
-(0, 6, "diamonds"),
-(0, 7, "diamonds"),
-(0, 8, "diamonds"),
-(0, 9, "diamonds"),
-(0, 10, "diamonds"),
-(0, 11, "diamonds"),
-(0, 12, "diamonds"),
-(0, 13, "diamonds"),
-(0, 1, "hearts"),
-(0, 2, "hearts"),
-(0, 3, "hearts"),
-(0, 4, "hearts"),
-(0, 5, "hearts"),
-(0, 6, "hearts"),
-(0, 7, "hearts"),
-(0, 8, "hearts"),
-(0, 9, "hearts"),
-(0, 10, "hearts"),
-(0, 11, "hearts"),
-(0, 12, "hearts"),
-(0, 13, "hearts"),
-(0, 1, "spades"),
-(0, 2, "spades"),
-(0, 3, "spades"),
-(0, 4, "spades"),
-(0, 5, "spades"),
-(0, 6, "spades"),
-(0, 7, "spades"),
-(0, 8, "spades"),
-(0, 9, "spades"),
-(0, 10, "spades"),
-(0, 11, "spades"),
-(0, 12, "spades"),
-(0, 13, "spades");
+CREATE INDEX user_invites
+ON invites(invitee);

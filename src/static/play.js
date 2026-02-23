@@ -44,6 +44,7 @@ let cards = {
     "spades": [null, sa, s2, s3, s4, s5, s6, s7, s8, s9, s10, sk, sq, sj]
 }
 
+let gameIDLabel;
 let connectionStatus;
 let currentTurnIndicator;
 let messageInput;
@@ -58,12 +59,15 @@ function init() {
     hitButton = document.getElementById("hit");
     standButton = document.getElementById("stand");
 
+    gameIDLabel = document.getElementById("gameId");
     connectionStatus = document.getElementById("connectionStatus");
     currentTurnIndicator = document.getElementById("currentTurn");
     messages = document.getElementById("messages");
     sendButton = document.getElementById("sendButton");
     sendButton.addEventListener("click", sendMessage, false);
     messageInput = document.getElementById("messageInput");
+
+    gameIDLabel.innerHTML = gameID;
 
     socket = io();
 

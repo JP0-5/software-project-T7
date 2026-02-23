@@ -14,29 +14,8 @@
         <img class="rotate2" src="{{ url_for('static', filename='card_spiral.png')}}" width="550" height="550">
         <img class="rotate3" src="{{ url_for('static', filename='card_spiral.png')}}" width="550" height="550">
         <img class="rotate4" src="{{ url_for('static', filename='card_spiral.png')}}" width="550" height="550">
-        <header class ="header">
-            
-            
-           <nav class = "nav_bar">
-            {% if g.user == None %}
-
-            <a class="reg_nav" id="home_button" href="{{ url_for('main')}}">Home</a>
-            
-            <a class ="reg_nav" href="{{ url_for('log_in') }}">Log In</a>
-            <a class ="reg_nav" href="{{ url_for('sign_up') }}">Sign Up</a>
-            {% else %}
-            <a id = "account_button">
-            <img id = "account_img" src = "{{ url_for('static',filename='logo.jpg')}}"></img>
-            <p id = "account_name"> {{ session["username"] }}</p>
-            </a>
-
-            <a class="reg_nav" id="home_button" href="{{ url_for('main')}}">Home</a>
-            
-            <a class ="reg_nav" href="{{ url_for('logout') }}">Log Out</a>
-            {% endif %}
-            <a class ="reg_nav" id ="settings" onclick = "openSettings()" href="#">Settings</a>
-            </nav>
-        </header>
+        
+        {% include "nav_bar.html" %}
 
         <main class = "base_content">
 
@@ -52,8 +31,9 @@
 
             <a class = "logo" href="/"><img src="{{ url_for('static', filename='bjf logo.png')}}"></a>
             <section class = "modes">
-                <a  href="/classic">Classic BlackJack</a>
-                <a  href="/modified">Modified BlackJack</a>
+                <a href="{{ url_for('create') }}">Create Game</a>
+                <a href="{{ url_for('games') }}">Find Game</a>
+                <a href="{{ url_for('enter_code') }}">Enter Code</a>
             </section>
             
         </main>

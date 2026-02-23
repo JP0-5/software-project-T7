@@ -12,8 +12,9 @@ from flask_socketio import SocketIO, join_room, disconnect
 from flask_session import Session
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
-from time import time
+from datetime import datetime
 from gevent.lock import BoundedSemaphore
+from random import randint
 from database import *
 from forms import *
 
@@ -25,8 +26,66 @@ Session(app)
 
 socketio = SocketIO(app, async_mode="gevent", cors_allowed_origins="*", logger=True, engineio_logger=True, ping_timeout=5)
 
-# Used to ensure guests are always given unique player IDs
+deck_creation_statement = """
+INSERT INTO decks
+VALUES
+(X, 1, "clubs"),
+(X, 2, "clubs"),
+(X, 3, "clubs"),
+(X, 4, "clubs"),
+(X, 5, "clubs"),
+(X, 6, "clubs"),
+(X, 7, "clubs"),
+(X, 8, "clubs"),
+(X, 9, "clubs"),
+(X, 10, "clubs"),
+(X, 11, "clubs"),
+(X, 12, "clubs"),
+(X, 13, "clubs"),
+(X, 1, "diamonds"),
+(X, 2, "diamonds"),
+(X, 3, "diamonds"),
+(X, 4, "diamonds"),
+(X, 5, "diamonds"),
+(X, 6, "diamonds"),
+(X, 7, "diamonds"),
+(X, 8, "diamonds"),
+(X, 9, "diamonds"),
+(X, 10, "diamonds"),
+(X, 11, "diamonds"),
+(X, 12, "diamonds"),
+(X, 13, "diamonds"),
+(X, 1, "hearts"),
+(X, 2, "hearts"),
+(X, 3, "hearts"),
+(X, 4, "hearts"),
+(X, 5, "hearts"),
+(X, 6, "hearts"),
+(X, 7, "hearts"),
+(X, 8, "hearts"),
+(X, 9, "hearts"),
+(X, 10, "hearts"),
+(X, 11, "hearts"),
+(X, 12, "hearts"),
+(X, 13, "hearts"),
+(X, 1, "spades"),
+(X, 2, "spades"),
+(X, 3, "spades"),
+(X, 4, "spades"),
+(X, 5, "spades"),
+(X, 6, "spades"),
+(X, 7, "spades"),
+(X, 8, "spades"),
+(X, 9, "spades"),
+(X, 10, "spades"),
+(X, 11, "spades"),
+(X, 12, "spades"),
+(X, 13, "spades");
+"""
+
+# Locks to used to ensure guest IDs and game IDs are always unique
 guest_id_lock = BoundedSemaphore()
+game_id_lock = BoundedSemaphore()
 
 @app.before_request
 def get_username():
@@ -37,11 +96,27 @@ def get_username():
     if "sockets" not in session:
         session["sockets"] = {}        #Maps socket IDs to game IDs
 
+    # Assign a player ID based on the username, or on number if not logged in
+    if g.user is not None:
+        session["player_id"] = "u" + g.user
+        # Add "u" to the username to ensure this can never match a guest's player ID
+    elif "player_id" not in session:
+        # If not logged in and a player ID has not already been assigned
+
+        # Use a lock to ensure two guests will not accidentally get the same player ID
+        with guest_id_lock:
+            db = get_db()
+            id = db.execute("SELECT * FROM next_guest_id").fetchone()["id"]
+            db.execute("UPDATE next_guest_id SET id = ?", (id+1,))
+            db.commit()
+
+        session["player_id"] = "_Guest" + str(id)
+
 def login_required(view):
     @wraps(view)
     def wrapped_view(*args, **kwargs):
         if g.user is None:
-            return redirect( url_for("login", next=request.url) )
+            return redirect( url_for("log_in", next=request.url) )
         return view(*args, **kwargs)
     return wrapped_view
 
@@ -119,20 +194,97 @@ def logout():
     session.clear()
     return redirect(url_for('main'))
 
-@app.route("/classic")
-def classic():
+@app.route("/games", methods = ['GET', 'POST'])
+def games():
     db=get_db()
-    games = db.execute(''' SELECT * FROM games WHERE game_mode = 0 AND finished = 0 ORDER BY game_id ;''').fetchall()
-    form=gameSearchForm()
-    return render_template("classic.html", title = "Classic BlackJack",games=games,form=form)
+    games = db.execute("SELECT * FROM games WHERE public = 1 AND finished = 0  AND player_count < allowed_players ORDER BY start_time DESC;")
 
-@app.route("/modified")
-def modified():
-    db=get_db()
-    games = db.execute(''' SELECT * FROM games WHERE game_mode = 1 AND finished = 0 ORDER BY game_id ;''').fetchall()
-    form=gameSearchForm()
-    return render_template("modified.html", title = "Modified BlackJack",games=games,form=form)
+    return render_template("game_list.html", title = "BlackJack Fever",games=games,scripts=[
+        "https://cdn.socket.io/4.8.1/socket.io.min.js",
+        url_for("static", filename="game_list.js")
+    ])
 
+@app.route("/create", methods = ['GET', 'POST'])
+def create():
+    form = CreateGameForm()
+
+    if form.validate_on_submit():
+        invited_users = [user for user in form.invites.data if user]
+
+        db = get_db()
+        # user_entries = db.execute("SELECT * FROM users WHERE user IN ?;", (str(tuple(invited_users)),).fetchall()
+        if invited_users:
+            user_entries_query = "SELECT * FROM users WHERE user IN (" + ("?," * (len(invited_users)-1)) + "?);"
+            user_entries = db.execute(user_entries_query, tuple(invited_users)).fetchall()
+        else:
+            user_entries = []
+
+        if len(user_entries) < len(invited_users):
+            form.invites.errors.append("Some usernames do not exist or have been entered multiple times")
+        else:
+            player_id = session["player_id"]
+            t = datetime.strftime(datetime.now(), "%Y-%m-%d %H:%M:%S")
+
+            with game_id_lock:
+                while True:
+                    game_id = randint(10000, 99999)
+                    conflict_game = db.execute("SELECT * FROM games WHERE game_id = ?", (game_id,)).fetchone()
+                    if conflict_game is None:
+                        break
+
+            db.execute("""
+                    INSERT INTO games (game_id, public, host, start_time, next_turn, finished, status, player_count, allowed_players, game_mode)
+                    VALUES (?, ?, ?, ?, ?, 0, 0, 0, 4, ?)
+                    """, (game_id, form.visibility.data, player_id, t, player_id, form.game_mode.data))
+            db.execute(deck_creation_statement.replace("X", str(game_id)))
+            for user in invited_users:
+                db.execute("INSERT INTO invites (game_id, invitee, time, message) VALUES (?, ?, ?, ?)", (game_id, user, t, form.invite_message.data))
+            db.commit()
+
+            if form.visibility.data == "1":
+                game = db.execute("SELECT * FROM games WHERE game_id = ?", (game_id,)).fetchone()
+                socketio.emit("new_public_game", render_template("game_entry.html", game=game), to="game_list")
+
+            return redirect(url_for("play", game_id=game_id))
+
+    return render_template("create.html", form=form, title="BlackJack Fever")
+
+@app.route("/code", methods = ['GET', 'POST'])
+def enter_code():
+    form = EnterCodeForm()
+
+    if form.validate_on_submit():
+        return redirect(url_for("play", game_id=form.code.data))
+
+    return render_template("enter_code.html", form=form, title="BlackJack Fever")
+
+@app.route("/inbox")
+@login_required
+def inbox():
+    db = get_db()
+    invites = db.execute("""
+                            SELECT *
+                            FROM invites JOIN games
+                            ON games.game_id = invites.game_id
+                            WHERE invitee = ?
+                            AND finished = 0
+                            AND player_count < allowed_players
+                            ORDER BY time DESC""", (g.user,)).fetchall()
+    return render_template("inbox.html", invites=invites, datetime=datetime, title="BlackJack Fever", scripts=[url_for("static", filename="inbox.js")])
+
+@app.route("/invite_list")
+@login_required
+def invite_list():
+    db = get_db()
+    invites = db.execute("""
+                            SELECT *
+                            FROM invites JOIN games
+                            ON games.game_id = invites.game_id
+                            WHERE invitee = ?
+                            AND finished = 0
+                            AND player_count < allowed_players
+                            ORDER BY time DESC""", (g.user,)).fetchall()
+    return render_template("invite_list.html", invites=invites, datetime=datetime)
 
 @app.route("/play/<game_id>")
 def play(game_id):
@@ -144,24 +296,13 @@ def play(game_id):
         return render_template("error.html", title="Not Found", error="This game does not exist."), 404
     
     if game["finished"] == 1:
-        return render_template("error.html", title="Game Finished", error="This game has finished."), 404
-
-    # Assign a player ID based on the username, or on number if not logged in
-    if g.user is not None:
-        session["player_id"] = "u" + g.user
-        # Add "u" to the username to ensure this can never match a guest's player ID
-    elif "player_id" not in session:
-        # If not logged in and a player ID has not already been assigned
-
-        # Use a lock to ensure two guests will not accidentally get the same player ID
-        with guest_id_lock:
-            id = db.execute("SELECT * FROM next_guest_id").fetchone()["id"]
-            db.execute("UPDATE next_guest_id SET id = ?", (id+1,))
-            db.commit()
-
-        session["player_id"] = "_Guest" + str(id)
-
+        return render_template("error.html", title="Game Finished", error="This game has finished."), 403
     
+    # If the game is full and this player was not connected to this game previously, don't allow them to connect
+    if game["player_count"] == game["allowed_players"]:
+        player_entry = db.execute("SELECT * FROM players WHERE game_id = ? AND player_id = ?", (game_id, session["player_id"])).fetchone()
+        if player_entry is None:
+            return render_template("error.html", title="Game Full", error="This game is full."), 403
 
     # To be expanded
 
@@ -175,6 +316,8 @@ def play(game_id):
 def handle_join(game_id):
     player_id = session["player_id"]
     db = get_db()
+
+    update_game_list = False
 
     # Get player and game info
     player_entry = db.execute("""
@@ -224,12 +367,21 @@ def handle_join(game_id):
         if game["player_count"] + 1 == 4:
             join_room(game_id)
             game_start(game_id, game)
+        if game["public"] == 1:
+            update_game_list = True
     db.commit()
 
     session["sockets"][request.sid] = game_id
     session.modified = True
     join_room(game_id)
     socketio.emit("join_accepted", player_id, to=game_id)
+
+    if update_game_list:
+        player_count = db.execute("SELECT player_count, allowed_players FROM games WHERE game_id = ?", (game_id,)).fetchone()
+        if player_count["player_count"] == player_count["allowed_players"]:
+            socketio.emit("game_removed", game_id, to="game_list")
+        else:
+            socketio.emit("player_count_update", (game_id, player_count["player_count"]), to="game_list")
 
 def game_start(game_id, game):
     db = get_db()
@@ -238,6 +390,9 @@ def game_start(game_id, game):
     players = [dict(player) for player in player_rows]
     
     socketio.emit("game_start", (dict(game), players), to=game_id)    
+
+    # Inform clients currently looking at the games list that the player count has changed
+    # Handling this at the end so the other events and database updates can be handled first
 
 @socketio.on("disconnect")
 def handle_disconnect(*args):
@@ -282,6 +437,10 @@ def handle_chat_message(content):
                     VALUES (?, ?, ?)""",
                     (game_id, player_id, content))
         db.commit()
+
+@socketio.on("game_list_connect")
+def handle_game_list_connect():
+    join_room("game_list")
 
 # Other event handlers can probably follow this template:
 # @socketio.on("event_name")
