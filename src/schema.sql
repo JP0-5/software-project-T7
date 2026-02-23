@@ -17,6 +17,7 @@ CREATE TABLE games (
     start_time INTEGER NOT NULL,                        -- When the game was started (this one may or may not be needed)
     current_turn INTEGER NOT NULL,                      -- Index (typically 0 to 3) of the player whose turn it is
     players_stood INTEGER NOT NULL,                     -- Keeping count of players who are stood/ above 21
+    round INTEGER NOT NULL, 
     finished INTEGER NOT NULL,                          -- Whether the game is finished or not - Boolean value (0 or 1)
     status INTEGER NOT NULL,                            -- Whether the game has started or not - 0 for not started, 1 for started
     player_count INTEGER NOT NULL,                      -- Number of players in game
@@ -26,15 +27,15 @@ CREATE TABLE games (
 -- Insert dummy games for testing
 INSERT INTO games
 VALUES
-(0, "Test Game", "-", "2026-01-31 12:39:00", 0,0,0,0,0,0),
-(1, "Test Game", "-", "2026-01-31 12:39:00", 0,0,0,0,0,0),
-(2, "Test Game", "-", "2026-01-31 12:39:00", 0,0,0,0,0,0),
-(3, "Test Game", "-", "2026-01-31 12:39:00", 0,0,0,0,0,0),
-(4, "Test Game", "-", "2026-01-31 12:39:00", 0,0,0,0,0,0),
-(5, "Test Game", "-", "2026-01-31 12:39:00", 0,0,0,0,0,0),
-(6, "Test Game", "-", "2026-01-31 12:39:00", 0,0,0,0,0,1),
-(7, "Test Game", "-", "2026-01-31 12:39:00", 0,0,0,0,0,1),
-(8, "Test Game", "-", "2026-01-31 12:39:00", 0,0,0,0,0,1);
+(0, "Test Game", "-", "2026-01-31 12:39:00", 0,0,0,0,0,0,0),
+(1, "Test Game", "-", "2026-01-31 12:39:00", 0,0,0,0,0,0,0),
+(2, "Test Game", "-", "2026-01-31 12:39:00", 0,0,0,0,0,0,0),
+(3, "Test Game", "-", "2026-01-31 12:39:00", 0,0,0,0,0,0,0),
+(4, "Test Game", "-", "2026-01-31 12:39:00", 0,0,0,0,0,0,0),
+(5, "Test Game", "-", "2026-01-31 12:39:00", 0,0,0,0,0,0,0),
+(6, "Test Game", "-", "2026-01-31 12:39:00", 0,0,0,0,0,0,1),
+(7, "Test Game", "-", "2026-01-31 12:39:00", 0,0,0,0,0,0,1),
+(8, "Test Game", "-", "2026-01-31 12:39:00", 0,0,0,0,0,0,1);
 
 -- Keeps track of what cards are in the deck in each game
 CREATE TABLE decks (
@@ -70,6 +71,7 @@ CREATE TABLE players (
     stood INTEGER NOT NULL,                             -- Keeping track of if the player has stood
     user TEXT,                                          -- Username if logged in - otherwise NULL
     score INTEGER NOT NULL,                             -- Players score - starts at 0
+    rounds_won INTEGER NOT NULL,
     PRIMARY KEY (game_id, player_id),
     FOREIGN KEY (game_id) REFERENCES games(game_id),
     FOREIGN KEY (user) REFERENCES users(user_id)

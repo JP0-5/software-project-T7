@@ -216,8 +216,8 @@ def handle_join(game_id):
             return
         
         db.execute("""
-                    INSERT INTO players (game_id, player_id, socket_id, connected, stood, user, score)
-                    VALUES (?, ?, ?, 1, 0, ?, 0)""",
+                    INSERT INTO players (game_id, player_id, socket_id, connected, stood, user, score, rounds_won)
+                    VALUES (?, ?, ?, 1, 0, ?, 0, 0)""",
                     (game_id, player_id, request.sid, session["username"]))
         db.execute("UPDATE games SET player_count = `player_count` + 1 WHERE game_id = ?", (game_id,))
         # If the newly updated player count is 4, the game can start
@@ -312,27 +312,27 @@ def handle_hit():
             db.execute(""" UPDATE players SET score = `score` + (?) 
                        WHERE game_id == (?) AND player_id == (?) """, (cardValue, game_id, player_id))
 
-            if db.execute(""" SELECT score FROM players WHERE game_id == (?) AND player_id == (?)""", (game_id, player_id)).fetchone()["score"] > 21:
+            if int(db.execute(""" SELECT score FROM players WHERE game_id == (?) AND player_id == (?)""", (game_id, player_id)).fetchone()["score"]) > 21:
                 db.execute("""UPDATE players SET stood = (?) WHERE game_id == (?) AND player_id == (?)""", (1, game_id, player_id))
                 
                 playersStood = db.execute(""" SELECT players_stood FROM games WHERE game_id == (?)""", (game_id)).fetchone()["players_stood"]
-                db.execute("""UPDATE games SET players_stood = (?) WHERE game_id == (?)""", (playersStood + 1, game_id))
+                db.execute("""UPDATE games SET players_stood = `players_stood` + 1 WHERE game_id == (?)""", (game_id))
 
-                if playersStood + 1 == 4:
-                    game_finish()
+                if int(playersStood) + 1 == 4:
+                    round_finish()
                     db.commit()
                     return
 
-            if db.execute(""" SELECT score FROM players WHERE game_id == (?) AND player_id == (?)""", (game_id, player_id)).fetchone()["score"] == 21:
-                game_finish()
+            if int(db.execute(""" SELECT score FROM players WHERE game_id == (?) AND player_id == (?)""", (game_id, player_id)).fetchone()["score"]) == 21:
+                round_finish()
                 db.commit()
                 return
 
             currentT = db.execute("""SELECT current_turn FROM games WHERE game_id == ?""", (game_id)).fetchone()["current_turn"]
-            if currentT == 3:
+            if int(currentT) == 3:
                 db.execute("""UPDATE games SET current_turn = 0 WHERE game_id = ? """, (game_id))
             else:
-                db.execute("""UPDATE games SET current_turn = ? WHERE game_id = ? """, (currentT + 1, game_id))
+                db.execute("""UPDATE games SET current_turn = `current_turn` + 1 WHERE game_id = ? """, (game_id))
 
             db.commit()
 
@@ -349,21 +349,20 @@ def handle_stand():
         playersTurn = db.execute(""" SELECT player_id FROM players WHERE game_id == (?)""", (game_id)).fetchall()
 
         if player_id == playersTurn[currentT]["player_id"]:
+            playersStood = db.execute(""" SELECT players_stood FROM games WHERE game_id == (?)""", (game_id)).fetchone()
             if db.execute("""SELECT stood FROM players WHERE game_id == (?) AND player_id ==(?)""", (game_id, player_id)).fetchone()["stood"] == 0:
-                db.execute("""UPDATE players SET (stood) = (?) WHERE game_id == (?) AND player_id == (?)""", (1, game_id, player_id))
+                db.execute("""UPDATE players SET stood = (?) WHERE game_id == (?) AND player_id == (?)""", (1, game_id, player_id))
                 
-                playersStood = db.execute(""" SELECT players_stood FROM games WHERE game_id == (?)""", (game_id)).fetchone()["players_stood"]
-                db.execute("""UPDATE games SET (players_stood) = (?) WHERE game_id == (?)""", (playersStood + 1, game_id))
-                if playersStood + 1 == 4:
-                    game_finish()
+                db.execute("""UPDATE games SET players_stood = `players_stood` + 1 WHERE game_id == (?)""", (game_id))
+            if int(playersStood) + 1 == 4:
+                round_finish()
 
-                if currentT == 3:
-                    db.execute("""UPDATE games SET current_turn = 0 WHERE game_id = ? """, (game_id))
-                else:
-                    db.execute("""UPDATE games SET current_turn = ? WHERE game_id = ? """, (currentT + 1, game_id))
-                
-                db.commit()
-            # else?
+            if int(currentT) == 3:
+                db.execute("""UPDATE games SET current_turn = 0 WHERE game_id = ? """, (game_id))
+            else:
+                db.execute("""UPDATE games SET current_turn = `current_turn` + 1 WHERE game_id = ? """, (game_id))
+            
+            db.commit()
 
         send_game_update(game_id)
 
@@ -376,34 +375,66 @@ def send_game_update(game_id, card_taken=None):
 
     socketio.emit("game_update", (game, players, card_taken), to=game_id)
 
+def round_finish():
+    game_id = session["sockets"].get(request.sid, None)
+    if game_id is not None:
+        db = get_db()
+
+        allscores = db.execute(""" SELECT player_id, score, rounds_won FROM players WHERE game_id = (?) """, (game_id)).fetchall()
+        p1score = allscores[0]
+        p2score = allscores[1]
+        p3score = allscores[2]
+        p4score = allscores[3]
+        players = [p1score, p2score, p3score, p4score]
+
+        winningPlayer = p1score         # Placeholder
+        for i in range(len(players)):
+            if players[i]["score"] == 21:
+                winningPlayer == players[i]
+                db.execute(""" UPDATE players SET rounds_won = `rounds_won` + 1 WHERE player_id = ? AND game_id = ? """, (players[i]["player_id"], game_id))
+                db.execute(""" UPDATE games SET round = `round` + 1 WHERE game_id = ? """, (game_id))
+                
+                if db.execute(""" SELECT round FROM games WHERE game_id = ? """, game_id).fetchone() == 5:
+                    game_finish()
+
+            if int(players[i]["score"]) < 21:
+                if int(players[i]["score"]) > int(players[i - 1]["score"]) and int(players[i]["score"]) > int(winningPlayer["score"]):
+                    winningPlayer = players[i]                    
+                if int(players[i]["score"]) > int(players[i - 2]["score"]) and int(players[i]["score"]) > int(winningPlayer["score"]):
+                    winningPlayer = players[i]                   
+                if int(players[i]["score"]) > int(players[i - 3]["score"]) and int(players[i]["score"]) > int(winningPlayer["score"]):
+                    winningPlayer = players[i]
+        db.execute(""" UPDATE players SET rounds_won = `rounds_won` + 1 WHERE player_id = ? AND game_id = ? """, (players[i]["player_id"], game_id))
+        db.execute(""" UPDATE games SET round = `round` + 1 WHERE game_id = ? """, (game_id))
+        
+        print("Round Finish") # Call New Round function normally, this is here for testing
+
+        if db.execute(""" SELECT round FROM games WHERE game_id = ? """, game_id).fetchone() == 5:
+            game_finish()
+
 def game_finish():
     game_id = session["sockets"].get(request.sid, None)
     if game_id is not None:
         db = get_db()
 
-        allscores = db.execute(""" SELECT player_id, score FROM players WHERE game_id = (?) """, (game_id)).fetchall()
-        p1score = allscores[0]["score"]
-        p2score = allscores[1]["score"]
-        p3score = allscores[2]["score"]
-        p4score = allscores[3]["score"]
+        allscores = db.execute(""" SELECT player_id, score, rounds_won FROM players WHERE game_id = (?) """, (game_id)).fetchall()
+        p1score = allscores[0]
+        p2score = allscores[1]
+        p3score = allscores[2]
+        p4score = allscores[3]
         players = [p1score, p2score, p3score, p4score]
 
-        winningPlayer = 0
-        winningPlayer["score"] = 0              # Got an error from this line
+        winningPlayer = p1score         # Placeholder
         for i in range(len(players)):
-            if players[i]["score"] == 21:
-                winningPlayer == players[i]
-                return winningPlayer
-            
-            if players[i]["score"] < 21:
-                if players[i]["score"] > players[i - 1]["score"] and players[i]["score"] > winningPlayer["score"]:
-                    winningPlayer = players[i]                    
-                if players[i]["score"] > players[i - 2]["score"] and players[i]["score"] > winningPlayer:
-                    winningPlayer = players[i]                   
-                if players[i]["score"] > players[i - 3]["score"] and players[i]["score"] > winningPlayer:
-                    winningPlayer = players[i]
-        return winningPlayer
-
+            if players[i]["games_won"] > players[i - 1]["games_won"]:
+                winningPlayer = players[i]                    
+            if players[i]["games_won"] > players[i - 2]["games_won"]:
+                winningPlayer = players[i]                   
+            if players[i]["games_won"] > players[i - 3]["games_won"]:
+                winningPlayer = players[i]
+        
+        return winningPlayer        # Having this here for now
+    
 # Run the server locally
 if __name__ == "__main__":
     # On a restart of the development server, mark all players as disconnected
