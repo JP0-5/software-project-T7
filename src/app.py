@@ -233,9 +233,9 @@ def create():
                         break
 
             db.execute("""
-                    INSERT INTO games (game_id, public, host, start_time, next_turn, finished, status, player_count, allowed_players, game_mode)
-                    VALUES (?, ?, ?, ?, ?, 0, 0, 0, 4, ?)
-                    """, (game_id, form.visibility.data, player_id, t, player_id, form.game_mode.data))
+                    INSERT INTO games (game_id, public, host, start_time, current_turn, players_stood, round, finished, status, player_count, allowed_players, game_mode)
+                    VALUES (?, ?, ?, ?, 0, 0, 1, 0, 0, 0, 4, ?)
+                    """, (game_id, form.visibility.data, player_id, t, form.game_mode.data))
             db.execute(deck_creation_statement.replace("X", str(game_id)))
             for user in invited_users:
                 db.execute("INSERT INTO invites (game_id, invitee, time, message) VALUES (?, ?, ?, ?)", (game_id, user, t, form.invite_message.data))
@@ -383,6 +383,9 @@ def handle_join(game_id):
         else:
             socketio.emit("player_count_update", (game_id, player_count["player_count"]), to="game_list")
 
+    # Inform clients currently looking at the games list that the player count has changed
+    # Handling this at the end so the other events and database updates can be handled first
+
 def game_start(game_id, game):
     db = get_db()
     db.execute("UPDATE games SET status = 1 WHERE game_id = ?", (game_id,))
@@ -390,9 +393,6 @@ def game_start(game_id, game):
     players = [dict(player) for player in player_rows]
     
     socketio.emit("game_start", (dict(game), players), to=game_id)    
-
-    # Inform clients currently looking at the games list that the player count has changed
-    # Handling this at the end so the other events and database updates can be handled first
 
 @socketio.on("disconnect")
 def handle_disconnect(*args):
