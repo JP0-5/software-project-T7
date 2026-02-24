@@ -1,4 +1,4 @@
-# NOTE: Do not use `flask run` to start the server. 
+# NOTE: Do not use `flask run` to start the server.
 # Instead, run this file and code at the end of the file will start the server.
 
 # NOTE: You may need to run the schema.sql file to setup app.db first.
@@ -388,7 +388,7 @@ def handle_join(game_id):
 def game_start(game_id, game):
     db = get_db()
     db.execute("UPDATE games SET status = 1 WHERE game_id = ?", (game_id,))
-    player_rows = db.execute("SELECT player_id, score FROM players WHERE game_id = ?", (game_id,)).fetchall()
+    player_rows = db.execute("SELECT player_id, score, rounds_won FROM players WHERE game_id = ?", (game_id,)).fetchall()
     players = [dict(player) for player in player_rows]
     
     socketio.emit("game_start", (dict(game), players), to=game_id)    
@@ -537,6 +537,8 @@ def round_finish():
     game_id = session["sockets"].get(request.sid, None)
     if game_id is not None:
         db = get_db()
+        #Read round number before it is incremented below
+        round = db.execute(""" SELECT round FROM games WHERE game_id = ? """, (game_id,)).fetchone()["round"]
 
         allscores = db.execute(""" SELECT player_id, score, rounds_won FROM players WHERE game_id = (?) """, (game_id,)).fetchall()
         p1score = allscores[0]
@@ -552,7 +554,7 @@ def round_finish():
                 db.execute(""" UPDATE players SET rounds_won = `rounds_won` + 1 WHERE player_id = ? AND game_id = ? """, (players[i]["player_id"], game_id))
                 db.execute(""" UPDATE games SET round = `round` + 1 WHERE game_id = ? """, (game_id,))
                 
-                if db.execute(""" SELECT round FROM games WHERE game_id = ? """, game_id).fetchone() == 5:
+                if db.execute(""" SELECT round FROM games WHERE game_id = ? """, (game_id,)).fetchone() == 5:
                     game_finish()
 
             if int(players[i]["score"]) < 21:
@@ -564,11 +566,17 @@ def round_finish():
                     winningPlayer = players[i]
         db.execute(""" UPDATE players SET rounds_won = `rounds_won` + 1 WHERE player_id = ? AND game_id = ? """, (players[i]["player_id"], game_id))
         db.execute(""" UPDATE games SET round = `round` + 1 WHERE game_id = ? """, (game_id,))
+        db.commit()
         
         print("-----------------------------Round Finish") # Call New Round function normally, this is here for testing
 
-        if db.execute(""" SELECT round FROM games WHERE game_id = ? """, (game_id,)).fetchone() == 5:
+        #Logic for game finish may need to be adjusted
+
+        if round == 5:
             game_finish()
+        
+        #Args: (number of the round just finished, winning player ID)
+        socketio.emit("round_finish", (round, winningPlayer["player_id"]), to=game_id)
 
 def game_finish():
     game_id = session["sockets"].get(request.sid, None)

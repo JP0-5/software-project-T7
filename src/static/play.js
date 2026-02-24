@@ -38,6 +38,8 @@ var pixelFont = new FontFace('Pixelz', 'url(/static/pixel_font.ttf)');
 let players = {};
 let thisPlayer;
 let currentTurnID;
+let winningPlayerID;
+let player0id;          //The player whose turn it will be after a new round starts
 
 let cards = {
     "clubs": [null, ca, c2, c3, c4, c5, c6, c7, c8, c9, c10, ck, cq, cj],
@@ -64,6 +66,7 @@ let roundOverFrames = 30;
 let roundOverGrow = true;
 let roundOverHold = false;
 let roundOverHoldTimer = 0;
+let roundOverUIReset;
 let roundNum;
 
 document.addEventListener("DOMContentLoaded", init, false);
@@ -148,7 +151,8 @@ function init() {
     socket.on("game_update", (game, playerList, cardTaken) => {
         currentTurnID = playerList[game.current_turn].player_id;
 
-        if (currentTurnID === playerID) {
+        //Don't show the buttons while the round over animation is playing
+        if (roundOverFrames === 30 && currentTurnID === playerID) {
             enableButtons();
         }
 
@@ -163,6 +167,16 @@ function init() {
                 drawCard(cardTaken[1], cardTaken[2])
             }
         }
+    })
+
+
+    //Args: (number of the round just finished, winning player ID)
+    socket.on("round_finish", (round, winnerID) => {
+        roundNum = (round + 1) % 5;
+        winningPlayerID = winnerID;
+        roundOverUIReset = false;
+        disableButtons();
+        endRoundAnimation();
     })
 
     load_assets([
@@ -204,7 +218,7 @@ function startGame(game, playerList, round, cardsRemaining, hands) {
     remainingCards = cardsRemaining;
 
     for (let player of playerList) {
-        players[player.player_id] = {name: player.player_id.slice(1), score: player.score, cards: [], pfp: null}
+        players[player.player_id] = {name: player.player_id.slice(1), score: player.score, roundsWon: player.rounds_won, cards: [], pfp: null}
     }
 
     // We can set this up later to be used if a player goes onto the page after the game has alread started (e.g. if they reload the page)
@@ -215,6 +229,7 @@ function startGame(game, playerList, round, cardsRemaining, hands) {
     }
 
     thisPlayer = players[playerID];
+    player0id = playerList[0].player_id;
 
     //temp
     const values = Object.values(players);
@@ -368,7 +383,10 @@ function draw() {
 }
 
 function endRoundAnimation() {
-    if (roundNum === 5) {
+    //roundNum has already been incremented in the "round_finish" handler
+
+    //If the game has finished, the round number will have already been reset to 1 in the event handler
+    if (roundNum === 1) {
         context.drawImage(gameComplete, 0, 0, roundOver.width, roundOver.height,
             (-(0 - (canvas.width / 2)) * (roundOverFrames / 30)), (-(0 - (canvas.height / 2))) * (roundOverFrames / 30),
             canvas.width - 300 - ((canvas.width - 300) * (roundOverFrames / 30)), canvas.height - (canvas.height * (roundOverFrames / 30))
@@ -392,9 +410,8 @@ function endRoundAnimation() {
         if (roundOverFrames === 30) {
             roundOverGrow = true;
             roundOverFrames = 30;
-            roundNum += 1;
-            if (roundNum === 6) {
-                roundNum = 1;
+            if (currentTurnID === playerID) {
+                enableButtons();
             }
         }
     }
@@ -404,17 +421,25 @@ function endRoundAnimation() {
         // console.log(roundOverHoldTimer, roundOverFrames, roundOverGrow);
         context.font = "50px Pixelz";
         context.fillStyle = "yellow";
-        context.fillText("Player1", 500, canvas.height - 250);
+        context.fillText(winningPlayerID.slice(1), 500, canvas.height - 250);
         if (roundOverHoldTimer === 120) {
             roundOverHoldTimer = 0;
             roundOverHold = false;
             roundOverFrames += 2;
         }
-        // remainingCards = 52;
-        // for (let p of players) {
-        //     p.cards = [];
-        //     p.score = 0;
-        // }
+
+        //Reset the UI
+        if (!roundOverUIReset) {
+            roundOverUIReset = true;
+            remainingCards = 52;
+            for (let p of Object.values(players)) {
+                p.cards = [];
+                p.score = 0;
+            }
+            players[winningPlayerID].roundsWon += 1;
+            currentTurnID = player0id;
+            roundNumIndicator.innerHTML = roundNum;
+        }
     }
 }
 
