@@ -172,7 +172,7 @@ function init() {
 
     //Args: (number of the round just finished, winning player ID)
     socket.on("round_finish", (round, winnerID) => {
-        roundNum = (round + 1) % 5;
+        roundNum = round + 1;
         winningPlayerID = winnerID;
         roundOverUIReset = false;
         disableButtons();
@@ -384,9 +384,7 @@ function draw() {
 
 function endRoundAnimation() {
     //roundNum has already been incremented in the "round_finish" handler
-
-    //If the game has finished, the round number will have already been reset to 1 in the event handler
-    if (roundNum === 1) {
+    if (roundNum === 6) {
         context.drawImage(gameComplete, 0, 0, roundOver.width, roundOver.height,
             (-(0 - (canvas.width / 2)) * (roundOverFrames / 30)), (-(0 - (canvas.height / 2))) * (roundOverFrames / 30),
             canvas.width - 300 - ((canvas.width - 300) * (roundOverFrames / 30)), canvas.height - (canvas.height * (roundOverFrames / 30))
