@@ -7,7 +7,7 @@
         <a class="reg_nav" href="{{ url_for('log_in') }}">Log In</a>
         <a class="reg_nav" href="{{ url_for('sign_up') }}">Sign Up</a>
         {% else %}
-        <a id="account_button">
+        <a id="account_button" href="{{ url_for('account_settings')}}">
             <img id="account_img" src="{{ url_for('static',filename='logo.jpg')}}"></img>
             <p id="account_name"> {{ session["username"] }}</p>
         </a>

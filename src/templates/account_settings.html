@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset = "utf-8">
+        <title>{{ title }}</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+        <link rel="icon" href="{{ url_for('static',filename='favicon.ico') }}">
+        <script src="{{ url_for('static', filename='settings.js') }}"></script>
+        <script src="{{ url_for('static', filename='account_settings.js') }}"></script>
+        {% if scripts %}
+            {% for script in scripts %}
+                <script src="{{ script }}"></script>
+            {% endfor %}
+        {% endif %}
+    </head>
+    <body>
+        <section id="change_picture_box">
+            <section id="change_picture">
+                <h2>Select A Profile Picture</h2>
+                <section id="picture_selection_box">
+                <section id="picture_selection">
+                    <img id="profile_img" src ="{{ url_for('static',filename='logo.jpg')}}"></img>
+                    <img id="profile_img" src ="{{ url_for('static',filename='logo.jpg')}}"></img>
+                    <img id="profile_img" src ="{{ url_for('static',filename='logo.jpg')}}"></img>
+
+                    <img id="profile_img" src ="{{ url_for('static',filename='pfp1.png')}}"></img>
+                    <img id="profile_img" src ="{{ url_for('static',filename='pfp2.png')}}"></img>
+                    <img id="profile_img" src ="{{ url_for('static',filename='pfp3.png')}}"></img>
+
+
+                      <img id="profile_img" src ="{{ url_for('static',filename='pfp1.png')}}"></img>
+                    <img id="profile_img" src ="{{ url_for('static',filename='pfp2.png')}}"></img>
+                    <img id="profile_img" src ="{{ url_for('static',filename='pfp3.png')}}"></img>
+                </section>
+                </section>
+</section>
+            </section>
+
+        </section>
+
+        <header class ="header">
+           <nav class = "nav_bar">
+                <a id="account_button" href="{{ url_for('account_settings')}}">
+            <img id="account_img" src="{{ url_for('static',filename='logo.jpg')}}"></img>
+            <p id="account_name"> {{ session["username"] }}</p>
+        </a>
+<a class="reg_nav" id="inbox_button" href="{{ url_for('inbox')}}">Inbox</a>
+            <a class="reg_nav" id="home_button" href="{{ url_for('main')}}">Home</a>
+            <a class ="reg_nav" href="{{ url_for('logout') }}">Log Out</a>
+            <a class ="reg_nav" id ="settings" onclick = "openSettings()" href="#">Settings</a>
+            </nav>
+        </header>
+
+        <main class = "base_content">
+            {{ form.hidden_tag() }}
+
+        <section id="account_settings">
+            <h1>Account Settings</h1>
+           
+            <section id = "profile_settings">
+                <section id="profile_picture">
+                <h2>Profile Picture</h2>
+                <img id="profile_img" src ="{{ url_for('static',filename='logo.jpg')}}"></img>
+                <a href="#" id="edit_picture" onclick = "openEdit()">Edit Picture</a>
+                </section>
+        <section>
+       <h2 id = "label"> {{ form.user_id.label }} </h2>
+
+        {{ form.user_id() }}
+
+        {% for error in form.user_id.errors %}
+            {{ error }}
+            {% endfor %}
+            <br>
+            <a id="change">Change</a>
+</section>
+        
+<section>
+        <h2 id ="label"> {{ form.password.label }}</h2>
+        {{ form.password() }}
+        
+        {% for error in form.password.errors %}
+            {{ error }}
+            {% endfor %}
+            <br>
+            <a id="change">Change</a>
+        
+</section>
+
+        <h2>Delete Your Account</h2>
+        <section class="buttons">
+        {{ form.cancel() }}
+        {{ form.submit() }}
+        </section>
+        
+            </section>
+
+
+
+           
+            
+
+            {% block main_content %}
+            {% endblock %}
+        </main>
+ <section id = "settings_box">
+                <section id = "settings_content">
+                    <h2>Settings</h2>
+                    <p>Music</p>
+                    <p>Sound</p>
+                    
+                </section>
+            </section>
+        
+    </body>
+</html>

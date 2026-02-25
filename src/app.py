@@ -309,6 +309,12 @@ def play(game_id):
 
     return render_template("play.html", game_id=game_id, messages=messages, title="BlackJack Fever")
 
+@app.route("/account_settings")
+def account_settings():
+    form=accountForm()
+    form.user_id.data=session['username']
+    form.password.data="********"
+    return render_template("account_settings.html", title = "My Account",form=form,script=[url_for("static", filename="account_settings.js")])
 
 # SocketIO event handlers
 @socketio.on("join_request")

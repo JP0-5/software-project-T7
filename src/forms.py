@@ -28,3 +28,9 @@ class CreateGameForm(FlaskForm):
 class EnterCodeForm(FlaskForm):
     code = StringField('Game Code: ', validators=[InputRequired()])
     submit = SubmitField("Join")
+
+class accountForm(FlaskForm):
+    user_id = StringField('Your Name: ', [InputRequired(),validators.Length(max=15)])
+    password = StringField('Your Password', validators = [InputRequired(),validators.Length(min=5,max=25)])
+    submit = SubmitField('Save')
+    cancel=SubmitField('Cancel')  
