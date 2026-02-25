@@ -488,8 +488,36 @@ def handle_hit():
 
             currentT = db.execute("""SELECT current_turn FROM games WHERE game_id == ?""", (game_id,)).fetchone()["current_turn"]
             if int(currentT) == 3:
+                skip = False
+                for i in range(3):
+                    if db.execute("""SELECT stood FROM players WHERE player_id == ?""", (playersTurn[i]["player_id"],)).fetchone() == 1:
+                        db.execute("""UPDATE games SET current_turn = 0 WHERE game_id = ? """, (game_id,))
+                        skip = True
+                    
+                    if i == 3 and skip == True:
+                        db.commit()
+                        send_game_update(game_id, card_taken=(player_id, card["value"], card["suit"]))
+                        return
+                                        
                 db.execute("""UPDATE games SET current_turn = 0 WHERE game_id = ? """, (game_id,))
             else:
+                skip = False
+                for i in range(3):
+                    while (currentT + i) <= 3:
+                        if db.execute("""SELECT stood FROM players WHERE player_id == ?""", (playersTurn[currentT + i]["player_id"],)).fetchone() == 1:
+                            db.execute("""UPDATE games SET current_turn = 0 WHERE game_id = ? """, (game_id,))
+
+                    while (currentT + i) > 3:
+                        newVal = (currentT + i) - 3
+                        if db.execute("""SELECT stood FROM players WHERE player_id == ?""", (playersTurn[newVal]["player_id"],)).fetchone() == 1:
+                            db.execute("""UPDATE games SET current_turn = 0 WHERE game_id = ? """, (game_id,))
+                            skip = True
+
+                    if i == 3 and skip == True:       
+                        db.commit()
+                        send_game_update(game_id, card_taken=(player_id, card["value"], card["suit"]))
+                        return
+
                 db.execute("""UPDATE games SET current_turn = `current_turn` + 1 WHERE game_id = ? """, (game_id,))
 
             db.commit()
@@ -516,10 +544,38 @@ def handle_stand():
                 round_finish()
 
             if int(currentT) == 3:
+                skip = False
+                for i in range(3):
+                    if db.execute("""SELECT stood FROM players WHERE player_id == ?""", (playersTurn[i]["player_id"],)).fetchone() == 1:
+                        db.execute("""UPDATE games SET current_turn = 0 WHERE game_id = ? """, (game_id,))
+                        skip = True
+                    
+                    if i == 3 and skip == True:
+                        db.commit()
+                        send_game_update(game_id)
+                        return
+                                        
                 db.execute("""UPDATE games SET current_turn = 0 WHERE game_id = ? """, (game_id,))
             else:
+                skip = False
+                for i in range(3):
+                    while (currentT + i) <= 3:
+                        if db.execute("""SELECT stood FROM players WHERE player_id == ?""", (playersTurn[currentT + i]["player_id"],)).fetchone() == 1:
+                            db.execute("""UPDATE games SET current_turn = 0 WHERE game_id = ? """, (game_id,))
+
+                    while (currentT + i) > 3:
+                        newVal = (currentT + i) - 3
+                        if db.execute("""SELECT stood FROM players WHERE player_id == ?""", (playersTurn[newVal]["player_id"],)).fetchone() == 1:
+                            db.execute("""UPDATE games SET current_turn = 0 WHERE game_id = ? """, (game_id,))
+                            skip = True
+
+                    if i == 3 and skip == True:       
+                        db.commit()
+                        send_game_update(game_id)
+                        return
+
                 db.execute("""UPDATE games SET current_turn = `current_turn` + 1 WHERE game_id = ? """, (game_id,))
-            
+
             db.commit()
 
         send_game_update(game_id)
@@ -553,9 +609,25 @@ def round_finish():
                 winningPlayer == players[i]
                 db.execute(""" UPDATE players SET rounds_won = `rounds_won` + 1 WHERE player_id = ? AND game_id = ? """, (players[i]["player_id"], game_id))
                 db.execute(""" UPDATE games SET round = `round` + 1 WHERE game_id = ? """, (game_id,))
+
+                db.execute(""" UPDATE players SET rounds_won = `rounds_won` + 1 WHERE player_id = ? AND game_id = ? """, (players[i]["player_id"], game_id))
+                db.execute(""" UPDATE games SET round = `round` + 1 WHERE game_id = ? """, (game_id,))
+                
+                for i in range(len(players)):
+                    db.execute(""" UPDATE players SET stood, score == 0, 0 WHERE player_id == ? """, (players["player_id"],))
+
+                db.execute(""" UPDATE games SET current_turn, players_stood = (?, ?) WHERE game_id == ?""", (0, 0, game_id))
+                db.execute(""" DELETE * FROM hands WHERE game_id = ? """, (game_id,))
+
+                db.execute(""" DELETE * FROM decks WHERE game_id = ?  """, (game_id,))
+                db.execute(deck_creation_statement.replace("X", str(game_id)))
+
+                db.commit()
                 
                 if db.execute(""" SELECT round FROM games WHERE game_id = ? """, (game_id,)).fetchone() == 5:
                     game_finish()
+
+                return                
 
             if int(players[i]["score"]) < 21:
                 if int(players[i]["score"]) > int(players[i - 1]["score"]) and int(players[i]["score"]) > int(winningPlayer["score"]):
@@ -566,6 +638,16 @@ def round_finish():
                     winningPlayer = players[i]
         db.execute(""" UPDATE players SET rounds_won = `rounds_won` + 1 WHERE player_id = ? AND game_id = ? """, (players[i]["player_id"], game_id))
         db.execute(""" UPDATE games SET round = `round` + 1 WHERE game_id = ? """, (game_id,))
+        
+        for i in range(len(players)):
+            db.execute(""" UPDATE players SET stood, score == 0, 0 WHERE player_id == ? """, (players["player_id"],))
+
+        db.execute(""" UPDATE games SET current_turn, players_stood = (?, ?) WHERE game_id == ?""", (0, 0, game_id))
+        db.execute(""" DELETE * FROM hands WHERE game_id = ? """, (game_id,))
+
+        db.execute(""" DELETE * FROM decks WHERE game_id = ?  """, (game_id,))
+        db.execute(deck_creation_statement.replace("X", str(game_id)))
+
         db.commit()
         
         print("-----------------------------Round Finish") # Call New Round function normally, this is here for testing
