@@ -217,7 +217,7 @@ function startGame(game, playerList, cardsRemaining, hands) {
     gameStarted = true;
 
     roundNum = game.round;
-    roundNumIndicator.innerHTML = round;
+    roundNumIndicator.innerHTML = roundNum;
     remainingCards = cardsRemaining;
 
     for (let player of playerList) {

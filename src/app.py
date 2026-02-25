@@ -1,4 +1,4 @@
-# NOTE: Do not use `flask run` to start the server.
+# NOTE: Do not use `flask run` to start the server. 
 # Instead, run this file and code at the end of the file will start the server.
 
 # NOTE: You may need to run the schema.sql file to setup app.db first.
@@ -378,11 +378,18 @@ def handle_join(game_id):
     join_room(game_id)
 
     if game_already_started:
+        game = dict(db.execute("SELECT * FROM games WHERE game_id = ?", (game_id,)).fetchone())
+        player_rows = db.execute("SELECT player_id, score, rounds_won FROM players WHERE game_id = ?", (game_id,)).fetchall()
+        players = [dict(player) for player in player_rows]
+        cards_remaining = int(db.execute("SELECT COUNT(*) FROM decks WHERE game_id = ?", (game_id,)).fetchone()[0])
+        hand_cards_rows = db.execute("SELECT * FROM hands WHERE game_id = ? AND player_id = ?", (game_id, player_id)).fetchall()
+        hand_cards = [dict(card) for card in hand_cards_rows]
+
         game_state = {
-            "game": None,
-            "players": None,
-            "cards": None,
-            "hands": None
+            "game": game,
+            "players": players,
+            "cards": cards_remaining,
+            "hands": hand_cards
         }
 
         socketio.emit("join_accepted", (player_id, None), to=game_id, skip_sid=request.sid)
