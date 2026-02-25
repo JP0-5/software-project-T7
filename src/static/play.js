@@ -436,7 +436,9 @@ function endRoundAnimation() {
             }
             players[winningPlayerID].roundsWon += 1;
             currentTurnID = player0id;
-            roundNumIndicator.innerHTML = roundNum;
+            if (roundNum <= 5) {
+                roundNumIndicator.innerHTML = roundNum;
+            }
         }
     }
 }
