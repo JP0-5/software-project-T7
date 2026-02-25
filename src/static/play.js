@@ -30,10 +30,10 @@ let c6 = new Image(); let c7 = new Image(); let c8 = new Image(); let c9 = new I
 let c10 = new Image(); let ck = new Image(); let cq = new Image(); let cj = new Image();
 let remainingCards = 52;
 var pixelFont = new FontFace('Pixelz', 'url(/static/pixel_font.ttf)');
-let p1 = { score: 0, cards: [], pfp: pfp1 };
-let p2 = { score: 0, cards: [], pfp: pfp2 };
-let p3 = { score: 0, cards: [], pfp: pfp3 };
-let p4 = { score: 0, cards: [], pfp: pfp4 };
+let p1 = { score: 0, cards: [], pfp: pfp1, wins: 0 };
+let p2 = { score: 0, cards: [], pfp: pfp2, wins: 0 };
+let p3 = { score: 0, cards: [], pfp: pfp3, wins: 0 };
+let p4 = { score: 0, cards: [], pfp: pfp4, wins: 0 };
 let players = [p1, p2, p3, p4];
 let cards = [ha, h2, h3, h4, h5, h6, h7, h8, h9, h10, hk, hq, hj,
     da, d2, d3, d4, d5, d6, d7, d8, d9, d10, dk, dq, dj,
@@ -181,6 +181,10 @@ function draw() {
         context.fillStyle = "white";
     }
     context.fillText(p1.score, 160, 105);
+    context.fillStyle = "yellow";
+    context.font = "25px Pixelz";
+    context.fillText(p1.wins, 130, 110);
+
     context.fillStyle = "white";
     context.drawImage(pfp2,
         0, 0, pfp2.width, pfp2.height,
@@ -198,6 +202,10 @@ function draw() {
         context.fillStyle = "white";
     }
     context.fillText(p2.score, 130, 195);
+    context.fillStyle = "yellow";
+    context.font = "25px Pixelz";
+    context.fillText(p2.wins, 103, 200);
+
     context.fillStyle = "white";
     context.drawImage(pfp3,
         0, 0, pfp3.width, pfp3.height,
@@ -215,6 +223,10 @@ function draw() {
         context.fillStyle = "white";
     }
     context.fillText(p3.score, 130, 285);
+    context.fillStyle = "yellow";
+    context.font = "25px Pixelz";
+    context.fillText(p3.wins, 103, 290);
+
     context.fillStyle = "white";
     context.drawImage(pfp4,
         0, 0, pfp4.width, pfp4.height,
@@ -232,6 +244,10 @@ function draw() {
         context.fillStyle = "white";
     }
     context.fillText(p4.score, 130, 375);
+    context.fillStyle = "yellow";
+    context.font = "25px Pixelz";
+    context.fillText(p4.wins, 103, 380);
+
     context.fillStyle = "white";
     //draw cards
     let numCardsDrew = 0;

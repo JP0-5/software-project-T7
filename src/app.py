@@ -16,7 +16,7 @@ from time import time
 from gevent.lock import BoundedSemaphore
 from database import *
 from forms import *
-
+ 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "this-is-my-secret-key"
 app.config["SESSION_TYPE"] = "filesystem"
