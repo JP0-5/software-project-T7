@@ -316,6 +316,7 @@ def handle_join(game_id):
     player_id = session["player_id"]
     db = get_db()
 
+    game_already_started = False
     update_game_list = False
 
     # Get player and game info
@@ -325,6 +326,7 @@ def handle_join(game_id):
                                 ON players.game_id = games.game_id
                                 WHERE players.game_id = ? AND players.player_id = ?
                                 """, (game_id, player_id)).fetchone()
+    game = db.execute("SELECT * FROM games WHERE game_id = ?", (game_id,)).fetchone()
 
     # Check if this player is already connected to this game, or was previously
     if player_entry is not None:
@@ -347,9 +349,10 @@ def handle_join(game_id):
                         SET socket_id = ?, connected = 1
                         WHERE game_id = ? AND player_id = ?""",
                         (request.sid, game_id, player_id))
+            if game["status"] == 1:
+                game_already_started = True
     else:
         # The player is connecting to this game for the first time
-        game = db.execute("SELECT * FROM games WHERE game_id = ?", (game_id,)).fetchone()
         if game["finished"] == 1:
             # If the game is finished, refuse the connection
             # This should not occur, but is included to be safe
@@ -373,7 +376,19 @@ def handle_join(game_id):
     session["sockets"][request.sid] = game_id
     session.modified = True
     join_room(game_id)
-    socketio.emit("join_accepted", player_id, to=game_id)
+
+    if game_already_started:
+        game_state = {
+            "game": None,
+            "players": None,
+            "cards": None,
+            "hands": None
+        }
+
+        socketio.emit("join_accepted", (player_id, None), to=game_id, skip_sid=request.sid)
+        socketio.emit("join_accepted", (player_id, game_state), to=request.sid)
+    else:
+        socketio.emit("join_accepted", (player_id, None), to=game_id)
 
     if update_game_list:
         player_count = db.execute("SELECT player_count, allowed_players FROM games WHERE game_id = ?", (game_id,)).fetchone()

@@ -124,11 +124,14 @@ function init() {
         }
     })
 
-    socket.on("join_accepted", (pID) => {
+    socket.on("join_accepted", (pID, gameState) => {
         if (pID === playerID) {
             // This client was allowed to join
             sendButton.disabled = false;
             connectionStatus.innerHTML = "Connected";
+            if (gameState != null) {
+                startGame(gameState.game, gameState.players, gameState.cards, gameState.hands);
+            }
         } else {
             // Another player joined the game
 
@@ -145,7 +148,7 @@ function init() {
     });
 
     socket.on("game_start", (game, playerList) => {
-        startGame(game, playerList, 1, 52, null);
+        startGame(game, playerList, 52, null);
     });
 
     socket.on("game_update", (game, playerList, cardTaken) => {
@@ -210,10 +213,10 @@ function init() {
     standButton.onclick = standButtonPress;
 }
 
-function startGame(game, playerList, round, cardsRemaining, hands) {
+function startGame(game, playerList, cardsRemaining, hands) {
     gameStarted = true;
 
-    roundNum = round;
+    roundNum = game.round;
     roundNumIndicator.innerHTML = round;
     remainingCards = cardsRemaining;
 
