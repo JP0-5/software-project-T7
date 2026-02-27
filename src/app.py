@@ -1,4 +1,4 @@
-# NOTE: Do not use `flask run` to start the server.
+# NOTE: Do not use `flask run` to start the server. 
 # Instead, run this file and code at the end of the file will start the server.
 
 # NOTE: You may need to run the schema.sql file to setup app.db first.
@@ -523,6 +523,10 @@ def handle_hit():
             db.commit()
 
             send_game_update(game_id, card_taken=(player_id, card["value"], card["suit"]))
+        else:
+            print("--------------------Not your turn! The current turn is:", playersTurn[currentT]["player_id"])
+            print("--------------------currentT is:", currentT)
+            print("--------------------playersTurn:", [playersTurn[i]["player_id"] for i in range(4)])
 
 @socketio.on("stand")
 def handle_stand():
@@ -541,7 +545,9 @@ def handle_stand():
                 
                 db.execute("""UPDATE games SET players_stood = `players_stood` + 1 WHERE game_id == (?)""", (game_id,))
             if int(playersStood) + 1 == 4:
+                db.commit()
                 round_finish()
+                return
 
             if int(currentT) == 3:
                 skip = False
@@ -579,6 +585,10 @@ def handle_stand():
             db.commit()
 
         send_game_update(game_id)
+    else:
+        print("--------------------Not your turn! The current turn is:", playersTurn[currentT]["player_id"])
+        print("--------------------currentT is:", currentT)
+        print("--------------------playersTurn:", [playersTurn[i]["player_id"] for i in range(4)])
 
 def send_game_update(game_id, card_taken=None):
     # card_taken is a triple of (player id, value, suit)
@@ -609,9 +619,6 @@ def round_finish():
                 winningPlayer == players[i]
                 db.execute(""" UPDATE players SET rounds_won = `rounds_won` + 1 WHERE player_id = ? AND game_id = ? """, (players[i]["player_id"], game_id))
                 db.execute(""" UPDATE games SET round = `round` + 1 WHERE game_id = ? """, (game_id,))
-
-                db.execute(""" UPDATE players SET rounds_won = `rounds_won` + 1 WHERE player_id = ? AND game_id = ? """, (players[i]["player_id"], game_id))
-                db.execute(""" UPDATE games SET round = `round` + 1 WHERE game_id = ? """, (game_id,))
                 
                 for i in range(len(players)):
                     db.execute(""" UPDATE players SET stood = 0, score = 0 WHERE player_id == ? """, (players["player_id"],))
@@ -627,6 +634,8 @@ def round_finish():
                 if db.execute(""" SELECT round FROM games WHERE game_id = ? """, (game_id,)).fetchone() == 5:
                     game_finish()
 
+                #Args: (number of the round just finished, winning player ID)
+                socketio.emit("round_finish", (round, winningPlayer["player_id"]), to=game_id)
                 return                
 
             if int(players[i]["score"]) < 21:
@@ -661,6 +670,9 @@ def round_finish():
         socketio.emit("round_finish", (round, winningPlayer["player_id"]), to=game_id)
 
 def game_finish():
+    print("----------------------------------Reached game finished")
+    return
+
     game_id = session["sockets"].get(request.sid, None)
     if game_id is not None:
         db = get_db()

@@ -149,6 +149,8 @@ function init() {
     });
 
     socket.on("game_update", (game, playerList, cardTaken) => {
+        console.log("Game update:", playerList);
+
         currentTurnID = playerList[game.current_turn].player_id;
 
         //Don't show the buttons while the round over animation is playing
@@ -211,6 +213,8 @@ function init() {
 }
 
 function startGame(game, playerList, round, cardsRemaining, hands) {
+    console.log("Game start", playerList);
+
     gameStarted = true;
 
     roundNum = round;
@@ -230,6 +234,7 @@ function startGame(game, playerList, round, cardsRemaining, hands) {
 
     thisPlayer = players[playerID];
     player0id = playerList[0].player_id;
+    console.log("Player 0:", player0id);
 
     //temp
     const values = Object.values(players);
