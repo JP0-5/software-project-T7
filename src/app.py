@@ -388,7 +388,7 @@ def handle_join(game_id):
 def game_start(game_id, game):
     db = get_db()
     db.execute("UPDATE games SET status = 1 WHERE game_id = ?", (game_id,))
-    player_rows = db.execute("SELECT player_id, score, rounds_won FROM players WHERE game_id = ? ORDER BY player_id", (game_id,)).fetchall()
+    player_rows = db.execute("SELECT player_id, stood, score, rounds_won FROM players WHERE game_id = ? ORDER BY player_id", (game_id,)).fetchall()
     players = [dict(player) for player in player_rows]
     turn_index = int(db.execute("SELECT current_turn FROM games WHERE game_id = ?", (game_id,)).fetchone()["current_turn"])
     current_turn_id = player_rows[turn_index]["player_id"]
@@ -552,7 +552,7 @@ def handle_stand():
 def send_game_update(game_id, card_taken=None):
     # card_taken is a triple of (player id, value, suit)
     db = get_db()
-    player_rows = db.execute("SELECT player_id, score FROM players WHERE game_id = ? ORDER BY player_id", (game_id,)).fetchall()
+    player_rows = db.execute("SELECT player_id, stood, score FROM players WHERE game_id = ? ORDER BY player_id", (game_id,)).fetchall()
     players = [dict(player) for player in player_rows]
     turn_index = int(db.execute("SELECT current_turn FROM games WHERE game_id = ?", (game_id,)).fetchone()["current_turn"])
     current_turn_id = player_rows[turn_index]["player_id"]

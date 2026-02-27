@@ -78,9 +78,9 @@ function init() {
         console.log('font ready');
         document.fonts.add(font);context.font = "70px Pixelz";
         context.fillStyle = "white";
-        context.fillText("Waiting for game", 450, 200)
-        context.fillText("lobby to fill", 550, 300)
-        context.fillText("Please wait..", 550, 400)
+        context.fillText("Waiting for other", 450, 200)
+        context.fillText("players to join", 475, 300)
+        context.fillText("Please wait..", 525, 400)
     });
 
     hitButton = document.getElementById("hit");
@@ -159,6 +159,7 @@ function init() {
 
         for (let player of playerList) {
             players[player.player_id].score = player.score;
+            players[player.player_id].stood = player.stood;
         }
 
         //cardTaken is a triple of (player id, value, suit)
@@ -174,6 +175,9 @@ function init() {
     //Args: (number of the round just finished, winning player ID)
     socket.on("round_finish", (round, winnerID, turn) => {
         roundNum = round + 1;
+        if (roundNum <= 5) {
+            roundNumIndicator.innerHTML = roundNum;
+        }
         winningPlayerID = winnerID;
         currentTurnID = turn;
         roundOverUIReset = false;
@@ -222,7 +226,7 @@ function startGame(playerList, turn, round, cardsRemaining, hands) {
     remainingCards = cardsRemaining;
 
     for (let player of playerList) {
-        players[player.player_id] = {name: player.player_id.slice(1), score: player.score, roundsWon: player.rounds_won, cards: [], pfp: null}
+        players[player.player_id] = {name: player.player_id.slice(1), stood: player.stood, score: player.score, roundsWon: player.rounds_won, cards: [], pfp: null}
     }
 
     // We can set this up later to be used if a player goes onto the page after the game has alread started (e.g. if they reload the page)
@@ -273,6 +277,11 @@ function draw() {
     context.drawImage(thisPlayer.pfp,
             0, 0, thisPlayer.pfp.width, thisPlayer.pfp.height,
             15, 15, 100, 100);
+    if (thisPlayer.stood === 1) {
+        context.fillStyle = "red";
+    } else {
+        context.fillStyle = "white";
+    }
     context.fillText(thisPlayer.name, 130, 45);
     context.font = "50px Pixelz";
     if (thisPlayer.score === 21) {
@@ -297,10 +306,14 @@ function draw() {
     let dy = 130;
     for (const [pID, player] of Object.entries(players)) {
         if (pID !== playerID) {
-            context.fillStyle = "white";
             context.drawImage(player.pfp,
                     0, 0, player.pfp.width, player.pfp.height,
                     15, dy, 75, 75);
+            if (player.stood === 1) {
+                context.fillStyle = "red";
+            } else {
+                context.fillStyle = "white";
+            }
             context.font = "27px Pixelz";
             context.fillText(player.name, 105, dy + 25);
             context.font = "35px Pixelz";
@@ -381,7 +394,11 @@ function draw() {
     if (currentTurnID !== playerID) {
         context.font = "50px Pixelz";
         context.fillStyle = "white";
-        context.fillText("Please wait for your next turn", 400, canvas.height - 50);
+        if (thisPlayer.stood === 1) {
+            context.fillText("You are stood for this round", 400, canvas.height - 50);
+        } else {
+            context.fillText("Please wait for your next turn", 400, canvas.height - 50);
+        }
     }
     // round end screen
     // document.getElementById("stand").onclick = function () { endRoundAnimation() };
@@ -440,13 +457,11 @@ function endRoundAnimation() {
             roundOverUIReset = true;
             remainingCards = 52;
             for (let p of Object.values(players)) {
-                p.cards = [];
                 p.score = 0;
+                p.stood = 0;
+                p.cards = [];
             }
             players[winningPlayerID].roundsWon += 1;
-            if (roundNum <= 5) {
-                roundNumIndicator.innerHTML = roundNum;
-            }
         }
     }
 }
