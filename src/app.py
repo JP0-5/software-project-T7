@@ -452,6 +452,24 @@ def handle_game_list_connect():
 #     if game_id is not None:
 #         (code here)
 
+# Function to be used in handle_hit and handle_stand
+def advance_turn(game_id):
+    db = get_db()
+    players = db.execute("SELECT player_id, stood FROM players WHERE game_id = ? ORDER BY player_id", (game_id,)).fetchall()
+    current_turn = db.execute("SELECT current_turn FROM games WHERE game_id = ?", (game_id,)).fetchone()["current_turn"]
+
+    new_turn = None
+
+    #This will check the other 3 players in order (wrapping around to 0 when it reaches 3), and then go back to the current player if all others are stood
+    for n in range(1, 5):
+        i = (current_turn + n) % 4
+        if players[i]["stood"] == 0:
+            new_turn = i
+            break
+
+    db.execute("UPDATE games SET current_turn = ? WHERE game_id = ?", (new_turn, game_id))
+    db.commit()
+
 @socketio.on("hit")
 def handle_hit(): 
     game_id = session["sockets"].get(request.sid, None)
@@ -459,10 +477,11 @@ def handle_hit():
 
     if game_id is not None:
         db = get_db()
-        currentT = db.execute("""SELECT current_turn FROM games WHERE game_id == (?)""", (game_id,)).fetchone()["current_turn"]
-        playersTurn = db.execute(""" SELECT player_id FROM players WHERE game_id == (?)""", (game_id,)).fetchall()
+        currentT = db.execute("""SELECT current_turn FROM games WHERE game_id == ?""", (game_id,)).fetchone()["current_turn"]
+        playersTurn = db.execute(""" SELECT player_id FROM players WHERE game_id = ? ORDER BY player_id""", (game_id,)).fetchall()
 
         if player_id == playersTurn[currentT]["player_id"]:
+            # Deal a card and update the scores
             card = db.execute(""" SELECT * FROM decks WHERE game_id == (?)
                               ORDER BY RANDOM() LIMIT 1; """, (game_id,)).fetchone()
             db.execute(""" INSERT INTO hands VALUES (?, ?, ?, ?)""", (game_id, player_id, card["value"], card["suit"]))
@@ -472,6 +491,7 @@ def handle_hit():
             db.execute(""" UPDATE players SET score = `score` + (?) 
                        WHERE game_id == (?) AND player_id == (?) """, (cardValue, game_id, player_id))
 
+            # Check if the round should end
             if int(db.execute(""" SELECT score FROM players WHERE game_id == (?) AND player_id == (?)""", (game_id, player_id)).fetchone()["score"]) > 21:
                 db.execute("""UPDATE players SET stood = (?) WHERE game_id == (?) AND player_id == (?)""", (1, game_id, player_id))
                 
@@ -488,44 +508,14 @@ def handle_hit():
                 round_finish()
                 return
 
-            currentT = db.execute("""SELECT current_turn FROM games WHERE game_id == ?""", (game_id,)).fetchone()["current_turn"]
-            if int(currentT) == 3:
-                skip = False
-                for i in range(3):
-                    if db.execute("""SELECT stood FROM players WHERE player_id == ?""", (playersTurn[i]["player_id"],)).fetchone() == 1:
-                        db.execute("""UPDATE games SET current_turn = 0 WHERE game_id = ? """, (game_id,))
-                        skip = True
-                    
-                    if i == 3 and skip == True:
-                        db.commit()
-                        send_game_update(game_id, card_taken=(player_id, card["value"], card["suit"]))
-                        return
-                                        
-                db.execute("""UPDATE games SET current_turn = 0 WHERE game_id = ? """, (game_id,))
-            else:
-                skip = False
-                for i in range(3):
-                    if (currentT + i) <= 3:
-                        if db.execute("""SELECT stood FROM players WHERE player_id == ?""", (playersTurn[currentT + i]["player_id"],)).fetchone() == 1:
-                            db.execute("""UPDATE games SET current_turn = 0 WHERE game_id = ? """, (game_id,))
-
-                    if (currentT + i) > 3:
-                        newVal = (currentT + i) - 3
-                        if db.execute("""SELECT stood FROM players WHERE player_id == ?""", (playersTurn[newVal]["player_id"],)).fetchone() == 1:
-                            db.execute("""UPDATE games SET current_turn = 0 WHERE game_id = ? """, (game_id,))
-                            skip = True
-
-                    if i == 3 and skip == True:       
-                        db.commit()
-                        send_game_update(game_id, card_taken=(player_id, card["value"], card["suit"]))
-                        return
-
-                db.execute("""UPDATE games SET current_turn = `current_turn` + 1 WHERE game_id = ? """, (game_id,))
-
             db.commit()
+
+            # If the round is not over, advanced the turn and send an update to the clients
+            advance_turn(game_id)
 
             send_game_update(game_id, card_taken=(player_id, card["value"], card["suit"]))
         else:
+            # Debugging
             print("--------------------Not your turn! The current turn is:", playersTurn[currentT]["player_id"])
             print("--------------------currentT is:", currentT)
             print("--------------------playersTurn:", [playersTurn[i]["player_id"] for i in range(4)])
@@ -538,7 +528,7 @@ def handle_stand():
     if game_id is not None:
         db = get_db()
         currentT = db.execute("""SELECT current_turn FROM games WHERE game_id == (?)""", (game_id,)).fetchone()["current_turn"]
-        playersTurn = db.execute(""" SELECT player_id FROM players WHERE game_id == (?)""", (game_id,)).fetchall()
+        playersTurn = db.execute(""" SELECT player_id FROM players WHERE game_id == (?) ORDER BY player_id""", (game_id,)).fetchall()
 
         if player_id == playersTurn[currentT]["player_id"]:
             playersStood = db.execute(""" SELECT players_stood FROM games WHERE game_id == (?)""", (game_id,)).fetchone()["players_stood"]
@@ -546,48 +536,17 @@ def handle_stand():
                 db.execute("""UPDATE players SET stood = (?) WHERE game_id == (?) AND player_id == (?)""", (1, game_id, player_id))
                 
                 db.execute("""UPDATE games SET players_stood = `players_stood` + 1 WHERE game_id == (?)""", (game_id,))
-            if int(playersStood) + 1 == 4:
                 db.commit()
+
+            if int(playersStood) + 1 == 4:
                 round_finish()
                 return
 
-            if int(currentT) == 3:
-                skip = False
-                for i in range(3):
-                    if db.execute("""SELECT stood FROM players WHERE player_id == ?""", (playersTurn[i]["player_id"],)).fetchone() == 1:
-                        db.execute("""UPDATE games SET current_turn = 0 WHERE game_id = ? """, (game_id,))
-                        skip = True
-                    
-                    if i == 3 and skip == True:
-                        db.commit()
-                        send_game_update(game_id)
-                        return
-                                        
-                db.execute("""UPDATE games SET current_turn = 0 WHERE game_id = ? """, (game_id,))
-            else:
-                skip = False
-                for i in range(3):
-                    if (currentT + i) <= 3:
-                        if db.execute("""SELECT stood FROM players WHERE player_id == ?""", (playersTurn[currentT + i]["player_id"],)).fetchone() == 1:
-                            db.execute("""UPDATE games SET current_turn = 0 WHERE game_id = ? """, (game_id,))
-
-                    elif (currentT + i) > 3:
-                        newVal = (currentT + i) - 3
-                        if db.execute("""SELECT stood FROM players WHERE player_id == ?""", (playersTurn[newVal]["player_id"],)).fetchone() == 1:
-                            db.execute("""UPDATE games SET current_turn = 0 WHERE game_id = ? """, (game_id,))
-                            skip = True
-
-                    if i == 3 and skip == True:       
-                        db.commit()
-                        send_game_update(game_id)
-                        return
-
-                db.execute("""UPDATE games SET current_turn = `current_turn` + 1 WHERE game_id = ? """, (game_id,))
-
-            db.commit()
+            advance_turn(game_id)
 
         send_game_update(game_id)
     else:
+        # Debugging
         print("--------------------Not your turn! The current turn is:", playersTurn[currentT]["player_id"])
         print("--------------------currentT is:", currentT)
         print("--------------------playersTurn:", [playersTurn[i]["player_id"] for i in range(4)])
@@ -645,7 +604,7 @@ def game_finish():
     if game_id is not None:
         db = get_db()
 
-        allscores = db.execute(""" SELECT player_id, score, rounds_won FROM players WHERE game_id = (?) """, (game_id,)).fetchall()
+        allscores = db.execute(""" SELECT player_id, score, rounds_won FROM players WHERE game_id = (?) ORDER BY player_id""", (game_id,)).fetchall()
         p1score = allscores[0]
         p2score = allscores[1]
         p3score = allscores[2]
