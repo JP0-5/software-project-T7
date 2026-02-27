@@ -458,9 +458,7 @@ def advance_turn(game_id):
     players = db.execute("SELECT player_id, stood FROM players WHERE game_id = ? ORDER BY player_id", (game_id,)).fetchall()
     current_turn = db.execute("SELECT current_turn FROM games WHERE game_id = ?", (game_id,)).fetchone()["current_turn"]
 
-    new_turn = None
-
-    #This will check the other 3 players in order (wrapping around to 0 when it reaches 3), and then go back to the current player if all others are stood
+    #This will check the next 3 players in order (wrapping around to 0 when it reaches 3), and then go back to the current player if all others are stood
     for n in range(1, 5):
         i = (current_turn + n) % 4
         if players[i]["stood"] == 0:
@@ -492,6 +490,11 @@ def handle_hit():
                        WHERE game_id == (?) AND player_id == (?) """, (cardValue, game_id, player_id))
 
             # Check if the round should end
+            if int(db.execute(""" SELECT score FROM players WHERE game_id == (?) AND player_id == (?)""", (game_id, player_id)).fetchone()["score"]) == 21:
+                db.commit()
+                round_finish()
+                return
+
             if int(db.execute(""" SELECT score FROM players WHERE game_id == (?) AND player_id == (?)""", (game_id, player_id)).fetchone()["score"]) > 21:
                 db.execute("""UPDATE players SET stood = (?) WHERE game_id == (?) AND player_id == (?)""", (1, game_id, player_id))
                 
@@ -502,11 +505,6 @@ def handle_hit():
                     db.commit()
                     round_finish()
                     return
-
-            if int(db.execute(""" SELECT score FROM players WHERE game_id == (?) AND player_id == (?)""", (game_id, player_id)).fetchone()["score"]) == 21:
-                db.commit()
-                round_finish()
-                return
 
             db.commit()
 
@@ -588,7 +586,7 @@ def round_finish():
         if round == 5:
             game_finish()
 
-        #The current turn should be 0, but this is included as a failsafe
+        #The current turn should be 0, but this is included to be safe
         turn_index = int(db.execute("SELECT current_turn FROM games WHERE game_id = ?", (game_id,)).fetchone()["current_turn"])
 
         current_turn_id = players[turn_index]["player_id"]
