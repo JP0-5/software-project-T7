@@ -285,6 +285,9 @@ function draw() {
         context.fillStyle = "white";
     }
     context.fillText(thisPlayer.score, 160, 105);
+    context.fillStyle = "yellow";
+    context.font = "25px Pixelz";
+    context.fillText(thisPlayer.roundsWon, 130, 110);
     if (turnIndicatorOn && currentTurnID === playerID) {
         context.drawImage(turnIndicator,
             0, 0, turnIndicator.width, turnIndicator.height,
@@ -311,6 +314,9 @@ function draw() {
                 context.fillStyle = "white";
             }
             context.fillText(player.score, 130, dy + 65);
+            context.fillStyle = "yellow";
+            context.font = "25px Pixelz";
+            context.fillText(player.roundsWon, 103, dy + 70);
             if (turnIndicatorOn && currentTurnID === pID) {
                 context.drawImage(turnIndicator,
                 0, 0, turnIndicator.width, turnIndicator.height,
