@@ -27,7 +27,7 @@ Session(app)
 socketio = SocketIO(app, async_mode="gevent", cors_allowed_origins="*", logger=True, engineio_logger=True, ping_timeout=5)
 
 deck_creation_statement = """
-INSERT INTO decks
+INSERT INTO decks (game_id, value, suit)
 VALUES
 (X, 1, "clubs"),
 (X, 2, "clubs"),
@@ -81,6 +81,23 @@ VALUES
 (X, 11, "spades"),
 (X, 12, "spades"),
 (X, 13, "spades");
+"""
+
+insert_special_cards = """
+INSERT INTO decks (game_id, value, suit)
+VALUES
+(X, -7, "special"),
+(X, -7, "special"),
+(X, -5, "special"),
+(X, -5, "special"),
+(X, -3, "special"),
+(X, -3, "special"),
+(X, 3, "special"),
+(X, 3, "special"),
+(X, 5, "special"),
+(X, 5, "special"),
+(X, 7, "special"),
+(X, 7, "special");
 """
 
 # Locks to used to ensure guest IDs and game IDs are always unique
@@ -236,6 +253,9 @@ def create():
                     VALUES (?, ?, ?, ?, 0, 0, 1, 0, 0, 0, 4, ?)
                     """, (game_id, form.visibility.data, player_id, t, form.game_mode.data))
             db.execute(deck_creation_statement.replace("X", str(game_id)))
+            if form.game_mode.data == "1":
+                print("---------------------Inserting special cards")
+                db.execute(insert_special_cards.replace("X", str(game_id)))
             for user in invited_users:
                 db.execute("INSERT INTO invites (game_id, invitee, time, message) VALUES (?, ?, ?, ?)", (game_id, user, t, form.invite_message.data))
             db.commit()
@@ -303,11 +323,11 @@ def play(game_id):
         if player_entry is None:
             return render_template("error.html", title="Game Full", error="This game is full."), 403
 
-    # To be expanded
+    game_mode = "Modified" if game["game_mode"] == 1 else "Classic"
 
     messages = db.execute("SELECT * FROM chat_messages WHERE game_id = ?", (game_id,)).fetchall()
 
-    return render_template("play.html", game_id=game_id, messages=messages, title="BlackJack Fever")
+    return render_template("play.html", game_id=game_id, game_mode=game_mode, messages=messages, title="BlackJack Fever")
 
 
 # SocketIO event handlers
@@ -452,7 +472,7 @@ def handle_game_list_connect():
 #     if game_id is not None:
 #         (code here)
 
-# Function to be used in handle_hit and handle_stand
+# Function to be used in hit and stand handlers
 def advance_turn(game_id):
     db = get_db()
     players = db.execute("SELECT player_id, stood FROM players WHERE game_id = ? ORDER BY player_id", (game_id,)).fetchall()
@@ -483,28 +503,33 @@ def handle_hit():
             card = db.execute(""" SELECT * FROM decks WHERE game_id == (?)
                               ORDER BY RANDOM() LIMIT 1; """, (game_id,)).fetchone()
             db.execute(""" INSERT INTO hands VALUES (?, ?, ?, ?)""", (game_id, player_id, card["value"], card["suit"]))
-            db.execute(""" DELETE FROM decks WHERE game_id = ? AND value = ? AND suit = ?""", (game_id, card["value"], card["suit"]))
-
-            cardValue = card["value"] if card["value"] < 10 else 10
-            db.execute(""" UPDATE players SET score = `score` + (?) 
-                       WHERE game_id == (?) AND player_id == (?) """, (cardValue, game_id, player_id))
+            db.execute(""" DELETE FROM decks WHERE game_id = ? AND card_number = ?""", (game_id, card["card_number"]))
+            
+            if card["suit"] == "special":
+                db.execute(""" UPDATE players SET score = MAX(0, `score` + ?) WHERE game_id = ? AND player_id != ? """, (card["value"], game_id, player_id))
+            else:
+                card_value = card["value"] if card["value"] < 10 else 10
+                db.execute(""" UPDATE players SET score = `score` + ? WHERE game_id = ? AND player_id = ? """, (card_value, game_id, player_id))
 
             # Check if the round should end
-            if int(db.execute(""" SELECT score FROM players WHERE game_id == (?) AND player_id == (?)""", (game_id, player_id)).fetchone()["score"]) == 21:
-                db.commit()
-                round_finish()
-                return
+            new_scores = db.execute("SELECT player_id, stood, score FROM players WHERE game_id = ?", (game_id,)).fetchall()
 
-            if int(db.execute(""" SELECT score FROM players WHERE game_id == (?) AND player_id == (?)""", (game_id, player_id)).fetchone()["score"]) > 21:
-                db.execute("""UPDATE players SET stood = (?) WHERE game_id == (?) AND player_id == (?)""", (1, game_id, player_id))
-                
-                playersStood = db.execute(""" SELECT players_stood FROM games WHERE game_id == (?)""", (game_id,)).fetchone()["players_stood"]
-                db.execute("""UPDATE games SET players_stood = `players_stood` + 1 WHERE game_id == (?)""", (game_id,))
-
-                if int(playersStood) + 1 == 4:
+            for p in new_scores:
+                if p["score"] == 21:
                     db.commit()
                     round_finish()
                     return
+                
+                if p["score"] > 21 and p["stood"] == 0:
+                    db.execute("""UPDATE players SET stood = 1 WHERE game_id = ? AND player_id = ?""", (game_id, p["player_id"]))
+                    db.execute("""UPDATE games SET players_stood = `players_stood` + 1 WHERE game_id = ?""", (game_id,))
+
+            players_stood = db.execute(""" SELECT players_stood FROM games WHERE game_id == (?)""", (game_id,)).fetchone()["players_stood"]
+
+            if players_stood == 4:
+                db.commit()
+                round_finish()
+                return
 
             db.commit()
 
@@ -566,8 +591,7 @@ def round_finish():
     if game_id is not None:
         db = get_db()
 
-        #Read round number before it is incremented below
-        round = db.execute(""" SELECT round FROM games WHERE game_id = ? """, (game_id,)).fetchone()["round"]
+        game_info = db.execute(""" SELECT round, game_mode FROM games WHERE game_id = ? """, (game_id,)).fetchone()
 
         players = db.execute(""" SELECT player_id, score, rounds_won FROM players WHERE game_id = ? ORDER BY player_id""", (game_id,)).fetchall()
 
@@ -580,10 +604,14 @@ def round_finish():
         db.execute(""" DELETE FROM hands WHERE game_id = ? """, (game_id,))
         db.execute(""" DELETE FROM decks WHERE game_id = ?  """, (game_id,))
         db.execute(deck_creation_statement.replace("X", str(game_id)))
+        if game_info["game_mode"] == 1:
+            print("-------------------Inserting special cards")
+            db.execute(insert_special_cards.replace("X", str(game_id)))
 
         db.commit()
         
-        if round == 5:
+        # game_info was read before the round number was incremented
+        if game_info["round"] == 5:
             game_finish()
 
         #The current turn should be 0, but this is included to be safe
@@ -592,7 +620,7 @@ def round_finish():
         current_turn_id = players[turn_index]["player_id"]
 
         #Args: (number of the round just finished, winning player ID, current turn ID)
-        socketio.emit("round_finish", (round, winningPlayer["player_id"], current_turn_id), to=game_id)
+        socketio.emit("round_finish", (game_info["round"], winningPlayer["player_id"], current_turn_id), to=game_id)
 
 def game_finish():
     print("----------------------------------Reached game finished")

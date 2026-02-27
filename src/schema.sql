@@ -31,14 +31,17 @@ CREATE TABLE games (
 
 -- Keeps track of what cards are in the deck in each game
 CREATE TABLE decks (
+    card_number INTEGER PRIMARY KEY AUTOINCREMENT,      -- This is only used when deleting cards
     game_id INTEGER NOT NULL,
     value INTEGER NOT NULL,
     suit TEXT NOT NULL,
     FOREIGN KEY (game_id) REFERENCES games(game_id),
     CHECK(
-        value >= 1 AND
+        (value >= 1 AND
         value <= 13 AND
-        suit IN ("clubs", "diamonds", "hearts", "spades")
+        suit IN ("clubs", "diamonds", "hearts", "spades")) OR
+        (suit = "special"
+        AND value in (-7, -5, -3, 3, 5, 7))
     )
 );
 -- One possible way to represent cards - feel free to try a different representation 
@@ -84,9 +87,11 @@ CREATE TABLE hands (
     value INTEGER NOT NULL,
     suit TEXT NOT NULL,
     CHECK(
-        value >= 1 AND
+        (value >= 1 AND
         value <= 13 AND
-        suit IN ("clubs", "diamonds", "hearts", "spades")
+        suit IN ("clubs", "diamonds", "hearts", "spades")) OR
+        (suit = "special" AND
+        value in (-7, -5, -3, 3, 5, 7))
     ),
     FOREIGN KEY (game_id) REFERENCES games(game_id),
     FOREIGN KEY (player_id) REFERENCES players(player_id)

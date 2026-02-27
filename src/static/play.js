@@ -32,6 +32,8 @@ let sk = new Image(); let sq = new Image(); let sj = new Image(); let ca = new I
 let c2 = new Image(); let c3 = new Image(); let c4 = new Image(); let c5 = new Image();
 let c6 = new Image(); let c7 = new Image(); let c8 = new Image(); let c9 = new Image();
 let c10 = new Image(); let ck = new Image(); let cq = new Image(); let cj = new Image();
+let sp_m3 = new Image(); let sp_m5 = new Image(); let sp_m7 = new Image();
+let sp_p3 = new Image(); let sp_p5 = new Image(); let sp_p7 = new Image();
 let remainingCards;
 var pixelFont = new FontFace('Pixelz', 'url(/static/pixel_font.ttf)');
 
@@ -44,7 +46,8 @@ let cards = {
     "clubs": [null, ca, c2, c3, c4, c5, c6, c7, c8, c9, c10, ck, cq, cj],
     "diamonds": [null, da, d2, d3, d4, d5, d6, d7, d8, d9, d10, dk, dq, dj],
     "hearts": [null, ha, h2, h3, h4, h5, h6, h7, h8, h9, h10, hk, hq, hj],
-    "spades": [null, sa, s2, s3, s4, s5, s6, s7, s8, s9, s10, sk, sq, sj]
+    "spades": [null, sa, s2, s3, s4, s5, s6, s7, s8, s9, s10, sk, sq, sj],
+    "special": {[-7]:sp_m7, [-5]:sp_m5, [-3]:sp_m3, 3:sp_p3, 5:sp_p5, 7:sp_p7}
 }
 
 let gameIDLabel;
@@ -206,7 +209,9 @@ function init() {
         { "var": c4, "url": "/static/cards/4C.png" }, { "var": c5, "url": "/static/cards/5C.png" }, { "var": c6, "url": "/static/cards/6C.png" },
         { "var": c7, "url": "/static/cards/7C.png" }, { "var": c8, "url": "/static/cards/8C.png" }, { "var": c9, "url": "/static/cards/9C.png" },
         { "var": c10, "url": "/static/cards/10C.png" }, { "var": ck, "url": "/static/cards/KC.png" }, { "var": cq, "url": "/static/cards/QC.png" },
-        { "var": cj, "url": "/static/cards/JC.png" },
+        { "var": cj, "url": "/static/cards/JC.png" }, { "var": sp_m3, "url": "/static/cards/M3-SP.png" }, { "var": sp_m5, "url": "/static/cards/M5-SP.png" },
+        { "var": sp_m7, "url": "/static/cards/M7-SP.png" }, { "var": sp_p3, "url": "/static/cards/P3-SP.png" }, { "var": sp_p5, "url": "/static/cards/P5-SP.png" },
+        { "var": sp_p7, "url": "/static/cards/P7-SP.png" },
         { "var": turnIndicator, "url": "/static/Turn_indicator.png" },
         { "var": roundOver, "url": "/static/round_over.jpg" },
         { "var": gameComplete, "url": "/static/game_complete.jpg" }
@@ -364,26 +369,6 @@ function draw() {
             thisPlayer.cards.push(cardToDraw);
         }
     }
-
-    // context.fillStyle = "grey";
-    // context.fillRect(canvas.width - 300, 0, 300, canvas.height);
-    // document.getElementById("hit").onclick = function () { drawCard() };
-
-    // Turn Indicators
-    // if (turnIndicatorOn) {
-    //     // player2
-    //     context.drawImage(turnIndicator,
-    //         0, 0, turnIndicator.width, turnIndicator.height,
-    //         185, 162, turnIndicator.width * 2, turnIndicator.height * 2);
-    //     // player3
-    //     context.drawImage(turnIndicator,
-    //         0, 0, turnIndicator.width, turnIndicator.height,
-    //         185, 252, turnIndicator.width * 2, turnIndicator.height * 2);
-    //     // player4
-    //     context.drawImage(turnIndicator,
-    //         0, 0, turnIndicator.width, turnIndicator.height,
-    //         185, 342, turnIndicator.width * 2, turnIndicator.height * 2);
-    // }
 
     turnIndicatorCounter += 1;
     if (turnIndicatorCounter === 60) {
