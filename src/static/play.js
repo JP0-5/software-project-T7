@@ -39,7 +39,6 @@ let players = {};
 let thisPlayer;
 let currentTurnID;
 let winningPlayerID;
-let player0id;          //The player whose turn it will be after a new round starts
 
 let cards = {
     "clubs": [null, ca, c2, c3, c4, c5, c6, c7, c8, c9, c10, ck, cq, cj],
@@ -144,14 +143,14 @@ function init() {
         messages.innerHTML += `<p>${pID.slice(1)}: ${content}</p>`;
     });
 
-    socket.on("game_start", (game, playerList) => {
-        startGame(game, playerList, 1, 52, null);
+    socket.on("game_start", (turn, playerList) => {
+        startGame(playerList, turn, 1, 52, null);
     });
 
-    socket.on("game_update", (game, playerList, cardTaken) => {
+    socket.on("game_update", (playerList, turn, cardTaken) => {
         console.log("Game update:", playerList);
 
-        currentTurnID = playerList[game.current_turn].player_id;
+        currentTurnID = turn;
 
         //Don't show the buttons while the round over animation is playing
         if (roundOverFrames === 30 && currentTurnID === playerID) {
@@ -173,9 +172,10 @@ function init() {
 
 
     //Args: (number of the round just finished, winning player ID)
-    socket.on("round_finish", (round, winnerID) => {
+    socket.on("round_finish", (round, winnerID, turn) => {
         roundNum = round + 1;
         winningPlayerID = winnerID;
+        currentTurnID = turn;
         roundOverUIReset = false;
         disableButtons();
         endRoundAnimation();
@@ -212,7 +212,7 @@ function init() {
     standButton.onclick = standButtonPress;
 }
 
-function startGame(game, playerList, round, cardsRemaining, hands) {
+function startGame(playerList, turn, round, cardsRemaining, hands) {
     console.log("Game start", playerList);
 
     gameStarted = true;
@@ -233,8 +233,6 @@ function startGame(game, playerList, round, cardsRemaining, hands) {
     }
 
     thisPlayer = players[playerID];
-    player0id = playerList[0].player_id;
-    console.log("Player 0:", player0id);
 
     //temp
     const values = Object.values(players);
@@ -243,7 +241,7 @@ function startGame(game, playerList, round, cardsRemaining, hands) {
     values[2].pfp = pfp3;
     values[3].pfp = pfp4;
 
-    currentTurnID = playerList[game.current_turn].player_id;
+    currentTurnID = turn;
 
     if (currentTurnID === playerID) {
         enableButtons();
@@ -440,7 +438,6 @@ function endRoundAnimation() {
                 p.score = 0;
             }
             players[winningPlayerID].roundsWon += 1;
-            currentTurnID = player0id;
             if (roundNum <= 5) {
                 roundNumIndicator.innerHTML = roundNum;
             }
