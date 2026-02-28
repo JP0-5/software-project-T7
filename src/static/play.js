@@ -37,6 +37,7 @@ let sp_p3 = new Image(); let sp_p5 = new Image(); let sp_p7 = new Image();
 let remainingCards;
 var pixelFont = new FontFace('Pixelz', 'url(/static/pixel_font.ttf)');
 
+let gameMode;
 let players = {};
 let thisPlayer;
 let currentTurnID;
@@ -74,6 +75,8 @@ let roundNum;
 document.addEventListener("DOMContentLoaded", init, false);
 
 function init() {
+    gameMode = document.getElementById("gameMode").innerHTML;
+
     canvas = document.querySelector("canvas");
     context = canvas.getContext("2d");
 
@@ -145,7 +148,13 @@ function init() {
     });
 
     socket.on("game_start", (turn, playerList) => {
-        startGame(playerList, turn, 1, 52, null);
+        let numRemaining;
+        if (gameMode === "Modified") {
+            numRemaining = 64;
+        } else {
+            numRemaining = 52;
+        }
+        startGame(playerList, turn, 1, numRemaining, null);
     });
 
     socket.on("game_update", (playerList, turn, cardTaken) => {
@@ -439,7 +448,11 @@ function endRoundAnimation() {
         //Reset the UI
         if (!roundOverUIReset) {
             roundOverUIReset = true;
-            remainingCards = 52;
+            if (gameMode === "Modified") {
+                remainingCards = 64;
+            } else {
+                remainingCards = 52;
+            }
             for (let p of Object.values(players)) {
                 p.score = 0;
                 p.stood = 0;
