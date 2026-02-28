@@ -4,7 +4,7 @@
 # NOTE: You may need to run the schema.sql file to setup app.db first.
 
 # Required to set up gevent
-from gevent import monkey
+from gevent import monkey, sleep
 monkey.patch_all()
 
 from flask import Flask, render_template, request, session, g, redirect, url_for
@@ -321,6 +321,12 @@ def play(game_id):
         player_entry = db.execute("SELECT * FROM players WHERE game_id = ? AND player_id = ?", (game_id, session["player_id"])).fetchone()
         if player_entry is None:
             return render_template("error.html", title="Game Full", error="This game is full."), 403
+    
+    player_id = session["player_id"]
+    player_entry = db.execute("SELECT * FROM players WHERE game_id = ? AND player_id = ?", (game_id, player_id)).fetchone()
+
+    if player_entry is not None and player_entry["score"] == 404:
+        return render_template("error.html", title="Removed", error="You did not reconnect in time and have been removed from this game."), 403
 
     game_mode = "Modified" if game["game_mode"] == 1 else "Classic"
 
@@ -359,6 +365,10 @@ def handle_join(game_id):
             # This is important to prevent conflicts
             disconnect(request.sid)
             print("----handle_join(): Refused connection as the player is already connected to this game.-----")    # Message for debugging
+            return
+        if player_entry["score"] == 404:
+            disconnect(request.sid)
+            print("----handle_join(): Refused connection as this player has been removed from this game after disconnecting.-----")    # Message for debugging
             return
         else:
             # The player was previously connected to this game, but disconnected and is now reconnecting
@@ -449,10 +459,10 @@ def game_start(game_id):
 @socketio.on("disconnect")
 def handle_disconnect(*args):
     game_id = session["sockets"].pop(request.sid, None)
-    player_id = session["player_id"]
     
     if game_id is not None:
         session.modified = True
+        player_id = session["player_id"]
         db = get_db()
 
         # Get player and game info
@@ -475,6 +485,50 @@ def handle_disconnect(*args):
                         WHERE game_id = ? AND player_id = ?""",
                         (game_id, player_id))
             db.commit()
+            close_db()
+
+            # This greenlet will sleep for a while and then check if the player has reconnected
+            # Other greenlets will continue to run during this time
+
+            print("-------------Beginning sleep")
+            sleep(10)
+            print("-------------Finished sleep")
+
+            end_round = False
+
+            db = get_db()
+            game = db.execute("SELECT current_turn, finished FROM games WHERE game_id = ?", (game_id,)).fetchone()
+            players = db.execute("SELECT player_id, stood, connected, score FROM players WHERE game_id = ? ORDER BY player_id", (game_id,)).fetchall()
+
+            for p in players:
+                if p["player_id"] == player_id:
+                    player_entry = p
+                    break
+            
+            # If the player has reconnected, the player has already been removed, or the game has finished, do nothing
+            if player_entry["connected"] == 1 or player_entry["score"] == 404 or game["finished"] == 1:
+                return
+            
+            db.execute("UPDATE players SET stood = 1, score = 404, rounds_won = 0 WHERE game_id = ? AND player_id = ?", (game_id, player_id))
+            if player_entry["stood"] != 1:
+                db.execute("UPDATE games SET players_stood = `players_stood` + 1 WHERE game_id = ?", (game_id,))
+
+            # Check if players stood is now 4, in which case end the round
+            players_stood = db.execute("SELECT players_stood FROM games WHERE game_id = ?", (game_id,)).fetchone()["players_stood"]
+
+            if players_stood >= 4:
+                end_round = True
+            elif players[game["current_turn"]]["player_id"] == player_id:
+                advance_turn(game_id)
+            send_game_update(game_id)
+
+            message = "%s did not reconnect in time and has been removed from the game" % (player_id[1:])
+            socketio.emit("chat_message_from_server", (None, message), to=game_id)
+            db.execute("INSERT INTO chat_messages VALUES (?, NULL, ?)", (game_id, message))
+            db.commit()
+
+            if end_round:
+                round_finish(game_id)
         
 @socketio.on("chat_message_from_client")
 def handle_chat_message(content):
@@ -539,7 +593,7 @@ def handle_hit():
             db.execute(""" DELETE FROM decks WHERE game_id = ? AND card_number = ?""", (game_id, card["card_number"]))
             
             if card["suit"] == "special":
-                db.execute(""" UPDATE players SET score = MAX(0, `score` + ?) WHERE game_id = ? AND player_id != ? """, (card["value"], game_id, player_id))
+                db.execute(""" UPDATE players SET score = MAX(0, `score` + ?) WHERE game_id = ? AND player_id != ? AND score != 404""", (card["value"], game_id, player_id))
                 message = "%s drew a special card of value %d" % (player_id[1:], card["value"])
                 db.execute("INSERT INTO chat_messages VALUES (?, NULL, ?)", (game_id, message))
                 socketio.emit("chat_message_from_server", (None, message), to=game_id)
@@ -553,7 +607,7 @@ def handle_hit():
             for p in new_scores:
                 if p["score"] == 21:
                     db.commit()
-                    round_finish()
+                    round_finish(game_id)
                     return
                 
                 if p["score"] > 21 and p["stood"] == 0:
@@ -564,7 +618,7 @@ def handle_hit():
 
             if players_stood == 4:
                 db.commit()
-                round_finish()
+                round_finish(game_id)
                 return
 
             db.commit()
@@ -598,7 +652,7 @@ def handle_stand():
                 db.commit()
 
             if int(playersStood) + 1 == 4:
-                round_finish()
+                round_finish(game_id)
                 return
 
             advance_turn(game_id)
@@ -620,56 +674,57 @@ def send_game_update(game_id, card_taken=None):
 
     socketio.emit("game_update", (players, current_turn_id, card_taken), to=game_id)
 
-def round_finish():
+def round_finish(game_id):
     print("-----------------------------Round Finish")
-    game_id = session["sockets"].get(request.sid, None)
+    
+    db = get_db()
 
-    if game_id is not None:
-        db = get_db()
+    game_info = db.execute(""" SELECT round, game_mode FROM games WHERE game_id = ? """, (game_id,)).fetchone()
 
-        game_info = db.execute(""" SELECT round, game_mode FROM games WHERE game_id = ? """, (game_id,)).fetchone()
+    players = db.execute(""" SELECT player_id, score, rounds_won FROM players WHERE game_id = ? ORDER BY player_id""", (game_id,)).fetchall()
 
-        players = db.execute(""" SELECT player_id, score, rounds_won FROM players WHERE game_id = ? ORDER BY player_id""", (game_id,)).fetchall()
+    # Get the player who has the smallest difference between their score and 21
+    winning_player = min(players, key=lambda p: abs(21 - p["score"]))
 
-        # Get the player who has the smallest difference between their score and 21
-        winning_player = min(players, key=lambda p: abs(21 - p["score"]))
+    db.execute(""" UPDATE players SET rounds_won = `rounds_won` + 1 WHERE player_id = ? AND game_id = ? """, (winning_player["player_id"], game_id))
+    db.execute(""" DELETE FROM hands WHERE game_id = ? """, (game_id,))
+    db.execute(""" DELETE FROM decks WHERE game_id = ?  """, (game_id,))
 
-        db.execute(""" UPDATE players SET rounds_won = `rounds_won` + 1 WHERE player_id = ? AND game_id = ? """, (winning_player["player_id"], game_id))
-        db.execute(""" DELETE FROM hands WHERE game_id = ? """, (game_id,))
-        db.execute(""" DELETE FROM decks WHERE game_id = ?  """, (game_id,))
+    message = "%s won round %d with a score of %s" % (winning_player["player_id"][1:], game_info["round"], winning_player["score"])
+    db.execute("INSERT INTO chat_messages VALUES (?, NULL, ?)", (game_id, message))
 
-        message = "%s won round %d with a score of %s" % (winning_player["player_id"][1:], game_info["round"], winning_player["score"])
-        db.execute("INSERT INTO chat_messages VALUES (?, NULL, ?)", (game_id, message))
-
-        if game_info["round"] == 5:
-            db.commit()
-            game_finish(game_id, winning_player["player_id"], winning_player["score"])
-            return
-        
-        db.execute(""" UPDATE players SET stood = 0, score = 0 WHERE game_id = ?""", (game_id,))
-        db.execute(""" UPDATE games SET round = `round` + 1, current_turn = 0, players_stood = 0 WHERE game_id = ? """, (game_id,))
-        
-        db.execute(deck_creation_statement.replace("X", str(game_id)))
-        if game_info["game_mode"] == 1:
-            db.execute(insert_special_cards.replace("X", str(game_id)))
-
+    if game_info["round"] == 5:
         db.commit()
+        game_finish(game_id, winning_player["player_id"], winning_player["score"])
+        return
+    
+    db.execute(""" UPDATE players SET stood = 0, score = 0 WHERE game_id = ? AND score != 404""", (game_id,))
 
-        #The current turn should be 0, but this is included to be safe
-        turn_index = int(db.execute("SELECT current_turn FROM games WHERE game_id = ?", (game_id,)).fetchone()["current_turn"])
+    num_removed = db.execute("SELECT COUNT(*) FROM players WHERE game_id = ? AND score = 404", (game_id,)).fetchone()[0]
 
-        current_turn_id = players[turn_index]["player_id"]
+    db.execute(""" UPDATE games SET round = `round` + 1, current_turn = 0, players_stood = ? WHERE game_id = ? """, (num_removed, game_id))
+    if players[0]["score"] == 404:
+        advance_turn(game_id)
+    
+    db.execute(deck_creation_statement.replace("X", str(game_id)))
+    if game_info["game_mode"] == 1:
+        db.execute(insert_special_cards.replace("X", str(game_id)))
 
-        #Args: (number of the round just finished, winning player ID, winning score, current turn ID)
-        socketio.emit("round_finish", (game_info["round"], winning_player["player_id"], winning_player["score"], current_turn_id), to=game_id)
+    db.commit()
+
+    turn_index = int(db.execute("SELECT current_turn FROM games WHERE game_id = ?", (game_id,)).fetchone()["current_turn"])
+    current_turn_id = players[turn_index]["player_id"]
+
+    #Args: (number of the round just finished, winning player ID, winning score, current turn ID)
+    socketio.emit("round_finish", (game_info["round"], winning_player["player_id"], winning_player["score"], current_turn_id), to=game_id)
 
 def game_finish(game_id, final_round_winner, final_round_winning_score):
     print("------------------Game finish")
     db = get_db()
 
-    players = db.execute(""" SELECT player_id, rounds_won FROM players WHERE game_id = ? ORDER BY player_id""", (game_id,)).fetchall()
+    players = db.execute(""" SELECT player_id, score, rounds_won FROM players WHERE game_id = ? ORDER BY player_id""", (game_id,)).fetchall()
     
-    game_winner = max(players, key=lambda p: p["rounds_won"])
+    game_winner = max(players, key=lambda p: -1 if p["score"] == 404 else p["rounds_won"])
 
     db.execute("UPDATE games SET finished = 1 WHERE game_id = ?", (game_id,))
     db.commit()

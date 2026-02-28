@@ -182,6 +182,9 @@ function init() {
         for (let player of playerList) {
             players[player.player_id].score = player.score;
             players[player.player_id].stood = player.stood;
+            if (player.score === 404) {
+                players[player.player_id].roundsWon = 0;
+            }
         }
 
         //cardTaken is a triple of (player id, value, suit)
@@ -314,7 +317,7 @@ function draw() {
     context.drawImage(thisPlayer.pfp,
             0, 0, thisPlayer.pfp.width, thisPlayer.pfp.height,
             15, 15, 100, 100);
-    if (thisPlayer.stood === 1) {
+    if (!(showGameCompleteAnimation && roundOverUIReset) && thisPlayer.stood === 1) {
         context.fillStyle = "red";
     } else {
         context.fillStyle = "white";
@@ -348,7 +351,7 @@ function draw() {
             context.drawImage(player.pfp,
                     0, 0, player.pfp.width, player.pfp.height,
                     15, dy, 75, 75);
-            if (player.stood === 1) {
+            if (!(showGameCompleteAnimation && roundOverUIReset) && player.stood === 1) {
                 context.fillStyle = "red";
             } else {
                 context.fillStyle = "white";
@@ -489,9 +492,11 @@ function endRoundAnimation() {
         if (!roundOverUIReset) {
             roundOverUIReset = true;
             for (let p of Object.values(players)) {
-                p.score = 0;
-                p.stood = 0;
-                p.cards = [];
+                if (p.score !== 404) {
+                    p.score = 0;
+                    p.stood = 0;
+                    p.cards = [];
+                }
             }
             players[winningPlayerID].roundsWon += 1;
 
