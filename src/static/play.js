@@ -132,11 +132,15 @@ function init() {
         }
     })
 
-    socket.on("join_accepted", (pID) => {
+    socket.on("join_accepted", (pID, gameState) => {
         if (pID === playerID) {
             // This client was allowed to join
             sendButton.disabled = false;
             connectionStatus.innerHTML = "Connected";
+            if (gameState != null) {
+                // The game is already started, and this player is reconnecting
+                startGame(gameState.players, gameState.turn, gameState.round, gameState.numCards, gameState.hands)
+            }
         }
         showMessage(null, `${pID.slice(1)} joined the game`)
     })

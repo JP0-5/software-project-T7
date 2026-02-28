@@ -1,4 +1,4 @@
-# NOTE: Do not use `flask run` to start the server. 
+# NOTE: Do not use `flask run` to start the server.
 # Instead, run this file and code at the end of the file will start the server.
 
 # NOTE: You may need to run the schema.sql file to setup app.db first.
@@ -335,6 +335,7 @@ def handle_join(game_id):
     player_id = session["player_id"]
     db = get_db()
 
+    game_already_started = False
     update_game_list = False
 
     # Get player and game info
@@ -366,6 +367,8 @@ def handle_join(game_id):
                         SET socket_id = ?, connected = 1
                         WHERE game_id = ? AND player_id = ?""",
                         (request.sid, game_id, player_id))
+            if player_entry["status"] == 1:
+                game_already_started = True
     else:
         # The player is connecting to this game for the first time
         game = db.execute("SELECT * FROM games WHERE game_id = ?", (game_id,)).fetchone()
@@ -398,7 +401,30 @@ def handle_join(game_id):
     session["sockets"][request.sid] = game_id
     session.modified = True
     join_room(game_id)
-    socketio.emit("join_accepted", player_id, to=game_id)
+
+    if game_already_started:
+        game = db.execute("SELECT current_turn, round FROM games WHERE game_id = ?", (game_id,)).fetchone()
+        player_rows = db.execute("SELECT player_id, stood, score, rounds_won FROM players WHERE game_id = ? ORDER BY player_id", (game_id,)).fetchall()
+        hand_cards_rows = db.execute("SELECT * FROM hands WHERE game_id = ? AND player_id = ?", (game_id, player_id)).fetchall()
+
+        players = [dict(player) for player in player_rows]
+        current_turn_id = player_rows[game["current_turn"]]["player_id"]
+        round_num = game["round"]
+        cards_remaining = db.execute("SELECT COUNT(*) FROM decks WHERE game_id = ?", (game_id,)).fetchone()[0]
+        hand_cards = [dict(card) for card in hand_cards_rows]
+
+        game_state = {
+            "players": players,
+            "turn": current_turn_id,
+            "round": round_num,
+            "numCards": cards_remaining,
+            "hands": hand_cards
+        }
+
+        socketio.emit("join_accepted", (player_id, None), to=game_id, skip_sid=request.sid)
+        socketio.emit("join_accepted", (player_id, game_state), to=request.sid)
+    else:
+        socketio.emit("join_accepted", (player_id, None), to=game_id)
 
     if update_game_list:
         player_count = db.execute("SELECT player_count, allowed_players FROM games WHERE game_id = ?", (game_id,)).fetchone()
