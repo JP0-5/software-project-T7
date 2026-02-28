@@ -1,4 +1,5 @@
 //const playerID initialised in play.html
+let joinedPreviously = false;
 let gameFinished = false;
 let assetsLoaded = false;
 let gameStarted = false;
@@ -108,7 +109,12 @@ function init() {
     socket = io();
 
     socket.on("connect", () => {
-        socket.emit("join_request", gameID);
+        if (joinedPreviously) {
+            //If reconnecting after being disconnected, reload the page to catch up on any missed updates
+            location.reload();
+        } else {
+            socket.emit("join_request", gameID);
+        }
     })
 
     socket.on("disconnect", (reason) => {
@@ -135,6 +141,7 @@ function init() {
     socket.on("join_accepted", (pID, gameState) => {
         if (pID === playerID) {
             // This client was allowed to join
+            joinedPreviously = true;
             sendButton.disabled = false;
             connectionStatus.innerHTML = "Connected";
             if (gameState != null) {
