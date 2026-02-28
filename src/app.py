@@ -606,25 +606,28 @@ def round_finish():
         players = db.execute(""" SELECT player_id, score, rounds_won FROM players WHERE game_id = ? ORDER BY player_id""", (game_id,)).fetchall()
 
         # Get the player who has the smallest difference between their score and 21
-        winningPlayer = min(players, key=lambda p: abs(21 - p["score"]))
-        
-        db.execute(""" UPDATE players SET rounds_won = `rounds_won` + 1 WHERE player_id = ? AND game_id = ? """, (winningPlayer["player_id"], game_id))
-        db.execute(""" UPDATE players SET stood = 0, score = 0 WHERE game_id = ?""", (game_id,))
-        db.execute(""" UPDATE games SET round = `round` + 1, current_turn = 0, players_stood = 0 WHERE game_id = ? """, (game_id,))
+        winning_player = min(players, key=lambda p: abs(21 - p["score"]))
+
+        db.execute(""" UPDATE players SET rounds_won = `rounds_won` + 1 WHERE player_id = ? AND game_id = ? """, (winning_player["player_id"], game_id))
         db.execute(""" DELETE FROM hands WHERE game_id = ? """, (game_id,))
         db.execute(""" DELETE FROM decks WHERE game_id = ?  """, (game_id,))
+
+        message = "%s won round %d with a score of %s" % (winning_player["player_id"][1:], game_info["round"], winning_player["score"])
+        db.execute("INSERT INTO chat_messages VALUES (?, NULL, ?)", (game_id, message))
+
+        if game_info["round"] == 5:
+            db.commit()
+            game_finish(game_id, winning_player["player_id"], winning_player["score"])
+            return
+        
+        db.execute(""" UPDATE players SET stood = 0, score = 0 WHERE game_id = ?""", (game_id,))
+        db.execute(""" UPDATE games SET round = `round` + 1, current_turn = 0, players_stood = 0 WHERE game_id = ? """, (game_id,))
+        
         db.execute(deck_creation_statement.replace("X", str(game_id)))
         if game_info["game_mode"] == 1:
             db.execute(insert_special_cards.replace("X", str(game_id)))
 
-        message = "%s won round %d with a score of %s" % (winningPlayer["player_id"][1:], game_info["round"], winningPlayer["score"])
-        db.execute("INSERT INTO chat_messages VALUES (?, NULL, ?)", (game_id, message))
-
         db.commit()
-        
-        # game_info was read before the round number was incremented
-        if game_info["round"] == 5:
-            game_finish()
 
         #The current turn should be 0, but this is included to be safe
         turn_index = int(db.execute("SELECT current_turn FROM games WHERE game_id = ?", (game_id,)).fetchone()["current_turn"])
@@ -632,33 +635,25 @@ def round_finish():
         current_turn_id = players[turn_index]["player_id"]
 
         #Args: (number of the round just finished, winning player ID, winning score, current turn ID)
-        socketio.emit("round_finish", (game_info["round"], winningPlayer["player_id"], winningPlayer["score"], current_turn_id), to=game_id)
+        socketio.emit("round_finish", (game_info["round"], winning_player["player_id"], winning_player["score"], current_turn_id), to=game_id)
 
-def game_finish():
-    print("----------------------------------Reached game finished")
-    return
+def game_finish(game_id, final_round_winner, final_round_winning_score):
+    print("------------------Game finish")
+    db = get_db()
 
-    game_id = session["sockets"].get(request.sid, None)
-    if game_id is not None:
-        db = get_db()
+    players = db.execute(""" SELECT player_id, rounds_won FROM players WHERE game_id = ? ORDER BY player_id""", (game_id,)).fetchall()
+    
+    game_winner = max(players, key=lambda p: p["rounds_won"])
 
-        allscores = db.execute(""" SELECT player_id, score, rounds_won FROM players WHERE game_id = (?) ORDER BY player_id""", (game_id,)).fetchall()
-        p1score = allscores[0]
-        p2score = allscores[1]
-        p3score = allscores[2]
-        p4score = allscores[3]
-        players = [p1score, p2score, p3score, p4score]
+    db.execute("UPDATE games SET finished = 1 WHERE game_id = ?", (game_id,))
+    db.commit()
 
-        winningPlayer = p1score         # Placeholder
-        for i in range(len(players)):
-            if players[i]["games_won"] > players[i - 1]["games_won"]:
-                winningPlayer = players[i]                    
-            if players[i]["games_won"] > players[i - 2]["games_won"]:
-                winningPlayer = players[i]                   
-            if players[i]["games_won"] > players[i - 3]["games_won"]:
-                winningPlayer = players[i]
-        
-        return winningPlayer        # Having this here for now
+    # Args: (game winner, final round winner, final round winning score, player list)
+    player_list = [dict(player) for player in players]
+    socketio.emit("game_finish", (game_winner["player_id"], final_round_winner, final_round_winning_score, player_list), to=game_id)
+
+
+    
     
 # Run the server locally
 if __name__ == "__main__":

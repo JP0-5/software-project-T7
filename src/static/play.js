@@ -1,4 +1,5 @@
 //const playerID initialised in play.html
+let gameFinished = false;
 let assetsLoaded = false;
 let gameStarted = false;
 let canvas;
@@ -35,13 +36,14 @@ let c10 = new Image(); let ck = new Image(); let cq = new Image(); let cj = new 
 let sp_m3 = new Image(); let sp_m5 = new Image(); let sp_m7 = new Image();
 let sp_p3 = new Image(); let sp_p5 = new Image(); let sp_p7 = new Image();
 let remainingCards;
-var pixelFont = new FontFace('Pixelz', 'url(/static/pixel_font.ttf)');
+let pixelFont = new FontFace('Pixelz', 'url(/static/pixel_font.ttf)');
 
 let gameMode;
 let players = {};
 let thisPlayer;
 let currentTurnID;
 let winningPlayerID;
+let gameWinnerID;
 
 let cards = {
     "clubs": [null, ca, c2, c3, c4, c5, c6, c7, c8, c9, c10, ck, cq, cj],
@@ -70,6 +72,7 @@ let roundOverGrow = true;
 let roundOverHold = false;
 let roundOverHoldTimer = 0;
 let roundOverUIReset;
+let showGameCompleteAnimation = false;
 let roundNum;
 
 document.addEventListener("DOMContentLoaded", init, false);
@@ -158,8 +161,6 @@ function init() {
     });
 
     socket.on("game_update", (playerList, turn, cardTaken) => {
-        console.log("Game update:", playerList);
-
         currentTurnID = turn;
 
         //Don't show the buttons while the round over animation is playing
@@ -182,16 +183,28 @@ function init() {
     })
 
 
-    //Args: (number of the round just finished, winning player ID, winning score, current turn ID)
+    // Args: (number of the round just finished, winning player ID, winning score, current turn ID)
     socket.on("round_finish", (round, winnerID, winningScore, turn) => {
-        roundNum = round + 1;
-        if (roundNum <= 5) {
+        if (round < 5) {
+            roundNum = round + 1;
             roundNumIndicator.innerHTML = roundNum;
         }
         winningPlayerID = winnerID;
         currentTurnID = turn;
-        showMessage(null, `${winnerID.slice(1)} won round ${round} with a score of ${winningScore}`);
         roundOverUIReset = false;
+        showMessage(null, `${winnerID.slice(1)} won round ${round} with a score of ${winningScore}`);
+        disableButtons();
+        endRoundAnimation();
+    })
+
+    // Args: (game winner, final round winner, final round winning score, player list)
+    socket.on("game_finish", (gameWinner, finalRoundWinner, finalRoundWinningScore, playerList) => {
+        gameWinnerID = gameWinner;
+        winningPlayerID = finalRoundWinner;
+        showGameCompleteAnimation = true;
+        roundOverUIReset = false;
+        showMessage(null, `${finalRoundWinner.slice(1)} won round 5 with a score of ${finalRoundWinningScore}`);
+        showMessage(null, `${gameWinner.slice(1)} won the game!`);
         disableButtons();
         endRoundAnimation();
     })
@@ -230,8 +243,6 @@ function init() {
 }
 
 function startGame(playerList, turn, round, cardsRemaining, hands) {
-    console.log("Game start", playerList);
-
     gameStarted = true;
 
     roundNum = round;
@@ -284,7 +295,9 @@ function draw() {
         100, canvas.height - 300, 74 * 2.5, 98 * 2.5);
     context.font = "32px Pixelz";
     context.fillStyle = "white";
-    context.fillText("Remaining Cards: " + remainingCards, 25, canvas.height - 20);
+    if (!(showGameCompleteAnimation && roundOverUIReset)) {
+        context.fillText("Remaining Cards: " + remainingCards, 25, canvas.height - 20);
+    }
 
     //draw pfps
     context.drawImage(thisPlayer.pfp,
@@ -297,20 +310,22 @@ function draw() {
     }
     context.fillText(thisPlayer.name, 130, 45);
     context.font = "50px Pixelz";
-    if (thisPlayer.score === 21) {
-        context.fillStyle = "green";
+    if (!(showGameCompleteAnimation && roundOverUIReset)) {
+        if (thisPlayer.score === 21) {
+            context.fillStyle = "green";
+        }
+        else if (thisPlayer.score > 21) {
+            context.fillStyle = "red";
+        }
+        else {
+            context.fillStyle = "white";
+        }
+        context.fillText(thisPlayer.score, 160, 105);
     }
-    else if (thisPlayer.score > 21) {
-        context.fillStyle = "red";
-    }
-    else {
-        context.fillStyle = "white";
-    }
-    context.fillText(thisPlayer.score, 160, 105);
     context.fillStyle = "yellow";
     context.font = "25px Pixelz";
     context.fillText(thisPlayer.roundsWon, 130, 110);
-    if (turnIndicatorOn && currentTurnID === playerID) {
+    if (!(showGameCompleteAnimation && roundOverUIReset) && turnIndicatorOn && currentTurnID === playerID) {
         context.drawImage(turnIndicator,
             0, 0, turnIndicator.width, turnIndicator.height,
             230, 60, turnIndicator.width * 2.5, turnIndicator.height * 2.5);
@@ -330,20 +345,22 @@ function draw() {
             context.font = "27px Pixelz";
             context.fillText(player.name, 105, dy + 25);
             context.font = "35px Pixelz";
-            if (player.score === 21) {
-                context.fillStyle = "green";
+            if (!(showGameCompleteAnimation && roundOverUIReset)) {
+                if (player.score === 21) {
+                    context.fillStyle = "green";
+                }
+                else if (player.score > 21) {
+                    context.fillStyle = "red";
+                }
+                else {
+                    context.fillStyle = "white";
+                }
+                context.fillText(player.score, 130, dy + 65);
             }
-            else if (player.score > 21) {
-                context.fillStyle = "red";
-            }
-            else {
-                context.fillStyle = "white";
-            }
-            context.fillText(player.score, 130, dy + 65);
             context.fillStyle = "yellow";
             context.font = "25px Pixelz";
             context.fillText(player.roundsWon, 103, dy + 70);
-            if (turnIndicatorOn && currentTurnID === pID) {
+            if (!(showGameCompleteAnimation && roundOverUIReset) && turnIndicatorOn && currentTurnID === pID) {
                 context.drawImage(turnIndicator,
                 0, 0, turnIndicator.width, turnIndicator.height,
                 185, dy + 32, turnIndicator.width * 2, turnIndicator.height * 2);
@@ -383,27 +400,30 @@ function draw() {
         turnIndicatorCounter = 0;
         turnIndicatorOn = !turnIndicatorOn;
     }
-    // For when it's not your turn
-    if (currentTurnID !== playerID) {
-        context.font = "50px Pixelz";
-        context.fillStyle = "white";
-        if (thisPlayer.stood === 1) {
-            context.fillText("You are stood for this round", 400, canvas.height - 50);
-        } else {
-            context.fillText("Please wait for your next turn", 400, canvas.height - 50);
+    context.font = "50px Pixelz";
+    context.fillStyle = "white";
+    if (showGameCompleteAnimation && roundOverUIReset) {
+        context.fillText("Thanks for playing!", 400, canvas.height - 50);
+    } else {
+        // For when it's not your turn
+        if (currentTurnID !== playerID) {
+            if (thisPlayer.stood === 1) {
+                context.fillText("You are stood for this round", 400, canvas.height - 50);
+            } else {
+                context.fillText("Please wait for your next turn", 400, canvas.height - 50);
+            }
         }
     }
-    // round end screen
-    // document.getElementById("stand").onclick = function () { endRoundAnimation() };
-    if (roundOverFrames < 30) {
+    
+    if (gameFinished) {
+        window.cancelAnimationFrame(request_id);
+    } else if (roundOverFrames < 30) {
         endRoundAnimation();
     }
-    //
 }
 
 function endRoundAnimation() {
-    //roundNum has already been incremented in the "round_finish" handler
-    if (roundNum === 6) {
+    if (showGameCompleteAnimation) {
         context.drawImage(gameComplete, 0, 0, roundOver.width, roundOver.height,
             (-(0 - (canvas.width / 2)) * (roundOverFrames / 30)), (-(0 - (canvas.height / 2))) * (roundOverFrames / 30),
             canvas.width - 300 - ((canvas.width - 300) * (roundOverFrames / 30)), canvas.height - (canvas.height * (roundOverFrames / 30))
@@ -427,18 +447,27 @@ function endRoundAnimation() {
         if (roundOverFrames === 30) {
             roundOverGrow = true;
             roundOverFrames = 30;
-            if (currentTurnID === playerID) {
-                enableButtons();
+
+            if (showGameCompleteAnimation) {
+                gameFinished = true;
+                console.log("Game finished")
+            } else {
+                if (currentTurnID === playerID) {
+                    enableButtons();
+                }
             }
         }
     }
     if (roundOverHold) {
         roundOverFrames -= 1
         roundOverHoldTimer += 1
-        // console.log(roundOverHoldTimer, roundOverFrames, roundOverGrow);
         context.font = "50px Pixelz";
         context.fillStyle = "yellow";
-        context.fillText(winningPlayerID.slice(1), 500, canvas.height - 250);
+        if (showGameCompleteAnimation) {
+            context.fillText(gameWinnerID.slice(1), 500, canvas.height - 250);
+        } else {
+            context.fillText(winningPlayerID.slice(1), 500, canvas.height - 250);
+        }
         if (roundOverHoldTimer === 120) {
             roundOverHoldTimer = 0;
             roundOverHold = false;
@@ -448,17 +477,20 @@ function endRoundAnimation() {
         //Reset the UI
         if (!roundOverUIReset) {
             roundOverUIReset = true;
-            if (gameMode === "Modified") {
-                remainingCards = 64;
-            } else {
-                remainingCards = 52;
-            }
             for (let p of Object.values(players)) {
                 p.score = 0;
                 p.stood = 0;
                 p.cards = [];
             }
             players[winningPlayerID].roundsWon += 1;
+
+            if (!showGameCompleteAnimation) {
+                if (gameMode === "Modified") {
+                    remainingCards = 64;
+                } else {
+                    remainingCards = 52;
+                }
+            }
         }
     }
 }
@@ -514,11 +546,6 @@ function load_assets(assets, callback) {
         }
         element.src = asset.url;
     }
-}
-
-function stop() {
-    window.removeEventListener("keydown", activate, false);
-    window.cancelAnimationFrame(request_id);
 }
 
 function randint(min, max) { return Math.round(Math.random() * (max - min)) + min; }
