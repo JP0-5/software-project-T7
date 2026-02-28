@@ -30,9 +30,11 @@
 
                     <section id="messages">
                         {% for message in messages %}
-                            <p>
-                                {{message[1][1:]}}: {{message[2]}}
-                            </p>
+                            {% if message[1] %}
+                                <p>{{message[1][1:]}}: {{message[2]}}</p>
+                            {% else %}
+                                <p><i>{{message[2]}}</i></p>
+                            {% endif %}
                         {% endfor %}
                     </section>
                 </section>

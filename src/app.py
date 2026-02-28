@@ -254,7 +254,6 @@ def create():
                     """, (game_id, form.visibility.data, player_id, t, form.game_mode.data))
             db.execute(deck_creation_statement.replace("X", str(game_id)))
             if form.game_mode.data == "1":
-                print("---------------------Inserting special cards")
                 db.execute(insert_special_cards.replace("X", str(game_id)))
             for user in invited_users:
                 db.execute("INSERT INTO invites (game_id, invitee, time, message) VALUES (?, ?, ?, ?)", (game_id, user, t, form.invite_message.data))
@@ -349,7 +348,7 @@ def handle_join(game_id):
     # Check if this player is already connected to this game, or was previously
     if player_entry is not None:
         if player_entry["finished"] == 1:
-            # If the game is finished, refuse the connection
+            # If the game is full or finished, refuse the connection
             # This should not occur, but is included to be safe
             disconnect(request.sid)
             print("----handle_join(): Refused connection as the game is finished.-----")    # Message for debugging
@@ -370,6 +369,10 @@ def handle_join(game_id):
     else:
         # The player is connecting to this game for the first time
         game = db.execute("SELECT * FROM games WHERE game_id = ?", (game_id,)).fetchone()
+        if game["player_count"] == game["allowed_players"]:
+            disconnect(request.sid)
+            print("----handle_join(): Refused connection as the game is full.-----")    # Message for debugging
+            return
         if game["finished"] == 1:
             # If the game is finished, refuse the connection
             # This should not occur, but is included to be safe
@@ -385,9 +388,11 @@ def handle_join(game_id):
         # If the newly updated player count is 4, the game can start
         if game["player_count"] + 1 == 4:
             join_room(game_id)
-            game_start(game_id, game)
+            game_start(game_id)
         if game["public"] == 1:
             update_game_list = True
+    join_message = "%s joined the game" % player_id[1:] 
+    db.execute("INSERT INTO chat_messages VALUES (?, NULL, ?)", (game_id, join_message))
     db.commit()
 
     session["sockets"][request.sid] = game_id
@@ -405,7 +410,7 @@ def handle_join(game_id):
     # Inform clients currently looking at the games list that the player count has changed
     # Handling this at the end so the other events and database updates can be handled first
 
-def game_start(game_id, game):
+def game_start(game_id):
     db = get_db()
     db.execute("UPDATE games SET status = 1 WHERE game_id = ?", (game_id,))
     player_rows = db.execute("SELECT player_id, stood, score, rounds_won FROM players WHERE game_id = ? ORDER BY player_id", (game_id,)).fetchall()
@@ -435,6 +440,8 @@ def handle_disconnect(*args):
             if player_entry["finished"] == 0:
                 # Only emit if the game is not finished
                 socketio.emit("other_player_disconnect", player_id, to=game_id, include_self=False)
+                message = "%s disconnected. Waiting for reconnect..." % player_id[1:]
+                db.execute("INSERT INTO chat_messages VALUES (?, NULL, ?)", (game_id, message))
 
             db.execute("""
                         UPDATE players
@@ -507,6 +514,9 @@ def handle_hit():
             
             if card["suit"] == "special":
                 db.execute(""" UPDATE players SET score = MAX(0, `score` + ?) WHERE game_id = ? AND player_id != ? """, (card["value"], game_id, player_id))
+                message = "%s drew a special card of value %d" % (player_id[1:], card["value"])
+                db.execute("INSERT INTO chat_messages VALUES (?, NULL, ?)", (game_id, message))
+                socketio.emit("chat_message_from_server", (None, message), to=game_id)
             else:
                 card_value = card["value"] if card["value"] < 10 else 10
                 db.execute(""" UPDATE players SET score = `score` + ? WHERE game_id = ? AND player_id = ? """, (card_value, game_id, player_id))
@@ -605,8 +615,10 @@ def round_finish():
         db.execute(""" DELETE FROM decks WHERE game_id = ?  """, (game_id,))
         db.execute(deck_creation_statement.replace("X", str(game_id)))
         if game_info["game_mode"] == 1:
-            print("-------------------Inserting special cards")
             db.execute(insert_special_cards.replace("X", str(game_id)))
+
+        message = "%s won round %d with a score of %s" % (winningPlayer["player_id"][1:], game_info["round"], winningPlayer["score"])
+        db.execute("INSERT INTO chat_messages VALUES (?, NULL, ?)", (game_id, message))
 
         db.commit()
         
@@ -619,8 +631,8 @@ def round_finish():
 
         current_turn_id = players[turn_index]["player_id"]
 
-        #Args: (number of the round just finished, winning player ID, current turn ID)
-        socketio.emit("round_finish", (game_info["round"], winningPlayer["player_id"], current_turn_id), to=game_id)
+        #Args: (number of the round just finished, winning player ID, winning score, current turn ID)
+        socketio.emit("round_finish", (game_info["round"], winningPlayer["player_id"], winningPlayer["score"], current_turn_id), to=game_id)
 
 def game_finish():
     print("----------------------------------Reached game finished")

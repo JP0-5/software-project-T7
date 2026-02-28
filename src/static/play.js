@@ -131,19 +131,17 @@ function init() {
             // This client was allowed to join
             sendButton.disabled = false;
             connectionStatus.innerHTML = "Connected";
-        } else {
-            // Another player joined the game
-
         }
+        showMessage(null, `${pID.slice(1)} joined the game`)
     })
 
     // Called when another player in this game disconnects
     socket.on("other_player_disconnect", (pID) => {
-
+        showMessage(null, `${pID.slice(1)} disconnected. Waiting for reconnect...`);
     })
 
     socket.on("chat_message_from_server", (pID, content) => {
-        messages.innerHTML += `<p>${pID.slice(1)}: ${content}</p>`;
+        showMessage(pID, content);
     });
 
     socket.on("game_start", (turn, playerList) => {
@@ -175,14 +173,15 @@ function init() {
     })
 
 
-    //Args: (number of the round just finished, winning player ID)
-    socket.on("round_finish", (round, winnerID, turn) => {
+    //Args: (number of the round just finished, winning player ID, winning score, current turn ID)
+    socket.on("round_finish", (round, winnerID, winningScore, turn) => {
         roundNum = round + 1;
         if (roundNum <= 5) {
             roundNumIndicator.innerHTML = roundNum;
         }
         winningPlayerID = winnerID;
         currentTurnID = turn;
+        showMessage(null, `${winnerID.slice(1)} won round ${round} with a score of ${winningScore}`);
         roundOverUIReset = false;
         disableButtons();
         endRoundAnimation();
@@ -515,5 +514,13 @@ function sendMessage() {
     if (messageInput.value != "") {
         socket.emit("chat_message_from_client", messageInput.value);
         messageInput.value = "";
+    }
+}
+
+function showMessage(pID, content) {
+    if (pID == null) {
+        messages.innerHTML += `<p><i>${content}</i></p>`;
+    } else {
+        messages.innerHTML += `<p>${pID.slice(1)}: ${content}</p>`;
     }
 }

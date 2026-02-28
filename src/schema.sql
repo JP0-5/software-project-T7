@@ -99,7 +99,7 @@ CREATE TABLE hands (
 
 CREATE TABLE chat_messages (
     game_id INTEGER NOT NULL,
-    player_id TEXT NOT NULL,
+    player_id TEXT,                     -- NULL for a system message
     content TEXT NOT NULL,
     FOREIGN KEY (game_id) REFERENCES games(game_id),
     FOREIGN KEY (player_id) REFERENCES players(player_id)
