@@ -27,16 +27,15 @@
 
                     <input id="messageInput" type="text" placeholder="Enter your message">
                     <button id="sendButton" disabled>Send</button>
-
-                    <section id="messages">
-                        {% for message in messages %}
-                            {% if message[1] %}
-                                <p>{{message[1][1:]}}: {{message[2]}}</p>
-                            {% else %}
-                                <p><i>{{message[2]}}</i></p>
-                            {% endif %}
-                        {% endfor %}
-                    </section>
+                </section>
+                <section id="messages">
+                    {% for message in messages %}
+                        {% if message[1] %}
+                            <p>{{message[1][1:]}}: {{message[2]}}</p>
+                        {% else %}
+                            <p><i>{{message[2]}}</i></p>
+                        {% endif %}
+                    {% endfor %}
                 </section>
             </section>
         </main>

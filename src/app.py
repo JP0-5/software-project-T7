@@ -211,12 +211,20 @@ def logout():
     session.clear()
     return redirect(url_for('main'))
 
-@app.route("/games", methods = ['GET', 'POST'])
+@app.route("/games")
 def games():
     db=get_db()
-    games = db.execute("SELECT * FROM games WHERE public = 1 AND finished = 0  AND player_count < allowed_players ORDER BY start_time DESC;")
+    player_id = session["player_id"]
+    games = db.execute("""
+                       SELECT * FROM games
+                       WHERE
+                       finished = 0 AND
+                       (public = 1 AND player_count < allowed_players) OR
+                       game_id IN (SELECT game_id FROM players WHERE player_id = ?)
+                       ORDER BY start_time DESC;
+                       """, (player_id,)).fetchall()
 
-    return render_template("game_list.html", title = "BlackJack Fever",games=games,scripts=[
+    return render_template("game_list.html", title="BlackJack Fever", games=games, scripts=[
         "https://cdn.socket.io/4.8.1/socket.io.min.js",
         url_for("static", filename="game_list.js")
     ])
@@ -473,8 +481,22 @@ def handle_disconnect(*args):
                                     WHERE players.game_id = ? AND players.player_id = ?""",
                                     (game_id, player_id)).fetchone()
         if player_entry is not None:
+            # If the game has not started yet
+            if player_entry["status"] == 0:
+                db.execute("DELETE FROM players WHERE game_id = ? AND player_id = ?", (game_id, player_id))
+                num_remaining = db.execute("SELECT COUNT(*) FROM players WHERE game_id = ?", (game_id,)).fetchone()[0]
+                if num_remaining == 0:
+                    print("------------Deleting game")
+                    db.execute("DELETE FROM games WHERE game_id = ?", (game_id,))
+                else:
+                    db.execute("UPDATE games SET player_count = `player_count` - 1 WHERE game_id = ?", (game_id,))
+                    message = "%s left the game" % player_id[1:]
+                    socketio.emit("chat_message_from_server", (None, message), to=game_id)
+                    db.execute("INSERT INTO chat_messages VALUES (?, NULL, ?)", (game_id, message))
+                db.commit()
+                return
+            # Emit message if the game is not finished
             if player_entry["finished"] == 0:
-                # Only emit if the game is not finished
                 socketio.emit("other_player_disconnect", player_id, to=game_id, include_self=False)
                 message = "%s disconnected. Waiting for reconnect..." % player_id[1:]
                 db.execute("INSERT INTO chat_messages VALUES (?, NULL, ?)", (game_id, message))
@@ -497,7 +519,7 @@ def handle_disconnect(*args):
             end_round = False
 
             db = get_db()
-            game = db.execute("SELECT current_turn, finished FROM games WHERE game_id = ?", (game_id,)).fetchone()
+            game = db.execute("SELECT current_turn, finished, status FROM games WHERE game_id = ?", (game_id,)).fetchone()
             players = db.execute("SELECT player_id, stood, connected, score FROM players WHERE game_id = ? ORDER BY player_id", (game_id,)).fetchall()
 
             for p in players:
@@ -505,10 +527,18 @@ def handle_disconnect(*args):
                     player_entry = p
                     break
             
-            # If the player has reconnected, the player has already been removed, or the game has finished, do nothing
+            # If the player has reconnected, the player has already been removed, or the game has finished, do nothing 
             if player_entry["connected"] == 1 or player_entry["score"] == 404 or game["finished"] == 1:
                 return
             
+            num_remaining = db.execute("SELECT COUNT(*) FROM players WHERE game_id = ? AND player_id != ? AND score != 404", (game_id, player_id)).fetchone()[0]
+
+            # If there are no other remaining players, mark the game as finished
+            if num_remaining == 0:
+                db.execute("UPDATE games SET finished = 1 WHERE game_id = ?", (game_id,))
+                db.commit()
+                return
+
             db.execute("UPDATE players SET stood = 1, score = 404, rounds_won = 0 WHERE game_id = ? AND player_id = ?", (game_id, player_id))
             if player_entry["stood"] != 1:
                 db.execute("UPDATE games SET players_stood = `players_stood` + 1 WHERE game_id = ?", (game_id,))

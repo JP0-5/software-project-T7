@@ -175,7 +175,7 @@ function init() {
         currentTurnID = turn;
 
         //Don't show the buttons while the round over animation is playing
-        if (roundOverFrames === 30 && currentTurnID === playerID) {
+        if (gameStarted && roundOverFrames === 30 && currentTurnID === playerID) {
             enableButtons();
         }
 
@@ -579,4 +579,5 @@ function showMessage(pID, content) {
     } else {
         messages.innerHTML += `<p>${pID.slice(1)}: ${content}</p>`;
     }
+    messages.scrollTop = messages.scrollHeight;
 }
