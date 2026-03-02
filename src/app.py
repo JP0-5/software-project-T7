@@ -322,6 +322,14 @@ def account_settings():
     form=accountForm()
     formTwo=pictureForm()
     formThree=uploadForm()
+
+    img=['user.png','profile.png','man.png','woman.png','logo.jpg','business.png']
+    avatar=session['profile_picture']
+    
+    if session['profile_picture'] in img:
+        img.remove(session['profile_picture'])
+    
+
     if request.method == 'POST' and formThree.upload.data:
         if 'file' not in request.files:
                 flash('No file part')
@@ -337,6 +345,18 @@ def account_settings():
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
                 session['profile_picture']=filename
                 # return redirect(url_for('download_file', name=filename))
+
+
+   
+    if formTwo.submitTwo.data:
+        if formTwo.selected_picture.data is not None:
+            session['profile_picture']=formTwo.selected_picture.data
+            img=['user.png','profile.png','man.png','woman.png','logo.jpg','business.png']
+    
+            if session['profile_picture'] in img:
+                img.remove(session['profile_picture'])
+
+
 
 
 
@@ -364,7 +384,7 @@ def account_settings():
 
 
     
-    return render_template("account_settings.html", title = "My Account",form=form,formTwo=formTwo,formThree=formThree,script=[url_for("static", filename="account_settings.js")])
+    return render_template("account_settings.html",avatar=avatar, title = "My Account",form=form,formTwo=formTwo,formThree=formThree,script=[url_for("static", filename="account_settings.js")])
 
 # SocketIO event handlers
 @socketio.on("join_request")

@@ -20,19 +20,21 @@
         <form enctype=multipart/form-data class="pixel_border" id="change_picture" method="post" novalidate action="">
             <h2>Select A Profile Picture</h2>
             <section id="picture_selection_box">
+                {{ formTwo.selected_picture(id="selected_img" )}}
                 <section id="picture_selection">
-                    <img class="profile_img" src="{{ url_for('static',filename='logo.jpg')}}"></img>
-                    <img class="profile_img" src="{{ url_for('static',filename='logo.jpg')}}"></img>
-                    <img class="profile_img" src="{{ url_for('static',filename='logo.jpg')}}"></img>
-
-                    <img class="profile_img" src="{{ url_for('static',filename='pfp1.png')}}"></img>
-                    <img class="profile_img" src="{{ url_for('static',filename='pfp2.png')}}"></img>
-                    <img class="profile_img" src="{{ url_for('static',filename='pfp3.png')}}"></img>
-
-
-                    <img class="profile_img" src="{{ url_for('static',filename='pfp1.png')}}"></img>
-                    <img class="profile_img" src="{{ url_for('static',filename='pfp2.png')}}"></img>
-                    <img class="profile_img" src="{{ url_for('static',filename='pfp3.png')}}"></img>
+                    <section class="select_img"  onclick="showTick(this,'{{avatar}}')">
+                    <img class="profile_img" src="{{ url_for('static',filename=session['profile_picture'])}}"></img>
+                    <img class="tick" id="first_img" src="{{ url_for('static',filename='accept.png')}}"></img>
+                    </section>
+                    {% for img in images %}
+                    <section class="select_img" onclick='showTick(this, "{{img}}")'>
+                    <img class="profile_img" src="{{ url_for('static',filename=img)}}"></img>
+                    <img class="tick" src="{{ url_for('static',filename='accept.png')}}"></img>
+                    </section>
+                    {% endfor %}
+                    
+         
+                   
                 </section>
                
                
