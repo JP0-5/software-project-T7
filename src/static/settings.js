@@ -16,7 +16,11 @@ function keyPress(event){
     if (event.key=='Escape' && popup==false){
         document.getElementById("settings").click()
     }
-    else{    popup=false;
+    else if(event.key=='Escape'){    
+    popup=false;
+    console.log('hi')
+    const all_ticks=document.querySelectorAll('.tick');
+    all_ticks.forEach(img=>{img.style.display="none";});
     document.getElementById("change_picture_box").style.display = "none"
     document.getElementById("edit_picture").onclick=openEdit}
 

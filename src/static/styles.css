@@ -174,7 +174,7 @@ color: black;}
     left:6px;
     z-index: 2;
     border-style:solid;
-    background-color: white;
+    background-color: black;
 }
 
 #account_button {
@@ -666,5 +666,26 @@ justify-content: center;position: sticky; font-size: 1.3em; font-weight: bold;ma
 .passwords #old_password,.passwords #new_password{
     margin:0; 
     
+}
+
+.select_img{
+    position: relative;
+    transition: filter 0.1s ease;
+    cursor:pointer;
+}
+
+.select_img:hover{
+    filter:brightness(70%)
+}
+
+
+#picture_selection .tick {
+  height:20px;
+  width:20px;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  display: none; 
+  pointer-events: none; 
 }
 

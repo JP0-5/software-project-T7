@@ -8,7 +8,7 @@
         <a class="pixel_border reg_nav" href="{{ url_for('sign_up') }}">Sign Up</a>
         {% else %}
         <a id="account_button" href="{{ url_for('account_settings')}}">
-            <img id="account_img" src="{{ url_for('static',filename='pfp/' + session['pfp']) }}"></img>
+            <img id="account_img" src="{{ url_for('static',filename='pfp/' + session['profile_picture']) }}"></img>
             <p class="pixel_border" id="account_name"> {{ session["username"] }}</p>
         </a>
 

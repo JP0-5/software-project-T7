@@ -1,4 +1,4 @@
-# NOTE: Do not use `flask run` to start the server. 
+# NOTE: Do not use `flask run` to start the server.
 # Instead, run this file and code at the end of the file will start the server.
 
 # NOTE: You may need to run the schema.sql file to setup app.db first.
@@ -118,7 +118,7 @@ def get_username():
         session["username"] = None
     else:
         db = get_db()
-        session["pfp"] = db.execute("SELECT picture FROM users WHERE user = ?", (g.user,)).fetchone()["picture"]
+        session["profile_picture"] = db.execute("SELECT picture FROM users WHERE user = ?", (g.user,)).fetchone()["picture"]
 
     if "sockets" not in session:
         session["sockets"] = {}        #Maps socket IDs to game IDs
@@ -360,6 +360,14 @@ def account_settings():
     form=accountForm()
     formTwo=pictureForm()
     formThree=uploadForm()
+
+    img=['user.png','man.png','woman.png','logo.jpg','business.png']
+    avatar=session['profile_picture']
+    
+    if session['profile_picture'] in img:
+        img.remove(session['profile_picture'])
+    
+
     if request.method == 'POST' and formThree.upload.data:
         if 'file' not in request.files:
                 flash('No file part')
@@ -372,12 +380,29 @@ def account_settings():
                 return redirect(request.url)
         if file and allowed_file(file.filename):
                 # Prepend the username to the file name so it does not affect any other user
-                filename = secure_filename(g.user + file.filename)
+                filename = secure_filename(g.user + "_" + file.filename)
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
                 db = get_db()
                 db.execute("UPDATE users SET picture = ? WHERE user = ?", ("uploads/" + filename, g.user))
                 db.commit()
                 return redirect(url_for("account_settings"))
+
+
+   
+    if formTwo.submitTwo.data:
+        if formTwo.selected_picture.data is not None:
+            db = get_db()
+            db.execute("UPDATE users SET picture = ? WHERE user = ?", (formTwo.selected_picture.data, g.user))
+            db.commit()
+
+            return redirect(url_for("account_settings"))
+
+            # img=['user.png','man.png','woman.png','logo.jpg','business.png']
+    
+            # if session['profile_picture'] in img:
+            #     img.remove(session['profile_picture'])
+
+
 
 
 
@@ -402,7 +427,7 @@ def account_settings():
             else:
                 form.old_password.errors.append('Old password is incorrect!')
         
-    return render_template("account_settings.html", title = "My Account",form=form,formTwo=formTwo,formThree=formThree,scripts=[url_for("static", filename="account_settings.js")])
+    return render_template("account_settings.html",images=img,avatar=avatar, title = "My Account",form=form,formTwo=formTwo,formThree=formThree,scripts=[url_for("static", filename="account_settings.js")])
 
 # SocketIO event handlers
 @socketio.on("join_request")

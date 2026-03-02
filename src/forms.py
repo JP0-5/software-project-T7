@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import SelectField,StringField,PasswordField,IntegerField,SubmitField,DecimalField,TextAreaField,validators,BooleanField,RadioField,FieldList
+from wtforms import HiddenField,SelectField,StringField,PasswordField,IntegerField,SubmitField,DecimalField,TextAreaField,validators,BooleanField,RadioField,FieldList
 from wtforms.validators import Optional,InputRequired, EqualTo, NumberRange,optional,DataRequired
 
 class RegistrationForm(FlaskForm):
@@ -39,6 +39,7 @@ class accountForm(FlaskForm):
     
     
 class pictureForm(FlaskForm):
+    selected_picture=HiddenField()
     submitTwo = SubmitField('Save')
 
 class uploadForm(FlaskForm):

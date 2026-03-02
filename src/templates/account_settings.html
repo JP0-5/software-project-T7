@@ -5,19 +5,21 @@
         <form enctype=multipart/form-data class="pixel_border" id="change_picture" method="post" novalidate action="">
             <h2>Select A Profile Picture</h2>
             <section id="picture_selection_box">
+                {{ formTwo.selected_picture(id="selected_img" )}}
                 <section id="picture_selection">
-                    <img class="profile_img" src="{{ url_for('static',filename='pfp/logo.jpg')}}"></img>
-                    <img class="profile_img" src="{{ url_for('static',filename='pfp/logo.jpg')}}"></img>
-                    <img class="profile_img" src="{{ url_for('static',filename='pfp/logo.jpg')}}"></img>
-
-                    <img class="profile_img" src="{{ url_for('static',filename='pfp1.png')}}"></img>
-                    <img class="profile_img" src="{{ url_for('static',filename='pfp2.png')}}"></img>
-                    <img class="profile_img" src="{{ url_for('static',filename='pfp3.png')}}"></img>
-
-
-                    <img class="profile_img" src="{{ url_for('static',filename='pfp1.png')}}"></img>
-                    <img class="profile_img" src="{{ url_for('static',filename='pfp2.png')}}"></img>
-                    <img class="profile_img" src="{{ url_for('static',filename='pfp3.png')}}"></img>
+                    <section class="select_img"  onclick="showTick(this,'{{avatar}}')">
+                    <img class="profile_img" src="{{ url_for('static',filename='pfp/' + session['profile_picture'])}}"></img>
+                    <img class="tick" id="first_img" src="{{ url_for('static',filename='accept.png')}}"></img>
+                    </section>
+                    {% for img in images %}
+                    <section class="select_img" onclick='showTick(this, "{{img}}")'>
+                    <img class="profile_img" src="{{ url_for('static',filename='pfp/' + img)}}"></img>
+                    <img class="tick" src="{{ url_for('static',filename='accept.png')}}"></img>
+                    </section>
+                    {% endfor %}
+                    
+         
+                   
                 </section>
                 
                 <section class="buttons">
@@ -39,9 +41,6 @@
                 <section class="buttons">
                     {{ formThree.upload() }}
                 </section>
-                {% for error in form.upload.errors %}
-                    <p>{{ error }}</p>
-                {% endfor %}
                 <section class="buttons">
                     <span id="cancelTwo" onClick="closeEdit()">Cancel</span>
                 </section>
@@ -58,7 +57,7 @@
             {{ form.hidden_tag() }}
             <section id="profile_picture">
                 <h2>Profile Picture</h2>
-                <img id="profile_picture"class="profile_img" src="{{ url_for('static',filename='pfp/' + session['pfp'])}}"></img>
+                <img id="profile_picture"class="profile_img" src="{{ url_for('static',filename='pfp/' + session['profile_picture'])}}"></img>
                 <br>
                 <a href="#" id="edit_picture" onclick="openEdit()">Edit Picture</a>
             </section>
