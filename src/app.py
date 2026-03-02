@@ -1,4 +1,4 @@
-# NOTE: Do not use `flask run` to start the server.
+# NOTE: Do not use `flask run` to start the server. 
 # Instead, run this file and code at the end of the file will start the server.
 
 # NOTE: You may need to run the schema.sql file to setup app.db first.
@@ -20,8 +20,8 @@ from forms import *
 from werkzeug.utils import secure_filename
 
 
-UPLOAD_FOLDER = 'software-project-T7/src/static'
-ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
+UPLOAD_FOLDER = os.path.join(os.path.abspath(os.path.dirname(__file__)), "static", "pfp", "uploads")
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 
 app = Flask(__name__)
@@ -116,6 +116,9 @@ def get_username():
     g.user = session.get("username", None)
     if g.user is None:
         session["username"] = None
+    else:
+        db = get_db()
+        session["pfp"] = db.execute("SELECT picture FROM users WHERE user = ?", (g.user,)).fetchone()["picture"]
 
     if "sockets" not in session:
         session["sockets"] = {}        #Maps socket IDs to game IDs
@@ -182,7 +185,6 @@ def sign_up():
             db.execute('''INSERT INTO users(user, password, picture) VALUES (?, ?, ?); ''',(user_id, generate_password_hash(password),'logo.jpg'))
             db.commit()
             session.clear()
-            session['profile_picture']='logo.jpg'
             session["username"]=user_id
             next_page=request.args.get('next')
             if not next_page:
@@ -350,7 +352,10 @@ def play(game_id):
 
     return render_template("play.html", game_id=game_id, game_mode=game_mode, messages=messages, title="BlackJack Fever")
 
+# The code for file uploads is adapted from the Flask documentation
+# https://flask.palletsprojects.com/en/2.3.x/patterns/fileuploads/
 @app.route("/account_settings",methods=['GET','POST'])
+@login_required
 def account_settings():
     form=accountForm()
     formTwo=pictureForm()
@@ -360,44 +365,44 @@ def account_settings():
                 flash('No file part')
                 return redirect(request.url)
         file = request.files['file']
-            # If the user does not select a file, the browser submits an
-            # empty file without a filename.
+        # If the user does not select a file, the browser submits an
+        # empty file without a filename.
         if file.filename == '':
                 flash('No selected file')
                 return redirect(request.url)
         if file and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
+                # Prepend the username to the file name so it does not affect any other user
+                filename = secure_filename(g.user + file.filename)
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-                session['profile_picture']=filename
-                # return redirect(url_for('download_file', name=filename))
+                db = get_db()
+                db.execute("UPDATE users SET picture = ? WHERE user = ?", ("uploads/" + filename, g.user))
+                db.commit()
+                return redirect(url_for("account_settings"))
 
 
 
     if request.method=='GET' or form.cancel.data or formTwo.submitTwo.data or formTwo.cancelTwo.data:
-        form.user_id.data=session['username']
-
-    if form.submit.data and form.validate_on_submit() :
+        form.user_id.data=g.user
+    elif form.submit.data and form.validate_on_submit() :
         db = get_db()
-        user_data = db.execute('''SELECT * FROM users WHERE user = ?;''', (session['username'],)).fetchone()
-        if form.user_id.data != session['username']:
+        user_data = db.execute('''SELECT * FROM users WHERE user = ?;''', (g.user,)).fetchone()
+        if form.user_id.data != g.user:
             
-            db.execute('''UPDATE users SET user=? WHERE user = ?;''',(form.user_id.data,session['username']),)
+            db.execute('''UPDATE users SET user=? WHERE user = ?;''',(form.user_id.data,g.user),)
             db.commit()
             session['username']=form.user_id.data
+            g.user=form.user_id.data
         if form.old_password.data !='' and form.new_password.data !='':
-            if  check_password_hash(user_data["password"],form.old_password.data):
+            if check_password_hash(user_data["password"],form.old_password.data):
             
-                db.execute('''UPDATE users SET password=? WHERE user = ?;''',(generate_password_hash(form.new_password.data),session['username']),)
+                db.execute('''UPDATE users SET password=? WHERE user = ?;''',(generate_password_hash(form.new_password.data),g.user),)
                 db.commit()
                 session.clear()
                 return redirect(url_for('main'))
             else:
                 form.old_password.errors.append('Old password is incorrect!')
         
-
-
-    
-    return render_template("account_settings.html", title = "My Account",form=form,formTwo=formTwo,formThree=formThree,script=[url_for("static", filename="account_settings.js")])
+    return render_template("account_settings.html", title = "My Account",form=form,formTwo=formTwo,formThree=formThree,scripts=[url_for("static", filename="account_settings.js")])
 
 # SocketIO event handlers
 @socketio.on("join_request")

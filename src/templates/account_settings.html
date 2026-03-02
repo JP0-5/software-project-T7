@@ -1,29 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'base.html' %}
+{% block main_content %}
 
-<head>
-    <meta charset="utf-8">
-    <title>{{ title }}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <link rel="icon" href="{{ url_for('static',filename='favicon.ico') }}">
-    <script src="{{ url_for('static', filename='settings.js') }}"></script>
-    <script src="{{ url_for('static', filename='account_settings.js') }}"></script>
-    {% if scripts %}
-    {% for script in scripts %}
-    <script src="{{ script }}"></script>
-    {% endfor %}
-    {% endif %}
-</head>
-
-<body>
     <section id="change_picture_box">
         <form enctype=multipart/form-data class="pixel_border" id="change_picture" method="post" novalidate action="">
             <h2>Select A Profile Picture</h2>
             <section id="picture_selection_box">
                 <section id="picture_selection">
-                    <img class="profile_img" src="{{ url_for('static',filename='logo.jpg')}}"></img>
-                    <img class="profile_img" src="{{ url_for('static',filename='logo.jpg')}}"></img>
-                    <img class="profile_img" src="{{ url_for('static',filename='logo.jpg')}}"></img>
+                    <img class="profile_img" src="{{ url_for('static',filename='pfp/logo.jpg')}}"></img>
+                    <img class="profile_img" src="{{ url_for('static',filename='pfp/logo.jpg')}}"></img>
+                    <img class="profile_img" src="{{ url_for('static',filename='pfp/logo.jpg')}}"></img>
 
                     <img class="profile_img" src="{{ url_for('static',filename='pfp1.png')}}"></img>
                     <img class="profile_img" src="{{ url_for('static',filename='pfp2.png')}}"></img>
@@ -34,7 +19,10 @@
                     <img class="profile_img" src="{{ url_for('static',filename='pfp2.png')}}"></img>
                     <img class="profile_img" src="{{ url_for('static',filename='pfp3.png')}}"></img>
                 </section>
-               
+                
+                <section class="buttons">
+                    {{ formTwo.submitTwo() }}
+                </section>
                
             </section>
              <p>Or</p>
@@ -42,119 +30,86 @@
                     <h2>Upload Picture</h2>
                     <img class="profile_img" id="upload_img" src="{{ url_for('static',filename='image_icon.png')}}"></img>
                     <br>
-                    <input type=file name=file>
-                    <br>
-                    {{ formThree.upload}}
+                    <input type=file name=file id="image_upload_input">
                 </section>
                 <!-- <section id="selected_picture">
                     <h2>Selected Picture</h2>
                     <img class="profile_img" src="{{ url_for('static',filename='logo.jpg')}}"></img>
                 </section> -->
                 <section class="buttons">
-                    {{ formTwo.cancelTwo() }}
-                {{ formTwo.submitTwo() }}
-                
+                    {{ formThree.upload() }}
+                </section>
+                {% for error in form.upload.errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+                <section class="buttons">
+                    <span id="cancelTwo" onClick="closeEdit()">Cancel</span>
                 </section>
         </form>
     </section>
 
-    </section>
 
-    <header class="header">
-        <nav class="nav_bar">
-            <a id="account_button" href="{{ url_for('account_settings')}}">
-                <img id="account_img" src="{{ url_for('static',filename=session['profile_picture'])}}"></img>
-                <p class="pixel_border" id="account_name"> {{ session["username"] }}</p>
-            </a>
-            <a class="pixel_border reg_nav" id="inbox_button" href="{{ url_for('inbox')}}">Inbox</a>
-            <a class="pixel_border reg_nav" id="home_button" href="{{ url_for('main')}}">Home</a>
-            <a class="pixel_border reg_nav" href="{{ url_for('logout') }}">Log Out</a>
-            <a class="pixel_border reg_nav" id="settings" onclick="openSettings()" href="#">Settings</a>
-        </nav>
-    </header>
-
-    <main class="base_content">
         
 
-        <section id="account_settings">
-            <h1>Account Settings</h1>
+    <section id="account_settings">
+        <h1>Account Settings</h1>
 
-            <form method="post" class="pixel_border" id="profile_settings" action="" novalidate >
-                {{ form.hidden_tag() }}
-                <section id="profile_picture">
-                    <h2>Profile Picture</h2>
-                    <img id="profile_picture"class="profile_img" src="{{ url_for('static',filename=session['profile_picture'])}}"></img>
-                    <a href="#" id="edit_picture" onclick="openEdit()">Edit Picture</a>
+        <form method="post" class="pixel_border" id="profile_settings" action="" novalidate >
+            {{ form.hidden_tag() }}
+            <section id="profile_picture">
+                <h2>Profile Picture</h2>
+                <img id="profile_picture"class="profile_img" src="{{ url_for('static',filename='pfp/' + session['pfp'])}}"></img>
+                <br>
+                <a href="#" id="edit_picture" onclick="openEdit()">Edit Picture</a>
+            </section>
+            <section>
+                <h2 id="label"> {{ form.user_id.label }} </h2>
+
+                {{ form.user_id() }}
+
+                {% for error in form.user_id.errors %}
+                <br>
+                {{ error }}
+                {% endfor %}
+
+            </section>
+
+            <section>
+                <h2 id="label"> Change Password: </h2>
+
+                <section class="passwords">
+                    {{ form.old_password.label}}
+                    {{ form.old_password() }}
+
+                    
                 </section>
-                <section>
-                    <h2 id="label"> {{ form.user_id.label }} </h2>
-
-                    {{ form.user_id() }}
-
-                    {% for error in form.user_id.errors %}
+                
+                    {% for error in form.old_password.errors %}
                     <br>
                     {{ error }}
+                    <br>
                     {% endfor %}
+                <br>
+                <section class="passwords">
+                    {{ form.new_password.label}}
+                    {{ form.new_password() }}
 
+                    {% for error in form.new_password.errors %}
+                    {{ error }}
+                    {% endfor %}
                 </section>
 
-                <section>
-                    <h2 id="label"> Change Password: </h2>
-
-                    <section class="passwords">
-                        {{ form.old_password.label}}
-                        {{ form.old_password() }}
-
-                        
-                    </section>
-                    
-                        {% for error in form.old_password.errors %}
-                        <br>
-                        {{ error }}
-                        <br>
-                        {% endfor %}
-                    <br>
-                    <section class="passwords">
-                        {{ form.new_password.label}}
-                        {{ form.new_password() }}
-
-                        {% for error in form.new_password.errors %}
-                        {{ error }}
-                        {% endfor %}
-                    </section>
-
-                    <br>
+                <br>
 
 
-                </section>
+            </section>
 
-                <h2>Delete Your Account</h2>
-                <section class="buttons">
-                    {{ form.cancel() }}
-                    {{ form.submit() }}
-                </section>
+            <h2>Delete Your Account</h2>
+            <section class="buttons">
+                {{ form.cancel() }}
+                {{ form.submit() }}
+            </section>
 
-            </form>
-
-
-
-
-
-
-            {% block main_content %}
-            {% endblock %}
-    </main>
-    <section id="settings_box">
-        <section class="pixel_border " id="settings_content">
-            <h2>Settings</h2>
-            <p class="pixel_border ">Music</p>
-            <p class="pixel_border ">Sound</p>
-            <a class="pixel_border" href="/" class="settings_button">Account</a>
-            <a class="pixel_border" href="/" class="settings_button">Tutorial</a>
-
-        </section>
+        </form>
     </section>
-
-</body>
-
-</html>
+{% endblock %}

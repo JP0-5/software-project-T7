@@ -293,7 +293,10 @@ color:yellow}
 
 .buttons{display: flex;  justify-content: center;margin-top:2em;}
 
-#change_picture .buttons #submitTwo,#change_picture .buttons #cancelTwo{margin:0;}
+#change_picture .buttons > * {
+    margin:0;
+    color: black;
+}
 #change_picture .buttons{gap: 4em;}
 
 #settings_list{font-size:1.2rem;display: flex;flex-direction: column;position:absolute;left:-220px;background-color: rgba(255, 255, 255, 0.8);padding:2em;gap:2em;}
@@ -411,7 +414,7 @@ color:yellow}
 
 #game_creation #label,#registration #label,#profile_settings #label{margin:1em auto 0.8em;font-size: 1.3em; margin-bottom: 0.6em;}
 #game_creation #submit,#game_creation select, #enter_code #submit, #registration #submit,#profile_settings #submit,#profile_settings #cancel,
-#change_picture #submitTwo,#change_picture #cancelTwo{
+#change_picture #submitTwo,#change_picture #cancelTwo, #change_picture #upload, #change_picture #image_upload_input::file-selector-button {
     margin:0 auto;
     background-color: yellow;
     font-size:1.1em;
@@ -424,6 +427,11 @@ color:yellow}
     border-radius: 10px;
     
     
+}
+
+#change_picture #image_upload_input::file-selector-button {
+    width: auto;
+    margin-right: 1em;
 }
 
 #profile_settings #submit,#profile_settings #cancel{font-size: 1.1rem;}

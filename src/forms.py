@@ -40,7 +40,6 @@ class accountForm(FlaskForm):
     
 class pictureForm(FlaskForm):
     submitTwo = SubmitField('Save')
-    cancelTwo = SubmitField('Cancel')
 
 class uploadForm(FlaskForm):
     upload=SubmitField('Upload')
