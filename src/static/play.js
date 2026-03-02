@@ -17,10 +17,12 @@ let cardToDrawFrame = 0;
 let drawDestOffset = 30;
 let then = Date.now();
 let card_stack = new Image();
-let pfp1 = new Image();
-let pfp2 = new Image();
-let pfp3 = new Image();
-let pfp4 = new Image();
+let loadingIcon = new Image();
+let pfpDefault1 = new Image();
+let pfpDefault2 = new Image();
+let pfpDefault3 = new Image();
+let pfpDefault4 = new Image();
+const defaultPfps = [pfpDefault1, pfpDefault2, pfpDefault3, pfpDefault4]
 let ha = new Image(); let h2 = new Image(); let h3 = new Image(); let h4 = new Image();
 let h5 = new Image(); let h6 = new Image(); let h7 = new Image(); let h8 = new Image();
 let h9 = new Image(); let h10 = new Image(); let hk = new Image(); let hq = new Image();
@@ -225,8 +227,9 @@ function init() {
 
     load_assets([
         { "var": card_stack, "url": "/static/card_stack.png" },
-        { "var": pfp1, "url": "/static/pfp1.png" }, { "var": pfp2, "url": "/static/pfp2.png" },
-        { "var": pfp3, "url": "/static/pfp3.png" }, { "var": pfp4, "url": "/static/pfp4.png" },
+        { "var": loadingIcon, "url": "/static/loading.png" },
+        { "var": pfpDefault1, "url": "/static/pfp/default1.jpg" }, { "var": pfpDefault2, "url": "/static/pfp/default2.png" },
+        { "var": pfpDefault3, "url": "/static/pfp/default3.png" }, { "var": pfpDefault4, "url": "/static/pfp/default4.png" },
         { "var": ha, "url": "/static/cards/AH.png" }, { "var": h2, "url": "/static/cards/2H.png" }, { "var": h3, "url": "/static/cards/3H.png" },
         { "var": h4, "url": "/static/cards/4H.png" }, { "var": h5, "url": "/static/cards/5H.png" }, { "var": h6, "url": "/static/cards/6H.png" },
         { "var": h7, "url": "/static/cards/7H.png" }, { "var": h8, "url": "/static/cards/8H.png" }, { "var": h9, "url": "/static/cards/9H.png" },
@@ -263,11 +266,23 @@ function startGame(playerList, turn, round, cardsRemaining, hands) {
     roundNumIndicator.innerHTML = round;
     remainingCards = cardsRemaining;
 
+    let defaultPfpIndex = 0;
+
     for (let player of playerList) {
-        players[player.player_id] = {name: player.player_id.slice(1), stood: player.stood, score: player.score, roundsWon: player.rounds_won, cards: [], pfp: null}
+        players[player.player_id] = {name: player.player_id.slice(1), stood: player.stood, score: player.score, roundsWon: player.rounds_won, cards: [], pfp: null, pfpLoading: null}
+        if (player.player_id.charAt(0) === "u") {
+            // The player is a registerd user
+            players[player.player_id].pfp = loadingIcon;
+            players[player.player_id].pfpLoading = new Image();
+            players[player.player_id].pfpLoading.src = "/pfp/" + player.player_id.slice(1);
+            players[player.player_id].pfpLoading.addEventListener("load", updatePFPs, false);
+        } else {
+            // The player is a guest
+            players[player.player_id].pfp = defaultPfps[defaultPfpIndex];
+            defaultPfpIndex++;
+        }
     }
 
-    // We can set this up later to be used if a player goes onto the page after the game has alread started (e.g. if they reload the page)
     if (hands != null) {
         for (let card of hands) {
             players[card.player_id].cards.push(cards[card.suit][card.value]);
@@ -276,21 +291,21 @@ function startGame(playerList, turn, round, cardsRemaining, hands) {
 
     thisPlayer = players[playerID];
 
-    //temp
-    const values = Object.values(players);
-    values[0].pfp = pfp1;
-    values[1].pfp = pfp2;
-    values[2].pfp = pfp3;
-    values[3].pfp = pfp4;
-
     currentTurnID = turn;
-
-    if (currentTurnID === playerID) {
-        enableButtons();
-    }
 
     if (assetsLoaded) {
         draw();
+        if (currentTurnID === playerID) {
+            enableButtons();
+        }
+    }
+}
+
+function updatePFPs() {
+    for (let player of Object.values(players)) {
+        if (player.pfpLoading != null && player.pfpLoading.complete) {
+            player.pfp = player.pfpLoading;
+        }
     }
 }
 
@@ -550,6 +565,9 @@ function load_assets(assets, callback) {
             assetsLoaded = true;
             if (gameStarted) {
                 callback();
+                if (currentTurnID === playerID) {
+                    enableButtons();
+                }
             }
         }
     }

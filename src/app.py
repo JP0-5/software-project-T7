@@ -182,7 +182,7 @@ def sign_up():
             form.passwordRepeat.data = ''
             
         else:
-            db.execute('''INSERT INTO users(user, password, picture) VALUES (?, ?, ?); ''',(user_id, generate_password_hash(password),'logo.jpg'))
+            db.execute('''INSERT INTO users(user, password, picture) VALUES (?, ?, ?); ''',(user_id, generate_password_hash(password),'default1.jpg'))
             db.commit()
             session.clear()
             session["username"]=user_id
@@ -361,7 +361,7 @@ def account_settings():
     formTwo=pictureForm()
     formThree=uploadForm()
 
-    img=['user.png','man.png','woman.png','logo.jpg','business.png']
+    img = ["default1.jpg", "default2.png", "default3.png", "default4.png"]
     avatar=session['profile_picture']
     
     if session['profile_picture'] in img:
@@ -397,11 +397,6 @@ def account_settings():
 
             return redirect(url_for("account_settings"))
 
-            # img=['user.png','man.png','woman.png','logo.jpg','business.png']
-    
-            # if session['profile_picture'] in img:
-            #     img.remove(session['profile_picture'])
-
 
 
 
@@ -427,6 +422,15 @@ def account_settings():
                 form.old_password.errors.append('Old password is incorrect!')
         
     return render_template("account_settings.html",images=img,avatar=avatar, title = "My Account",form=form,formTwo=formTwo,formThree=formThree,scripts=[url_for("static", filename="account_settings.js")])
+
+@app.route("/pfp/<user>")
+def get_user_pfp(user):
+    db = get_db()
+    pfp = db.execute("SELECT picture FROM users WHERE user = ?", (user,)).fetchone()
+    if pfp is None:
+        return "", 404
+    pfp_name = pfp["picture"]
+    return redirect(url_for("static", filename="pfp/" + pfp_name))
 
 # SocketIO event handlers
 @socketio.on("join_request")
