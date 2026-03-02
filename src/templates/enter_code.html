@@ -4,16 +4,16 @@
 
 <section>
 
-    <form action="" id="registration" method="post" novalidate>
+    <form class = "pixel_border" action="" id="registration" method="post" novalidate>
         <h1> Enter Game Code </h1>
 
         {{ form.hidden_tag() }}
 
-        <p id="label">{{ form.code.label }}</p>
+        
 
         <p>
             {{ form.code() }}
-
+            <br>
             {% for error in form.code.errors %}
             {{ error }}
             {% endfor %}

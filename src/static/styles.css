@@ -16,7 +16,7 @@ body{
     background-image: url('bjf bg.jpg');
     background-size: cover;
 }
-
+header{position: sticky;}
 header .reg_nav{
     background: red;
     color:yellow;
@@ -28,9 +28,7 @@ header .reg_nav{
 
     border-style: solid;
     border-color:black;
-    border-radius:2em;
     
-
     font-weight: bold;
     font-size: 1.5rem;
     font-family: pixelated,Arial, Helvetica, sans-serif;    
@@ -58,7 +56,7 @@ header .reg_nav{
     text-decoration: none;
     color:yellow;
     font-family: pixelated,Arial, Helvetica, sans-serif;border-style: solid; padding:0.3em;
-    font-size: 1.8rem;border-color:black;border-radius:2em;border-width:0.15em;font-weight: bold;
+    font-size: 1.8rem;border-color:black;font-weight: bold;
 }
 
 #signup>h1{
@@ -67,10 +65,10 @@ header .reg_nav{
     font-family: pixelated,Arial, Helvetica, sans-serif;
 }
 
-#registration,#game_creation {
+#registration,#game_creation,#enter_code {
     text-align: center;
-    width:40em;
-    padding-bottom: 10em;
+    width:37em;
+    padding-bottom: 6em;
     padding-top:6em;
     padding-left:4em;
     padding-right: 4em;
@@ -81,13 +79,16 @@ header .reg_nav{
     display: flex;
     flex-direction: column;
 
-    border-width: 2px;
-    border-radius: 10px;
+    
+   
     border-color: black;
     border-style: solid;
-    background-color: white;
+    color: yellow;
+    background-color: red;
     font-family: pixelated,Arial, Helvetica, sans-serif;
 }
+
+#registration p{font-size: 1.3em;}
 
 
 
@@ -103,21 +104,23 @@ header .reg_nav{
     top: 5em;
     margin: auto;
 }
-
+#settings_content>h2{
+  margin-bottom: 0;
+}
 #settings_content {
+    z-index:9000;
     display: flex;
 
     backdrop-filter: blur(10px);
     background-color: rgba(255, 0, 0, 0.8);
 
     width: 30%;
-    height: 500px;
+    padding-bottom: 2em;
     
     flex-direction: column;
 
     border-style: solid;
-    border-radius: 2em;
-    border-width: 0.25em;
+  
     border-color: black;
     
     color: yellow;
@@ -132,7 +135,7 @@ header .reg_nav{
     font-size: 1.5em;
 
     border-style: solid;
-    border-radius: 2em;
+  
     border-color: black;
     color: black;
     background-color: yellow
@@ -155,8 +158,7 @@ color: black;}
     
     
     border-style: solid;
-    border-radius:2em;
-    border-width:0.15em;
+  
     border-color:black;
 
     margin: 0 0 auto 0.7rem;
@@ -172,6 +174,7 @@ color: black;}
     left:6px;
     z-index: 2;
     border-style:solid;
+    background-color: white;
 }
 
 #account_button {
@@ -199,11 +202,11 @@ color: black;}
     text-align: center;
     align-items: center;
     color:yellow;
-    gap:3em;
+    
     background-color: red;
     border-style: solid;
     border-color:white;
-    border-radius:3px;
+ 
     padding:auto;
     font-family: pixelated,Arial, Helvetica, sans-serif;
 }
@@ -255,7 +258,7 @@ color:yellow}
     padding: 1em;
     border-style: solid;
     border-color:black;
-    border-radius:3px;
+   
 }
 
 .invite > p {
@@ -264,7 +267,7 @@ color:yellow}
 
 
 
-#account_settings{text-align:center;color:yellow; width:38%; font-family: pixelated;
+#account_settings{text-align:center;color:yellow; width:37em; font-family: pixelated;
     margin:auto;}
 #profile_settings{
    
@@ -275,18 +278,22 @@ color:yellow}
     flex-direction: column;
     background-color: red;
     gap:1em;
-    padding: 2em 2em 5em 2em;
+    padding: 2em 2em 3em 2em;
     font-size: 1.2rem;
     border-style: solid;
     border-color:black;
 }
 
 
+
 #change{font-size: 0.8em;}
 
-.buttons{display: flex; gap:10em; justify-content: center;width:50%;margin-top:2em;}
+.buttons{display: flex;  justify-content: center;margin-top:2em;}
 
-#settings_list{font-size:1.2rem;display: flex;flex-direction: column;position:absolute;left:-220px;background-color: rgba(255, 255, 255, 0.8);border-radius:3px;padding:2em;gap:2em;}
+#change_picture .buttons #submitTwo,#change_picture .buttons #cancelTwo{margin:0;}
+#change_picture .buttons{gap: 4em;}
+
+#settings_list{font-size:1.2rem;display: flex;flex-direction: column;position:absolute;left:-220px;background-color: rgba(255, 255, 255, 0.8);padding:2em;gap:2em;}
 
 #account_button{
     text-decoration: none;
@@ -294,12 +301,13 @@ color:yellow}
     color:black;
 }
 
-#profile_img{
+.profile_img{
     height:100px;
     width:100px;
-    
-    border-radius:50%
+   
 }
+
+#profile_picture
 
 #account_settings h2{
     font-size: 1.3em;
@@ -331,17 +339,16 @@ color:yellow}
 #change_picture {
     display: flex;
 
-    
+    margin-top: 3em;
     background-color: rgba(255, 0, 0, 0.8);
     
-    width: 50%;
-    height: 70%;
+    width:45em;
+    height: 700px;
     
     flex-direction: column;
 
     border-style: solid;
-    border-radius: 2em;
-    border-width: 0.25em;
+    
     border-color: black;
     
     color: yellow;
@@ -352,19 +359,23 @@ color:yellow}
 
 
 #picture_selection{
+
   margin:0 5em;
   display: flex;
-  gap:2em;
-  justify-content: center;
-  width:80%;
+  gap:10px;
+    width:440px;
+
   overflow: auto;
   flex-direction: row;
+  
+  padding-bottom: 1em;
 }
+#change_picture p {font-size: 1.2em; margin: 0;}
 #picture_selection img{
 
   height: 80px;
   width: 80px;
-  border-radius: 0;
+  border-radius: 50%;
 }
 
 #picture_selection_box{
@@ -374,16 +385,91 @@ color:yellow}
 
 
 
+#game_creation{
+    color:yellow;
+    background-color: red; 
+    margin:1em auto; 
+    padding-top:2em;
+    padding-bottom:2em;
+    margin-top:2em;
+    }
 
 
-#game_creation,
-#game_creation--wrapper ,
-#profile_settings,.reg_nav,
-.reg_nav--wrapper,
-#profile_settings--wrapper,#settings_content,#settings_content p,#settings_content p--wrapper,#change_picture,#change_picture--wrapper,
-#settings_content--wrapper,#account_name,
-#account_name--wrapper  {
-  z-index:1;
+#game_creation input,#enter_code input, #registration input, #profile_settings input{
+    margin:0 4em;
+    margin-bottom:10px;
+    border-radius: 10px;
+    padding:0.5em;
+    border-color:black;
+    border-style: solid;
+    border-width:2px;
+    background-color: rgb(250, 248, 248);
+}
+
+#game_creation #label,#registration #label,#profile_settings #label{margin:1em auto 0.8em;font-size: 1.3em; margin-bottom: 0.6em;}
+#game_creation #submit,#game_creation select, #enter_code #submit, #registration #submit,#profile_settings #submit,#profile_settings #cancel,
+#change_picture #submitTwo,#change_picture #cancelTwo{
+    margin:0 auto;
+    background-color: yellow;
+    font-size:1.1em;
+    width: 20%;
+    font-family: pixelated;
+    padding:0.5em;
+    border-color:black;
+    border-style: solid;
+    border-width:2px;
+    border-radius: 10px;
+    
+    
+}
+
+#profile_settings #submit,#profile_settings #cancel{font-size: 1.1rem;}
+#game_creation #submit, #registration #submit, #enter_code #submit {margin-top:1em;}
+
+
+#game_creation p{
+    
+    margin-top:0;
+}
+
+
+#game_headers{display: flex;
+font-family: pixelated;text-align: center;
+justify-content: center;position: sticky; font-size: 1.3em; font-weight: bold;margin-top:0}
+#game_headers>p,.game_entry a,.game_entry p{width:20%}
+#game_headers>p{margin-top:0}
+
+
+
+
+#enter_code{
+    color:yellow;background-color: red;margin-top:4em;text-align: center;
+}
+
+#enter_code #submit {
+    display: inline-block;
+    margin:auto;
+    width:20%
+    
+}
+
+
+
+
+
+
+#profile_settings section{width: 100%;}
+
+
+
+
+
+
+
+
+
+.pixel_border,
+.pixel_border--wrapper {
   clip-path: polygon(0px calc(100% - 20px),
     4px calc(100% - 20px),
     4px calc(100% - 12px),
@@ -422,14 +508,14 @@ color:yellow}
     0px 20px);
   position: relative;
 }
-#game_creation ,.reg_nav ,#profile_settings,#settings_content,#settings_content p,#change_picture,#account_name{
+.pixel_border {
   border: 4px solid transparent;
 }
-#game_creation--wrapper ,.reg_nav--wrapper,#profile_settings--wrapper ,#settings_content--wrapper,#settings_content p--wrapper,#change_picture--wrapper,#account_name--wrapper {
+.pixel_border--wrapper {
   width: fit-content;
   height: fit-content;
 }
-#game_creation--wrapper #game_creation ,.reg_nav--wrapper .reg_nav ,#profile_settings--wrapper #profile_settings,#account_name--wrapper #account_name ,#settings_content--wrapper #settings_content,#settings_content p--wrapper #settings_content p, #change_picture--wrapper #change_picture {
+.pixel_border--wrapper .pixel_border {
   display: block;
   clip-path: polygon(4px 20px,
     8px 20px,
@@ -460,14 +546,8 @@ color:yellow}
     8px calc(100% - 20px),
     4px calc(100% - 20px));
 }
-#game_creation::after,
-#game_creation--wrapper::after,
-.reg_nav::after,
-.reg_nav--wrapper::after,
-#account_name::after,#profile_settings::after,
-#profile_settings--wrapper::after,
-#account_name--wrapper::after ,#settings_content::after,#settings_content p::after,#settings_content p--wrapper::after,
-#settings_content--wrapper::after, #change_picture::after,#change_picture--wrapper::after {
+.pixel_border::after,
+.pixel_border--wrapper::after {
   content: "";
   position: absolute;
   clip-path: polygon(0px calc(100% - 20px),
@@ -546,8 +626,34 @@ color:yellow}
   display: block;
   pointer-events: none;
 }
-#game_creation::after,.reg_nav::after,#profile_settings::after,#account_name::after,#settings_content::after,#settings_content p::after ,#change_picture::after{
+.pixel_border::after {
   margin: -4px;
 }
 
-#game_creation{color:yellow;background-color: red;}
+
+#selected_picture{
+    margin-top: 4em;
+    width: 50%;
+
+}
+
+
+#profile_settings #password{
+    background-color:#f0f0f0;
+    color:#555454;
+    pointer-events: none;
+}
+
+.passwords{
+    display: flex;
+    text-align: center;
+    justify-content: center;
+    gap:1em;
+}
+.passwords *{width:30%; margin:0;}
+.passwords label{margin-top: 0.3em;}
+.passwords #old_password,.passwords #new_password{
+    margin:0; 
+    
+}
+

@@ -2,22 +2,22 @@
     <nav class="nav_bar">
         {% if g.user == None %}
 
-        <a class="reg_nav" id="home_button" href="{{ url_for('main')}}">Home</a>
+     <a class="pixel_border reg_nav" id="home_button" href="{{ url_for('main')}}">Home</a>
 
-        <a class="reg_nav" href="{{ url_for('log_in') }}">Log In</a>
-        <a class="reg_nav" href="{{ url_for('sign_up') }}">Sign Up</a>
+        <a class="pixel_border reg_nav" href="{{ url_for('log_in') }}">Log In</a>
+        <a class="pixel_border reg_nav" href="{{ url_for('sign_up') }}">Sign Up</a>
         {% else %}
         <a id="account_button" href="{{ url_for('account_settings')}}">
-            <img id="account_img" src="{{ url_for('static',filename='logo.jpg')}}"></img>
-            <p id="account_name"> {{ session["username"] }}</p>
+            <img id="account_img" src="{{ url_for('static',filename= session['profile_picture']) }}"></img>
+            <p class="pixel_border" id="account_name"> {{ session["username"] }}</p>
         </a>
 
-        <a class="reg_nav" id="inbox_button" href="{{ url_for('inbox')}}">Inbox</a>
+        <a class="pixel_border reg_nav"  id="inbox_button" href="{{ url_for('inbox')}}">Inbox</a>
 
-        <a class="reg_nav" id="home_button" href="{{ url_for('main')}}">Home</a>
+        <a class="pixel_border reg_nav"  id="home_button" href="{{ url_for('main')}}">Home</a>
 
-        <a class="reg_nav" href="{{ url_for('logout') }}">Log Out</a>
+        <a class="pixel_border reg_nav" href="{{ url_for('logout') }}">Log Out</a>
         {% endif %}
-        <a class="reg_nav" id="settings" onclick="openSettings()" href="#">Settings</a>
+        <a class="pixel_border reg_nav" id="settings" onclick="openSettings()" href="#">Settings</a>
     </nav>
 </header>

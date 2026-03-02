@@ -6,8 +6,8 @@
 # Required to set up gevent
 from gevent import monkey
 monkey.patch_all()
-
-from flask import Flask, render_template, request, session, g, redirect, url_for
+import os
+from flask import Flask,flash,request, render_template, request, session, g, redirect, url_for
 from flask_socketio import SocketIO, join_room, disconnect
 from flask_session import Session
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -17,8 +17,15 @@ from gevent.lock import BoundedSemaphore
 from random import randint
 from database import *
 from forms import *
+from werkzeug.utils import secure_filename
+
+
+UPLOAD_FOLDER = 'software-project-T7/src/static'
+ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
+
 
 app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['SECRET_KEY'] = "this-is-my-secret-key"
 app.config["SESSION_TYPE"] = "filesystem"
 app.teardown_appcontext(close_db)
@@ -155,9 +162,10 @@ def sign_up():
             form.passwordRepeat.data = ''
             
         else:
-            db.execute('''INSERT INTO users(user, password) VALUES (?, ?); ''',(user_id, generate_password_hash(password)))
+            db.execute('''INSERT INTO users(user, password, picture) VALUES (?, ?, ?); ''',(user_id, generate_password_hash(password),'logo.jpg'))
             db.commit()
             session.clear()
+            session['profile_picture']='logo.jpg'
             session["username"]=user_id
             next_page=request.args.get('next')
             if not next_page:
@@ -178,7 +186,7 @@ def log_in():
         if user is None:
             form.user_id.errors.append('No such username!')
         elif not check_password_hash(user['password'],password):
-            form.login_password.errors.append('Incorrect password!')
+            form.password.errors.append('Incorrect password!')
         else:
             session.clear()
             session["username"]=user_id
@@ -309,12 +317,54 @@ def play(game_id):
 
     return render_template("play.html", game_id=game_id, messages=messages, title="BlackJack Fever")
 
-@app.route("/account_settings")
+@app.route("/account_settings",methods=['GET','POST'])
 def account_settings():
     form=accountForm()
-    form.user_id.data=session['username']
-    form.password.data="********"
-    return render_template("account_settings.html", title = "My Account",form=form,script=[url_for("static", filename="account_settings.js")])
+    formTwo=pictureForm()
+    formThree=uploadForm()
+    if request.method == 'POST' and formThree.upload.data:
+        if 'file' not in request.files:
+                flash('No file part')
+                return redirect(request.url)
+        file = request.files['file']
+            # If the user does not select a file, the browser submits an
+            # empty file without a filename.
+        if file.filename == '':
+                flash('No selected file')
+                return redirect(request.url)
+        if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                session['profile_picture']=filename
+                # return redirect(url_for('download_file', name=filename))
+
+
+
+    if request.method=='GET' or form.cancel.data or formTwo.submitTwo.data or formTwo.cancelTwo.data:
+        form.user_id.data=session['username']
+
+    if form.submit.data and form.validate_on_submit() :
+        db = get_db()
+        user_data = db.execute('''SELECT * FROM users WHERE user = ?;''', (session['username'],)).fetchone()
+        if form.user_id.data != session['username']:
+            
+            db.execute('''UPDATE users SET user=? WHERE user = ?;''',(form.user_id.data,session['username']),)
+            db.commit()
+            session['username']=form.user_id.data
+        if form.old_password.data !='' and form.new_password.data !='':
+            if  check_password_hash(user_data["password"],form.old_password.data):
+            
+                db.execute('''UPDATE users SET password=? WHERE user = ?;''',(generate_password_hash(form.new_password.data),session['username']),)
+                db.commit()
+                session.clear()
+                return redirect(url_for('main'))
+            else:
+                form.old_password.errors.append('Old password is incorrect!')
+        
+
+
+    
+    return render_template("account_settings.html", title = "My Account",form=form,formTwo=formTwo,formThree=formThree,script=[url_for("static", filename="account_settings.js")])
 
 # SocketIO event handlers
 @socketio.on("join_request")
@@ -607,6 +657,10 @@ def game_finish():
         
         return winningPlayer        # Having this here for now
     
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 # Run the server locally
 if __name__ == "__main__":
     # On a restart of the development server, mark all players as disconnected

@@ -1,9 +1,23 @@
+let popup = false;
+
 function openSettings(){
+     if (popup == false){
     document.getElementById("settings_box").style.display = "flex"
     document.getElementById("settings").onclick=closeSettings
-    }
+    }}
 
 function closeSettings(){
     document.getElementById("settings_box").style.display = "none"
     document.getElementById("settings").onclick=openSettings
     }
+
+document.addEventListener('keydown',keyPress)
+function keyPress(event){
+    if (event.key=='Escape' && popup==false){
+        document.getElementById("settings").click()
+    }
+    else{    popup=false;
+    document.getElementById("change_picture_box").style.display = "none"
+    document.getElementById("edit_picture").onclick=openEdit}
+
+}
