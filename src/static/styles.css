@@ -265,11 +265,9 @@ color:yellow}
     font-size: 0.8em;
 }
 
-<<<<<<< HEAD
 #error_message {
     color: yellow;
 }
-=======
 
 
 #account_settings{text-align:center;color:yellow; width:37em; font-family: pixelated;
@@ -662,4 +660,3 @@ justify-content: center;position: sticky; font-size: 1.3em; font-weight: bold;ma
     
 }
 
->>>>>>> pixel_redesign
