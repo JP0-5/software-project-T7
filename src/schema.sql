@@ -9,7 +9,8 @@ DROP TABLE IF EXISTS invites;
 
 CREATE TABLE users (
     user TEXT PRIMARY KEY NOT NULL,
-    password TEXT NOT NULL
+    password TEXT NOT NULL,
+    picture TEXT NOT NULL
 );
 
 -- Game state

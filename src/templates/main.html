@@ -20,20 +20,21 @@
         <main class = "base_content">
 
             <section id = "settings_box">
-                <section id = "settings_content">
-                    <h2>Settings</h2>
-                    <p>Music</p>
-                    <p>Sound</p>
-                    <p>Font Size</p>
+                <section class="pixel_border"  id = "settings_content">
+                    <h2 >Settings</h2>
+                    <p class="pixel_border" >Music</p>
+                    <p class="pixel_border">Sound</p>
+                     <a class="pixel_border" href="/" class="settings_button">Account</a>
+                    <a class="pixel_border" href="/" class="settings_button">Tutorial</a>
                 </section>
             </section>
             
 
             <a class = "logo" href="/"><img src="{{ url_for('static', filename='bjf logo.png')}}"></a>
             <section class = "modes">
-                <a href="{{ url_for('create') }}">Create Game</a>
-                <a href="{{ url_for('games') }}">Find Game</a>
-                <a href="{{ url_for('enter_code') }}">Enter Code</a>
+                <a class="pixel_border" href="{{ url_for('create') }}">Create Game</a>
+                <a class="pixel_border" href="{{ url_for('games') }}">Find Game</a>
+                <a class="pixel_border" href="{{ url_for('enter_code') }}">Enter Code</a>
             </section>
             
         </main>

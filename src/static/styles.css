@@ -5,30 +5,33 @@
     margin-right:auto;
     margin-top:5rem;
 }
+@font-face {
+    font-family: pixelated;
+    src: url(pixel_font.ttf);
+}
+
 body{
     margin:0;
     background-color: green; 
     background-image: url('bjf bg.jpg');
     background-size: cover;
 }
-
+header{position: sticky;}
 header .reg_nav{
     background: red;
     color:yellow;
     text-decoration:none;
     
-    padding:0.3em;
+    padding:0.3em 0.5em;
     margin-left:2rem;
     margin-right:0.5rem;
 
     border-style: solid;
     border-color:black;
-    border-radius:2em;
-    border-width:0.15em;
-
+    
     font-weight: bold;
     font-size: 1.5rem;
-    font-family: Arial, Helvetica, sans-serif;    
+    font-family: pixelated,Arial, Helvetica, sans-serif;    
 }
 
 .nav_bar {  
@@ -52,20 +55,20 @@ header .reg_nav{
     width:12em;
     text-decoration: none;
     color:yellow;
-    font-family: Arial, Helvetica, sans-serif;border-style: solid; padding:0.3em;
-    font-size: 1.8rem;border-color:black;border-radius:2em;border-width:0.15em;font-weight: bold;
+    font-family: pixelated,Arial, Helvetica, sans-serif;border-style: solid; padding:0.3em;
+    font-size: 1.8rem;border-color:black;font-weight: bold;
 }
 
 #signup>h1{
     text-align: center;
     color:white;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: pixelated,Arial, Helvetica, sans-serif;
 }
 
-#registration {
+#registration,#game_creation,#enter_code {
     text-align: center;
-    width:40em;
-    padding-bottom: 10em;
+    width:37em;
+    padding-bottom: 6em;
     padding-top:6em;
     padding-left:4em;
     padding-right: 4em;
@@ -76,69 +79,78 @@ header .reg_nav{
     display: flex;
     flex-direction: column;
 
-    border-width: 2px;
-    border-radius: 10px;
+    
+   
     border-color: black;
     border-style: solid;
-    background-color: white;
-    font-family: Arial, Helvetica, sans-serif;
+    color: yellow;
+    background-color: red;
+    font-family: pixelated,Arial, Helvetica, sans-serif;
 }
+
+#registration p{font-size: 1.3em;}
 
 
 
 #settings_box {
+    z-index: 9100;
     position:absolute;
     display: None;
 
     width:100%;
-    height:100%;
-
     justify-content: center;
     text-align:center;
 
     top: 5em;
     margin: auto;
 }
-
+#settings_content>h2{
+  margin-bottom: 0;
+}
 #settings_content {
+    z-index:9000;
     display: flex;
 
     backdrop-filter: blur(10px);
     background-color: rgba(255, 0, 0, 0.8);
 
-    width: 500px;
-    height: 700px;
+    width: 30%;
+    padding-bottom: 2em;
     
     flex-direction: column;
 
     border-style: solid;
-    border-radius: 2em;
-    border-width: 0.25em;
+  
     border-color: black;
     
     color: yellow;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: pixelated,Arial, Helvetica, sans-serif;
 }   
 
-#settings_content > p {
+
+#settings_content > p,#settings_content>a {
     padding: 0.5em;
     margin: 1em;
     text-align: left;
     font-size: 1.5em;
 
     border-style: solid;
-    border-radius: 2em;
+  
     border-color: black;
     color: black;
     background-color: yellow
 }
+
+#settings_content>a{text-align: center;
+color: black;}
+
 
 #account_name{
     padding: 0.3em 0.3em 0.3em 2em;
 
     font-size: 1.5rem;
     font-weight: bold;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: pixelated, Arial, Helvetica, sans-serif;
 
     background: red;
     color:yellow;
@@ -146,8 +158,7 @@ header .reg_nav{
     
     
     border-style: solid;
-    border-radius:2em;
-    border-width:0.15em;
+  
     border-color:black;
 
     margin: 0 0 auto 0.7rem;
@@ -163,6 +174,7 @@ header .reg_nav{
     left:6px;
     z-index: 2;
     border-style:solid;
+    background-color: white;
 }
 
 #account_button {
@@ -190,13 +202,13 @@ header .reg_nav{
     text-align: center;
     align-items: center;
     color:yellow;
-    gap:3em;
+    
     background-color: red;
     border-style: solid;
     border-color:white;
-    border-radius:3px;
+ 
     padding:auto;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: pixelated,Arial, Helvetica, sans-serif;
 }
 
 .game_entry>a{
@@ -207,7 +219,7 @@ header .reg_nav{
 #game_title{
     text-align: center;
     color: yellow;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: pixelated,Arial, Helvetica, sans-serif;
 }
 
 #game_search{
@@ -219,7 +231,7 @@ header .reg_nav{
     margin-right:25%;
     margin-bottom: 1%;
     color:yellow;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: pixelated,Arial, Helvetica, sans-serif;
 }
 
 #game_search>*{
@@ -246,13 +258,408 @@ color:yellow}
     padding: 1em;
     border-style: solid;
     border-color:black;
-    border-radius:3px;
+   
 }
 
 .invite > p {
     font-size: 0.8em;
 }
 
+<<<<<<< HEAD
 #error_message {
     color: yellow;
 }
+=======
+
+
+#account_settings{text-align:center;color:yellow; width:37em; font-family: pixelated;
+    margin:auto;}
+#profile_settings{
+   
+    position:relative;
+    display: flex;
+    align-items: center;
+    color:yellow;
+    flex-direction: column;
+    background-color: red;
+    gap:1em;
+    padding: 2em 2em 3em 2em;
+    font-size: 1.2rem;
+    border-style: solid;
+    border-color:black;
+}
+
+
+
+#change{font-size: 0.8em;}
+
+.buttons{display: flex;  justify-content: center;margin-top:2em;}
+
+#change_picture .buttons #submitTwo,#change_picture .buttons #cancelTwo{margin:0;}
+#change_picture .buttons{gap: 4em;}
+
+#settings_list{font-size:1.2rem;display: flex;flex-direction: column;position:absolute;left:-220px;background-color: rgba(255, 255, 255, 0.8);padding:2em;gap:2em;}
+
+#account_button{
+    text-decoration: none;
+    border-color: black;
+    color:black;
+}
+
+.profile_img{
+    height:100px;
+    width:100px;
+   
+}
+
+#profile_picture
+
+#account_settings h2{
+    font-size: 1.3em;
+
+}
+
+#edit_picture{
+    /* text-decoration: none; */
+    color:yellow
+}
+
+
+#change_picture_box {
+    position:absolute;
+    display: None;
+
+    width:100%;
+    height:100%;
+
+    justify-content: center;
+    text-align:center;
+
+    top: 5em;
+    margin: auto;
+    backdrop-filter: blur(10px);
+    z-index:9000;
+}
+
+#change_picture {
+    display: flex;
+
+    margin-top: 3em;
+    background-color: rgba(255, 0, 0, 0.8);
+    
+    width:45em;
+    height: 700px;
+    
+    flex-direction: column;
+
+    border-style: solid;
+    
+    border-color: black;
+    
+    color: yellow;
+    font-family: pixelated, Arial, Helvetica, sans-serif;
+}   
+
+
+
+
+#picture_selection{
+
+  margin:0 5em;
+  display: flex;
+  gap:10px;
+    width:440px;
+
+  overflow: auto;
+  flex-direction: row;
+  
+  padding-bottom: 1em;
+}
+#change_picture p {font-size: 1.2em; margin: 0;}
+#picture_selection img{
+
+  height: 80px;
+  width: 80px;
+  border-radius: 50%;
+}
+
+#picture_selection_box{
+  width:80%;
+  margin:2em auto;
+}
+
+
+
+#game_creation{
+    color:yellow;
+    background-color: red; 
+    margin:1em auto; 
+    padding-top:2em;
+    padding-bottom:2em;
+    margin-top:2em;
+    }
+
+
+#game_creation input,#enter_code input, #registration input, #profile_settings input{
+    margin:0 4em;
+    margin-bottom:10px;
+    border-radius: 10px;
+    padding:0.5em;
+    border-color:black;
+    border-style: solid;
+    border-width:2px;
+    background-color: rgb(250, 248, 248);
+}
+
+#game_creation #label,#registration #label,#profile_settings #label{margin:1em auto 0.8em;font-size: 1.3em; margin-bottom: 0.6em;}
+#game_creation #submit,#game_creation select, #enter_code #submit, #registration #submit,#profile_settings #submit,#profile_settings #cancel,
+#change_picture #submitTwo,#change_picture #cancelTwo{
+    margin:0 auto;
+    background-color: yellow;
+    font-size:1.1em;
+    width: 20%;
+    font-family: pixelated;
+    padding:0.5em;
+    border-color:black;
+    border-style: solid;
+    border-width:2px;
+    border-radius: 10px;
+    
+    
+}
+
+#profile_settings #submit,#profile_settings #cancel{font-size: 1.1rem;}
+#game_creation #submit, #registration #submit, #enter_code #submit {margin-top:1em;}
+
+
+#game_creation p{
+    
+    margin-top:0;
+}
+
+
+#game_headers{display: flex;
+font-family: pixelated;text-align: center;
+justify-content: center;position: sticky; font-size: 1.3em; font-weight: bold;margin-top:0}
+#game_headers>p,.game_entry a,.game_entry p{width:20%}
+#game_headers>p{margin-top:0}
+
+
+
+
+#enter_code{
+    color:yellow;background-color: red;margin-top:4em;text-align: center;
+}
+
+#enter_code #submit {
+    display: inline-block;
+    margin:auto;
+    width:20%
+    
+}
+
+
+
+
+
+
+#profile_settings section{width: 100%;}
+
+
+
+
+
+
+
+
+
+.pixel_border,
+.pixel_border--wrapper {
+  clip-path: polygon(0px calc(100% - 20px),
+    4px calc(100% - 20px),
+    4px calc(100% - 12px),
+    8px calc(100% - 12px),
+    8px calc(100% - 8px),
+    12px calc(100% - 8px),
+    12px calc(100% - 4px),
+    20px calc(100% - 4px),
+    20px 100%,
+    calc(100% - 20px) 100%,
+    calc(100% - 20px) calc(100% - 4px),
+    calc(100% - 12px) calc(100% - 4px),
+    calc(100% - 12px) calc(100% - 8px),
+    calc(100% - 8px) calc(100% - 8px),
+    calc(100% - 8px) calc(100% - 12px),
+    calc(100% - 4px) calc(100% - 12px),
+    calc(100% - 4px) calc(100% - 20px),
+    100% calc(100% - 20px),
+    100% 20px,
+    calc(100% - 4px) 20px,
+    calc(100% - 4px) 12px,
+    calc(100% - 8px) 12px,
+    calc(100% - 8px) 8px,
+    calc(100% - 12px) 8px,
+    calc(100% - 12px) 4px,
+    calc(100% - 20px) 4px,
+    calc(100% - 20px) 0px,
+    20px 0px,
+    20px 4px,
+    12px 4px,
+    12px 8px,
+    8px 8px,
+    8px 12px,
+    4px 12px,
+    4px 20px,
+    0px 20px);
+  position: relative;
+}
+.pixel_border {
+  border: 4px solid transparent;
+}
+.pixel_border--wrapper {
+  width: fit-content;
+  height: fit-content;
+}
+.pixel_border--wrapper .pixel_border {
+  display: block;
+  clip-path: polygon(4px 20px,
+    8px 20px,
+    8px 12px,
+    12px 12px,
+    12px 8px,
+    20px 8px,
+    20px 4px,
+    calc(100% - 20px) 4px,
+    calc(100% - 20px) 8px,
+    calc(100% - 12px) 8px,
+    calc(100% - 12px) 12px,
+    calc(100% - 8px) 12px,
+    calc(100% - 8px) 20px,
+    calc(100% - 4px) 20px,
+    calc(100% - 4px) calc(100% - 20px),
+    calc(100% - 8px) calc(100% - 20px),
+    calc(100% - 8px) calc(100% - 12px),
+    calc(100% - 12px) calc(100% - 12px),
+    calc(100% - 12px) calc(100% - 8px),
+    calc(100% - 20px) calc(100% - 8px),
+    calc(100% - 20px) calc(100% - 4px),
+    20px calc(100% - 4px),
+    20px calc(100% - 8px),
+    12px calc(100% - 8px),
+    12px calc(100% - 12px),
+    8px calc(100% - 12px),
+    8px calc(100% - 20px),
+    4px calc(100% - 20px));
+}
+.pixel_border::after,
+.pixel_border--wrapper::after {
+  content: "";
+  position: absolute;
+  clip-path: polygon(0px calc(100% - 20px),
+    4px calc(100% - 20px),
+    4px calc(100% - 12px),
+    8px calc(100% - 12px),
+    8px calc(100% - 8px),
+    12px calc(100% - 8px),
+    12px calc(100% - 4px),
+    20px calc(100% - 4px),
+    20px 100%,
+    calc(100% - 20px) 100%,
+    calc(100% - 20px) calc(100% - 4px),
+    calc(100% - 12px) calc(100% - 4px),
+    calc(100% - 12px) calc(100% - 8px),
+    calc(100% - 8px) calc(100% - 8px),
+    calc(100% - 8px) calc(100% - 12px),
+    calc(100% - 4px) calc(100% - 12px),
+    calc(100% - 4px) calc(100% - 20px),
+    100% calc(100% - 20px),
+    100% 20px,
+    calc(100% - 4px) 20px,
+    calc(100% - 4px) 12px,
+    calc(100% - 8px) 12px,
+    calc(100% - 8px) 8px,
+    calc(100% - 12px) 8px,
+    calc(100% - 12px) 4px,
+    calc(100% - 20px) 4px,
+    calc(100% - 20px) 0px,
+    20px 0px,
+    20px 4px,
+    12px 4px,
+    12px 8px,
+    8px 8px,
+    8px 12px,
+    4px 12px,
+    4px 20px,
+    0px 20px,
+    0px 50%,
+    4px 50%,
+    4px 20px,
+    8px 20px,
+    8px 12px,
+    12px 12px,
+    12px 8px,
+    20px 8px,
+    20px 4px,
+    calc(100% - 20px) 4px,
+    calc(100% - 20px) 8px,
+    calc(100% - 12px) 8px,
+    calc(100% - 12px) 12px,
+    calc(100% - 8px) 12px,
+    calc(100% - 8px) 20px,
+    calc(100% - 4px) 20px,
+    calc(100% - 4px) calc(100% - 20px),
+    calc(100% - 8px) calc(100% - 20px),
+    calc(100% - 8px) calc(100% - 12px),
+    calc(100% - 12px) calc(100% - 12px),
+    calc(100% - 12px) calc(100% - 8px),
+    calc(100% - 20px) calc(100% - 8px),
+    calc(100% - 20px) calc(100% - 4px),
+    20px calc(100% - 4px),
+    20px calc(100% - 8px),
+    12px calc(100% - 8px),
+    12px calc(100% - 12px),
+    8px calc(100% - 12px),
+    8px calc(100% - 20px),
+    4px calc(100% - 20px),
+    4px 50%,
+    0px 50%);
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #000000;
+  display: block;
+  pointer-events: none;
+}
+.pixel_border::after {
+  margin: -4px;
+}
+
+
+#selected_picture{
+    margin-top: 4em;
+    width: 50%;
+
+}
+
+
+#profile_settings #password{
+    background-color:#f0f0f0;
+    color:#555454;
+    pointer-events: none;
+}
+
+.passwords{
+    display: flex;
+    text-align: center;
+    justify-content: center;
+    gap:1em;
+}
+.passwords *{width:30%; margin:0;}
+.passwords label{margin-top: 0.3em;}
+.passwords #old_password,.passwords #new_password{
+    margin:0; 
+    
+}
+
+>>>>>>> pixel_redesign
