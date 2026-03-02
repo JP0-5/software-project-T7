@@ -122,22 +122,6 @@ function init() {
     socket.on("disconnect", (reason) => {
         sendButton.disabled = true;
         connectionStatus.innerHTML = "Disconnected";
-
-        if (reason === "io server disconnect") {
-            // The disconnect was initiated by the server, you need to reconnect manually.
-            // This can occur if the player (same player ID) is already connected to this game in another session or tab
-
-            // This can also occur if the client disconnects suddenly and the server is not able to detect the disconnect immediately.
-            // When the clients attempts to reconnect, the server thinks the same player is trying to connect on two sockets at once,
-            // so the connection is refused. (see handle_join() in app.py)
-
-            // TODO: Inform the user at this point that they need to close the other connection if they have one, or to wait if they are trying to reconnect.
-
-            // Try to reconnect in a few seconds, when the server can check again
-            setTimeout(() => {
-                socket.connect();
-            }, 3000)
-        }
     })
 
     socket.on("join_accepted", (pID, gameState) => {
@@ -152,6 +136,10 @@ function init() {
             }
         }
         showMessage(null, `${pID.slice(1)} joined the game`)
+    })
+
+    socket.on("join_refused", (message) => {
+        showMessage(null, "Join request refused: " + message);
     })
 
     // Called when another player in this game disconnects

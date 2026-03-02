@@ -477,16 +477,19 @@ def handle_join(game_id):
         if player_entry["finished"] == 1:
             # If the game is full or finished, refuse the connection
             # This should not occur, but is included to be safe
+            socketio.emit("join_refused", "The game is finished", to=request.sid)
             disconnect(request.sid)
             print("----handle_join(): Refused connection as the game is finished.-----")    # Message for debugging
             return
         if player_entry["connected"] == 1:
             # If the same player is currently connected to this room on another socket, refuse the connection
             # This is important to prevent conflicts
+            socketio.emit("join_refused", "You are already connected to this game in another tab, window or browser, or on another device logged into the same account. Please disconnect on the other sessions and reload the page.", to=request.sid)
             disconnect(request.sid)
             print("----handle_join(): Refused connection as the player is already connected to this game.-----")    # Message for debugging
             return
         if player_entry["score"] == 404:
+            socketio.emit("join_refused", "You did not reconnect in time and have been removed from this game", to=request.sid)
             disconnect(request.sid)
             print("----handle_join(): Refused connection as this player has been removed from this game after disconnecting.-----")    # Message for debugging
             return
@@ -503,12 +506,14 @@ def handle_join(game_id):
         # The player is connecting to this game for the first time
         game = db.execute("SELECT * FROM games WHERE game_id = ?", (game_id,)).fetchone()
         if game["player_count"] == game["allowed_players"]:
+            socketio.emit("join_refused", "The game is full", to=request.sid)
             disconnect(request.sid)
             print("----handle_join(): Refused connection as the game is full.-----")    # Message for debugging
             return
         if game["finished"] == 1:
             # If the game is finished, refuse the connection
             # This should not occur, but is included to be safe
+            socketio.emit("join_refused", "The game is finished", to=request.sid)
             disconnect(request.sid)
             print("----handle_join(): Refused connection as the game is finished.-----")    # Message for debugging
             return
@@ -592,21 +597,19 @@ def handle_disconnect(*args):
                                     ON players.game_id = games.game_id
                                     WHERE players.game_id = ? AND players.player_id = ?""",
                                     (game_id, player_id)).fetchone()
-        if player_entry is not None:
+        
+        if player_entry is None:
+            return
+
+        if player_entry["status"] == 0:
             # If the game has not started yet
-            if player_entry["status"] == 0:
-                db.execute("DELETE FROM players WHERE game_id = ? AND player_id = ?", (game_id, player_id))
-                num_remaining = db.execute("SELECT COUNT(*) FROM players WHERE game_id = ?", (game_id,)).fetchone()[0]
-                if num_remaining == 0:
-                    print("------------Deleting game")
-                    db.execute("DELETE FROM games WHERE game_id = ?", (game_id,))
-                else:
-                    db.execute("UPDATE games SET player_count = `player_count` - 1 WHERE game_id = ?", (game_id,))
-                    message = "%s left the game" % player_id[1:]
-                    socketio.emit("chat_message_from_server", (None, message), to=game_id)
-                    db.execute("INSERT INTO chat_messages VALUES (?, NULL, ?)", (game_id, message))
-                db.commit()
-                return
+            db.execute("DELETE FROM players WHERE game_id = ? AND player_id = ?", (game_id, player_id))
+            db.execute("UPDATE games SET player_count = `player_count` - 1 WHERE game_id = ?", (game_id,))
+            message = "%s left the game" % player_id[1:]
+            socketio.emit("chat_message_from_server", (None, message), to=game_id)
+            db.execute("INSERT INTO chat_messages VALUES (?, NULL, ?)", (game_id, message))
+            db.commit()
+        else:
             # Emit message if the game is not finished
             if player_entry["finished"] == 0:
                 socketio.emit("other_player_disconnect", player_id, to=game_id, include_self=False)
@@ -619,58 +622,67 @@ def handle_disconnect(*args):
                         WHERE game_id = ? AND player_id = ?""",
                         (game_id, player_id))
             db.commit()
-            close_db()
+        close_db()
 
-            # This greenlet will sleep for a while and then check if the player has reconnected
-            # Other greenlets will continue to run during this time
+        # This greenlet will sleep for a while and then check if the player has reconnected
+        # Other greenlets will continue to run during this time
 
-            print("-------------Beginning sleep")
-            sleep(10)
-            print("-------------Finished sleep")
+        print("-------------Beginning sleep")
+        sleep(10)
+        print("-------------Finished sleep")
 
-            end_round = False
+        end_round = False
 
-            db = get_db()
-            game = db.execute("SELECT current_turn, finished, status FROM games WHERE game_id = ?", (game_id,)).fetchone()
-            players = db.execute("SELECT player_id, stood, connected, score FROM players WHERE game_id = ? ORDER BY player_id", (game_id,)).fetchall()
+        db = get_db()
+        game = db.execute("SELECT current_turn, finished, status FROM games WHERE game_id = ?", (game_id,)).fetchone()
 
-            for p in players:
-                if p["player_id"] == player_id:
-                    player_entry = p
-                    break
-            
-            # If the player has reconnected, the player has already been removed, or the game has finished, do nothing 
-            if player_entry["connected"] == 1 or player_entry["score"] == 404 or game["finished"] == 1:
-                return
-            
-            num_remaining = db.execute("SELECT COUNT(*) FROM players WHERE game_id = ? AND player_id != ? AND score != 404", (game_id, player_id)).fetchone()[0]
-
-            # If there are no other remaining players, mark the game as finished
+        if game["status"] == 0:
+            num_remaining = db.execute("SELECT COUNT(*) FROM players WHERE game_id = ?", (game_id,)).fetchone()[0]
             if num_remaining == 0:
-                db.execute("UPDATE games SET finished = 1 WHERE game_id = ?", (game_id,))
+                print("------------Deleting game")
+                db.execute("DELETE FROM games WHERE game_id = ?", (game_id,))
                 db.commit()
-                return
+            return
 
-            db.execute("UPDATE players SET stood = 1, score = 404, rounds_won = 0 WHERE game_id = ? AND player_id = ?", (game_id, player_id))
-            if player_entry["stood"] != 1:
-                db.execute("UPDATE games SET players_stood = `players_stood` + 1 WHERE game_id = ?", (game_id,))
+        players = db.execute("SELECT player_id, stood, connected, score FROM players WHERE game_id = ? ORDER BY player_id", (game_id,)).fetchall()
 
-            # Check if players stood is now 4, in which case end the round
-            players_stood = db.execute("SELECT players_stood FROM games WHERE game_id = ?", (game_id,)).fetchone()["players_stood"]
+        for p in players:
+            if p["player_id"] == player_id:
+                player_entry = p
+                break
+        
+        # If the player has reconnected, the player has already been removed, or the game has finished, do nothing 
+        if player_entry["connected"] == 1 or player_entry["score"] == 404 or game["finished"] == 1:
+            return
+        
+        num_remaining = db.execute("SELECT COUNT(*) FROM players WHERE game_id = ? AND player_id != ? AND score != 404", (game_id, player_id)).fetchone()[0]
 
-            if players_stood >= 4:
-                end_round = True
-            elif players[game["current_turn"]]["player_id"] == player_id:
-                advance_turn(game_id)
-            send_game_update(game_id)
-
-            message = "%s did not reconnect in time and has been removed from the game" % (player_id[1:])
-            socketio.emit("chat_message_from_server", (None, message), to=game_id)
-            db.execute("INSERT INTO chat_messages VALUES (?, NULL, ?)", (game_id, message))
+        # If there are no other remaining players, mark the game as finished
+        if num_remaining == 0:
+            db.execute("UPDATE games SET finished = 1 WHERE game_id = ?", (game_id,))
             db.commit()
+            return
 
-            if end_round:
-                round_finish(game_id)
+        db.execute("UPDATE players SET stood = 1, score = 404, rounds_won = 0 WHERE game_id = ? AND player_id = ?", (game_id, player_id))
+        if player_entry["stood"] != 1:
+            db.execute("UPDATE games SET players_stood = `players_stood` + 1 WHERE game_id = ?", (game_id,))
+
+        # Check if players stood is now 4, in which case end the round
+        players_stood = db.execute("SELECT players_stood FROM games WHERE game_id = ?", (game_id,)).fetchone()["players_stood"]
+
+        if players_stood >= 4:
+            end_round = True
+        elif players[game["current_turn"]]["player_id"] == player_id:
+            advance_turn(game_id)
+        send_game_update(game_id)
+
+        message = "%s did not reconnect in time and has been removed from the game" % (player_id[1:])
+        socketio.emit("chat_message_from_server", (None, message), to=game_id)
+        db.execute("INSERT INTO chat_messages VALUES (?, NULL, ?)", (game_id, message))
+        db.commit()
+
+        if end_round:
+            round_finish(game_id)
         
 @socketio.on("chat_message_from_client")
 def handle_chat_message(content):
