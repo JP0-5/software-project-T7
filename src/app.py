@@ -379,8 +379,8 @@ def account_settings():
                 flash('No selected file')
                 return redirect(request.url)
         if file and allowed_file(file.filename):
-                # Prepend the username to the file name so it does not affect any other user
-                filename = secure_filename(g.user + "_" + file.filename)
+                # Use a fixed filename
+                filename = secure_filename(g.user + "_pfp." + get_extension(file.filename))
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
                 db = get_db()
                 db.execute("UPDATE users SET picture = ? WHERE user = ?", ("uploads/" + filename, g.user))
@@ -852,8 +852,10 @@ def game_finish(game_id, final_round_winner, final_round_winning_score):
     
     
 def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    return '.' in filename and get_extension(filename) in ALLOWED_EXTENSIONS
+
+def get_extension(filename):
+    return filename.rsplit('.', 1)[1].lower()
 
 # Run the server locally
 if __name__ == "__main__":
