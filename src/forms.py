@@ -29,7 +29,7 @@ class EnterCodeForm(FlaskForm):
     submit = SubmitField("Join")
 
 class accountForm(FlaskForm):
-    user_id = StringField('Change Name: ', [InputRequired(),validators.Length(min=5,max=15)])
+    user_id = StringField('Change Name: ', [InputRequired(),validators.Length(max=15)])
     old_password=PasswordField('Old Password: ', validators = 
     [Optional(),validators.Length(min=5,max=25)])
     new_password=PasswordField('New Password: ', validators = 

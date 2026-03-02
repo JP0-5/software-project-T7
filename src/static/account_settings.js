@@ -22,11 +22,13 @@ function closeEdit() {
     allTicks.forEach(img=>{img.style.display="none";});
 }
 
-function showTick(section, filename) {
+function showTick(section,filename){
     document.getElementById('selected_img').value = filename
     
-    const tick = section.querySelector('.tick');
-    tick.style.display = "block";
+    const tick=section.querySelector('.tick');
+    const all_ticks=document.querySelectorAll('.tick');
+    all_ticks.forEach(img=>{img.style.display="none";});
     
-    allTicks.forEach(img=>{img.style.display="none";});
+    tick.style.display = "block";
+
 }

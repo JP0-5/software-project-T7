@@ -1,4 +1,4 @@
-# NOTE: Do not use `flask run` to start the server.
+# NOTE: Do not use `flask run` to start the server. 
 # Instead, run this file and code at the end of the file will start the server.
 
 # NOTE: You may need to run the schema.sql file to setup app.db first.
@@ -406,7 +406,7 @@ def account_settings():
 
 
 
-    if request.method=='GET' or form.cancel.data or formTwo.submitTwo.data or formTwo.cancelTwo.data:
+    if request.method=='GET' or form.cancel.data or formTwo.submitTwo.data:
         form.user_id.data=g.user
     elif form.submit.data and form.validate_on_submit() :
         db = get_db()
@@ -422,7 +422,6 @@ def account_settings():
             
                 db.execute('''UPDATE users SET password=? WHERE user = ?;''',(generate_password_hash(form.new_password.data),g.user),)
                 db.commit()
-                session.clear()
                 return redirect(url_for('main'))
             else:
                 form.old_password.errors.append('Old password is incorrect!')

@@ -366,15 +366,15 @@ color:yellow}
 
 #picture_selection{
 
-  margin:0 5em;
-  display: flex;
-  gap:10px;
-    width:440px;
+    margin:0 5em;
+    display: flex;
+    gap:10px;
+    width:auto;
 
-  overflow: auto;
-  flex-direction: row;
-  
-  padding-bottom: 1em;
+    overflow: auto;
+    flex-direction: row;
+    
+    padding-bottom: 1em;
 }
 #change_picture p {font-size: 1.2em; margin: 0;}
 #picture_selection img{
@@ -385,7 +385,6 @@ color:yellow}
 }
 
 #picture_selection_box{
-  width:80%;
   margin:2em auto;
 }
 
