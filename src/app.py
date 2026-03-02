@@ -384,7 +384,7 @@ def account_settings():
 
 
     
-    return render_template("account_settings.html",avatar=avatar, title = "My Account",form=form,formTwo=formTwo,formThree=formThree,script=[url_for("static", filename="account_settings.js")])
+    return render_template("account_settings.html",images=img,avatar=avatar, title = "My Account",form=form,formTwo=formTwo,formThree=formThree,script=[url_for("static", filename="account_settings.js")])
 
 # SocketIO event handlers
 @socketio.on("join_request")
