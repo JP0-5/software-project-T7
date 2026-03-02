@@ -20,7 +20,7 @@ from forms import *
 from werkzeug.utils import secure_filename
 
 
-UPLOAD_FOLDER = 'software-project-T7/src/static'
+UPLOAD_FOLDER = 'src/static'
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
 
 
