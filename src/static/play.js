@@ -383,6 +383,9 @@ function draw() {
         }
     }
 
+    context.fillStyle = "grey";
+    context.fillRect(canvas.width - 300, 0, 300, canvas.height);
+
     context.fillStyle = "white";
     //draw cards
     let numCardsDrew = 0;
