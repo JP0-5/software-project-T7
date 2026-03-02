@@ -44,3 +44,7 @@ class pictureForm(FlaskForm):
 
 class uploadForm(FlaskForm):
     upload=SubmitField('Upload')
+
+class DeleteAccountForm(FlaskForm):
+    check = BooleanField("I understand that this cannot be undone.", validators=[InputRequired()])
+    submit = SubmitField("Confirm")

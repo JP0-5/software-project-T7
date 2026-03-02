@@ -229,8 +229,8 @@ def games():
                        SELECT * FROM games
                        WHERE
                        finished = 0 AND
-                       (public = 1 AND player_count < allowed_players) OR
-                       game_id IN (SELECT game_id FROM players WHERE player_id = ?)
+                       ((public = 1 AND player_count < allowed_players) OR
+                       game_id IN (SELECT game_id FROM players WHERE player_id = ?))
                        ORDER BY start_time DESC;
                        """, (player_id,)).fetchall()
 
@@ -397,21 +397,26 @@ def account_settings():
 
             return redirect(url_for("account_settings"))
 
-
-
-
-
     if request.method=='GET' or form.cancel.data or formTwo.submitTwo.data:
         form.user_id.data=g.user
     elif form.submit.data and form.validate_on_submit() :
         db = get_db()
         user_data = db.execute('''SELECT * FROM users WHERE user = ?;''', (g.user,)).fetchone()
         if form.user_id.data != g.user:
-            
-            db.execute('''UPDATE users SET user=? WHERE user = ?;''',(form.user_id.data,g.user),)
-            db.commit()
-            session['username']=form.user_id.data
-            g.user=form.user_id.data
+            ongoing_games = db.execute("SELECT games.game_id FROM players JOIN games WHERE user = ? AND finished = 0 AND score != 404", (g.user,)).fetchall()
+            if len(ongoing_games) == 0:
+                conflict_user = db.execute('SELECT * FROM users WHERE user = ?;', (form.user_id.data,)).fetchone()
+                if conflict_user is not None:
+                    form.user_id.errors.append('Username already taken!')
+                    form.user_id.data = ''
+                else:
+                    db.execute('UPDATE users SET user = ? WHERE user = ?;', (form.user_id.data, g.user),)
+                    db.execute('UPDATE invites SET invitee = ? WHERE invitee = ?', (form.user_id.data, g.user))
+                    db.commit()
+                    session['username']=form.user_id.data
+                    g.user=form.user_id.data
+            else:
+                form.user_id.errors.append("Cannot change username while you are participating in ongoing games")
         if form.old_password.data !='' and form.new_password.data !='':
             if check_password_hash(user_data["password"],form.old_password.data):
             
@@ -422,6 +427,24 @@ def account_settings():
                 form.old_password.errors.append('Old password is incorrect!')
         
     return render_template("account_settings.html",images=img,avatar=avatar, title = "My Account",form=form,formTwo=formTwo,formThree=formThree,scripts=[url_for("static", filename="account_settings.js")])
+
+@app.route("/delete_account", methods=["GET", "POST"])
+@login_required
+def delete_account():
+    form = DeleteAccountForm()
+    if form.validate_on_submit():
+        db = get_db()
+        ongoing_games = db.execute("SELECT games.game_id FROM players JOIN games WHERE user = ? AND finished = 0 AND score != 404", (g.user,)).fetchall()
+        if len(ongoing_games) == 0:
+            db.execute("DELETE FROM players WHERE user = ?", (g.user,))
+            db.execute("DELETE FROM invites WHERE invitee = ?", (g.user,))
+            db.execute("DELETE FROM users WHERE user = ?", (g.user,))
+            db.commit()
+            session.clear()
+            return redirect( url_for("main") )
+        else:
+            form.check.errors.append("Cannot delete account while you are participating in ongoing games")
+    return render_template("/delete_account.html", form=form, title="Delete Account")
 
 @app.route("/pfp/<user>")
 def get_user_pfp(user):
