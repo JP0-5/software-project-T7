@@ -37,10 +37,19 @@ let sk = new Image(); let sq = new Image(); let sj = new Image(); let ca = new I
 let c2 = new Image(); let c3 = new Image(); let c4 = new Image(); let c5 = new Image();
 let c6 = new Image(); let c7 = new Image(); let c8 = new Image(); let c9 = new Image();
 let c10 = new Image(); let ck = new Image(); let cq = new Image(); let cj = new Image();
+let draw_card_sound = new Audio();
+let game_music = new Audio();
+let lose_game_music = new Audio();
+let menu_music = new Audio();
+let round_over_sound = new Audio();
+let stand_sound = new Audio();
+let win_game_music = new Audio();
+let fever_sound = new Audio();
 let sp_m3 = new Image(); let sp_m5 = new Image(); let sp_m7 = new Image();
 let sp_p3 = new Image(); let sp_p5 = new Image(); let sp_p7 = new Image();
 let remainingCards;
 let pixelFont = new FontFace('Pixelz', 'url(/static/pixel_font.ttf)');
+let currentSong = null;
 
 let gameMode;
 let players = {};
@@ -70,7 +79,8 @@ let turnIndicator = new Image();
 let turnIndicatorCounter = 0;
 let turnIndicatorOn = true;
 let roundOver = new Image();
-let gameComplete = new Image()
+let gameComplete = new Image();
+let feverImage = new Image();
 let roundOverFrames = 30;
 let roundOverGrow = true;
 let roundOverHold = false;
@@ -78,6 +88,11 @@ let roundOverHoldTimer = 0;
 let roundOverUIReset;
 let showGameCompleteAnimation = false;
 let roundNum;
+
+let feverFrames = 30;
+let feverGrow = true;
+let feverHold = false;
+let feverHoldTimer = 0;
 
 document.addEventListener("DOMContentLoaded", init, false);
 
@@ -185,6 +200,9 @@ function init() {
             if (cardTaken[0] === playerID) {
                 drawCard(cardTaken[1], cardTaken[2])
             }
+            if (cardTaken[2] === "special") {
+                feverAnimation();
+            }
         }
     })
 
@@ -205,6 +223,11 @@ function init() {
 
     // Args: (game winner, final round winner, final round winning score, player list)
     socket.on("game_finish", (gameWinner, finalRoundWinner, finalRoundWinningScore, playerList) => {
+        if (gameWinner === playerID) {
+            playBGM("win");
+        } else {
+            playBGM("lose");
+        }
         gameWinnerID = gameWinner;
         winningPlayerID = finalRoundWinner;
         showGameCompleteAnimation = true;
@@ -242,7 +265,16 @@ function init() {
         { "var": sp_p7, "url": "/static/cards/P7-SP.png" },
         { "var": turnIndicator, "url": "/static/Turn_indicator.png" },
         { "var": roundOver, "url": "/static/round_over.jpg" },
-        { "var": gameComplete, "url": "/static/game_complete.jpg" }
+        { "var": gameComplete, "url": "/static/game_complete.jpg" },
+        { "var": feverImage, "url": "/static/fever.png" },
+        { "var": draw_card_sound, "url": "/static/draw_card_sound.wav" },
+        { "var": game_music, "url": "/static/game_music.wav" },
+        { "var": lose_game_music, "url": "/static/lose_game_music.wav" },
+        { "var": menu_music, "url": "/static/menu_music.wav" },
+        { "var": round_over_sound, "url": "/static/round_over_sound.wav" },
+        { "var": stand_sound, "url": "/static/stand_sound.wav" },
+        { "var": win_game_music, "url": "/static/win_game_music.wav" },
+        { "var": fever_sound, "url": "/static/fever_sound.wav" }
     ], draw);
 
     hitButton.onclick = hitButtonPress;
@@ -250,6 +282,8 @@ function init() {
     homeButton.onclick = function() {
         location.href = "/";
     }
+
+    playBGM("game");
 }
 
 function startGame(playerList, turn, round, cardsRemaining, hands) {
@@ -310,7 +344,8 @@ function draw() {
         return;
     }
     then = now - (elapsed % fpsInterval);
-    context.clearRect(0, 0, canvas.width, canvas.height)
+    context.clearRect(0, 0, canvas.width, canvas.height);
+
     //draw card stack
     context.drawImage(card_stack,
         0, 0, 74, 98,
@@ -439,6 +474,10 @@ function draw() {
             }
         }
     }
+
+    if (feverFrames < 30) {
+        feverAnimation();
+    }
     
     if (gameFinished) {
         window.cancelAnimationFrame(request_id);
@@ -461,6 +500,8 @@ function endRoundAnimation() {
         )
     }
     if (roundOverGrow) {
+        round_over_sound.volume = 1;
+        round_over_sound.play();
         roundOverFrames -= 1;
         if (roundOverFrames === 0) {
             roundOverGrow = false;
@@ -522,6 +563,38 @@ function endRoundAnimation() {
     }
 }
 
+function feverAnimation() {
+    context.drawImage(feverImage, 0, 0, feverImage.width, feverImage.height,
+        (((canvas.width/2)-(feverImage.width/4)) + ((feverImage.width/4) * (feverFrames / 30))), (80 + ((feverImage.height/4) * (feverFrames / 30))),
+        (feverImage.width/2) - ((feverImage.width/2) * (feverFrames / 30)), (feverImage.height/2) - ((feverImage.height/2) * (feverFrames / 30))
+    )
+    if (feverGrow) {
+        fever_sound.volume = 1;
+        fever_sound.play();
+        feverFrames -= 1;
+        if (feverFrames === 0) {
+            feverGrow = false;
+            feverHold = true;
+        }
+    }
+    else {
+        feverFrames += 1
+        if (feverFrames === 30) {
+            feverGrow = true;
+            feverFrames = 30;
+        }
+    }
+    if (feverHold) {
+        feverFrames -= 1
+        feverHoldTimer += 1
+        if (feverHoldTimer === 60) {
+            feverHoldTimer = 0;
+            feverHold = false;
+            feverFrames += 2;
+        }
+    }
+}
+
 function enableButtons() {
     hitButton.style.display = "flex";
     standButton.style.display = "flex";
@@ -540,13 +613,40 @@ function hitButtonPress() {
 function standButtonPress() {
     disableButtons();
     socket.emit("stand");
+    stand_sound.volume = 1;
+    stand_sound.play();
 }
 
 function drawCard(value, suit) {
+    draw_card_sound.volume = 1;
+    draw_card_sound.play();
     cardToDraw = cards[suit][value];
     cardDrawing = true;
     framesInDraw = 0;
     cardToDrawFrame = 0;
+}
+
+function playBGM(song) {
+    if (song === "game") {
+        game_music.loop = true;
+        game_music.volume = 0.4;
+        game_music.play();
+        currentSong = game_music;
+    }
+    else if (song === "win") {
+        game_music.pause();
+        win_game_music.loop = true;
+        win_game_music.volume = 0.4;
+        win_game_music.play();
+        currentSong = win_game_music;
+    }
+    else if (song === "lose") {
+        game_music.pause();
+        lose_game_music.loop = true;
+        lose_game_music.volume = 0.4;
+        lose_game_music.play();
+        currentSong = lose_game_music;
+    }
 }
 
 function load_assets(assets, callback) {
