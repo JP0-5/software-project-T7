@@ -267,8 +267,8 @@ function startGame(playerList, turn, round, cardsRemaining, hands) {
             // The player is a registerd user
             players[player.player_id].pfp = loadingIcon;
             players[player.player_id].pfpLoading = new Image();
-            players[player.player_id].pfpLoading.src = "/pfp/" + player.player_id.slice(1);
             players[player.player_id].pfpLoading.addEventListener("load", updatePFPs, false);
+            players[player.player_id].pfpLoading.src = "/pfp/" + player.player_id.slice(1);
         } else {
             // The player is a guest
             players[player.player_id].pfp = defaultPfps[defaultPfpIndex];
