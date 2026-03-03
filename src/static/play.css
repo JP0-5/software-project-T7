@@ -19,34 +19,36 @@ canvas{
     height: 100%;
     z-index: -1;
 }
-#hit{
+#hit, 
+#stand,
+#home {
     position: fixed;
     width: 190px;
     height: 70px;
     bottom: 20px;
-    left: 32%;
+  
     background-color: red;
     font-family: pixelated;
     font-size: 50px;
-    display: flex;
     justify-content: center;
     align-items: center;
-
     color: yellow;
+
+    border: 8px solid transparent;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    line-height: 1;
+}
+#hit{
+    left: 32%;
 }
 #stand{
-    position: fixed;
-    width: 190px;
-    height: 70px;
-    bottom: 20px;
     right: 32%;
-    background-color: red;
-    font-family: Pixelated;
-    font-size: 50px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: yellow;
+}
+#home {
+    left: 45%;
+    bottom: 150px;
 }
 #side {
     position: fixed;
@@ -71,7 +73,9 @@ canvas{
 #hit,
 #hit--wrapper, 
 #stand,
-#stand--wrapper{
+#stand--wrapper,
+#home,
+#home--wrapper{
   clip-path: polygon(0px calc(100% - 20px),
     4px calc(100% - 20px),
     4px calc(100% - 12px),
@@ -109,21 +113,15 @@ canvas{
     4px 20px,
     0px 20px);
 }
-#hit, 
-#stand {
-  border: 8px solid transparent;
-  display: none;
-  justify-content: center;
-  align-items: center;
-  line-height: 1;
-}
 #hit--wrapper, 
-#stand--wrapper {
+#stand--wrapper,
+#home--wrapper {
   width: fit-content;
   height: fit-content;
 }
 #hit--wrapper #hit,
-#stand--wrapper #stand{
+#stand--wrapper #stand,
+#home--wrapper #home{
   display: block;
   clip-path: polygon(8px 24px,
     12px 24px,
@@ -157,7 +155,9 @@ canvas{
 #hit::after,
 #hit--wrapper::after,
 #stand::after,
-#stand--wrapper::after {
+#stand--wrapper::after,
+#home::after,
+#home--wrapper::after {
   content: "";
   position: absolute;
   clip-path: polygon(0px calc(100% - 20px),
@@ -237,7 +237,8 @@ canvas{
   pointer-events: none;
 }
 #hit::after,
-#stand::after {
+#stand::after,
+#home::after {
   margin: -8px;
 }
 
@@ -247,7 +248,8 @@ canvas{
 }
 
 #hit span,
-#stand span {
+#stand span,
+#home span {
     position: relative;
     top: 4px;
 }

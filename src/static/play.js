@@ -7,6 +7,7 @@ let canvas;
 let context;
 let hitButton;
 let standButton;
+let homeButton;
 let request_id;
 let fpsInterval = 1000 / 60;
 let now;
@@ -97,6 +98,7 @@ function init() {
 
     hitButton = document.getElementById("hit");
     standButton = document.getElementById("stand");
+    homeButton = document.getElementById("home");
 
     gameIDLabel = document.getElementById("gameId");
     connectionStatus = document.getElementById("connectionStatus");
@@ -245,6 +247,9 @@ function init() {
 
     hitButton.onclick = hitButtonPress;
     standButton.onclick = standButtonPress;
+    homeButton.onclick = function() {
+        location.href = "/";
+    }
 }
 
 function startGame(playerList, turn, round, cardsRemaining, hands) {
@@ -470,7 +475,7 @@ function endRoundAnimation() {
 
             if (showGameCompleteAnimation) {
                 gameFinished = true;
-                console.log("Game finished")
+                homeButton.style.display = "flex";
             } else {
                 if (currentTurnID === playerID) {
                     enableButtons();
