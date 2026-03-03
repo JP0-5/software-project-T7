@@ -223,6 +223,7 @@ function init() {
 
     // Args: (game winner, final round winner, final round winning score, player list)
     socket.on("game_finish", (gameWinner, finalRoundWinner, finalRoundWinningScore, playerList) => {
+        showGameCompleteAnimation = true;
         if (gameWinner === playerID) {
             playBGM("win");
         } else {
@@ -230,7 +231,6 @@ function init() {
         }
         gameWinnerID = gameWinner;
         winningPlayerID = finalRoundWinner;
-        showGameCompleteAnimation = true;
         roundOverUIReset = false;
         showMessage(null, `${finalRoundWinner.slice(1)} won round 5 with a score of ${finalRoundWinningScore}`);
         showMessage(null, `${gameWinner.slice(1)} won the game!`);
@@ -344,7 +344,9 @@ function draw() {
     then = now - (elapsed % fpsInterval);
     context.clearRect(0, 0, canvas.width, canvas.height);
 
-    playBGM("game");
+    if (!showGameCompleteAnimation) {
+        playBGM("game");
+    }
 
     //draw card stack
     context.drawImage(card_stack,
