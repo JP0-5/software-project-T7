@@ -282,8 +282,6 @@ function init() {
     homeButton.onclick = function() {
         location.href = "/";
     }
-
-    playBGM("game");
 }
 
 function startGame(playerList, turn, round, cardsRemaining, hands) {
@@ -345,6 +343,8 @@ function draw() {
     }
     then = now - (elapsed % fpsInterval);
     context.clearRect(0, 0, canvas.width, canvas.height);
+
+    playBGM("game");
 
     //draw card stack
     context.drawImage(card_stack,
@@ -630,21 +630,21 @@ function playBGM(song) {
     if (song === "game") {
         game_music.loop = true;
         game_music.volume = 0.4;
-        game_music.play();
+        game_music.play().catch(() => {});;
         currentSong = game_music;
     }
     else if (song === "win") {
         game_music.pause();
         win_game_music.loop = true;
         win_game_music.volume = 0.4;
-        win_game_music.play();
+        win_game_music.play().catch(() => {});;
         currentSong = win_game_music;
     }
     else if (song === "lose") {
         game_music.pause();
         lose_game_music.loop = true;
         lose_game_music.volume = 0.4;
-        lose_game_music.play();
+        lose_game_music.play().catch(() => {});;
         currentSong = lose_game_music;
     }
 }
