@@ -1,4 +1,4 @@
-# NOTE: Do not use `flask run` to start the server.
+# NOTE: Do not use `flask run` to start the server. 
 # Instead, run this file and code at the end of the file will start the server.
 
 # NOTE: You may need to run the schema.sql file to setup app.db first.
@@ -361,7 +361,7 @@ def account_settings():
     formTwo=pictureForm()
     formThree=uploadForm()
 
-    img = ["default1.jpg", "default2.png", "default3.png", "default4.png", "business.png"]
+    img = ["default1.jpg", "default2.jpg", "default3.png", "default4.png", "default5.png"]
     avatar=session['profile_picture']
     
     if session['profile_picture'] in img:

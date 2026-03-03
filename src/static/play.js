@@ -241,7 +241,7 @@ function init() {
     load_assets([
         { "var": card_stack, "url": "/static/card_stack.png" },
         { "var": loadingIcon, "url": "/static/loading.png" },
-        { "var": pfpDefault1, "url": "/static/pfp/default1.jpg" }, { "var": pfpDefault2, "url": "/static/pfp/default2.png" },
+        { "var": pfpDefault1, "url": "/static/pfp/default1.jpg" }, { "var": pfpDefault2, "url": "/static/pfp/default2.jpg" },
         { "var": pfpDefault3, "url": "/static/pfp/default3.png" }, { "var": pfpDefault4, "url": "/static/pfp/default4.png" },
         { "var": ha, "url": "/static/cards/AH.png" }, { "var": h2, "url": "/static/cards/2H.png" }, { "var": h3, "url": "/static/cards/3H.png" },
         { "var": h4, "url": "/static/cards/4H.png" }, { "var": h5, "url": "/static/cards/5H.png" }, { "var": h6, "url": "/static/cards/6H.png" },
