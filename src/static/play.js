@@ -28,6 +28,14 @@ let sk = new Image(); let sq = new Image(); let sj = new Image(); let ca = new I
 let c2 = new Image(); let c3 = new Image(); let c4 = new Image(); let c5 = new Image();
 let c6 = new Image(); let c7 = new Image(); let c8 = new Image(); let c9 = new Image();
 let c10 = new Image(); let ck = new Image(); let cq = new Image(); let cj = new Image();
+let draw_card_sound = new Audio();
+let game_music = new Audio();
+let lose_game_music = new Audio();
+let menu_music = new Audio();
+let round_over_sound = new Audio();
+let stand_sound = new Audio();
+let win_game_music = new Audio();
+let fever_sound = new Audio();
 let remainingCards = 52;
 var pixelFont = new FontFace('Pixelz', 'url(/static/pixel_font.ttf)');
 let p1 = { score: 0, cards: [], pfp: pfp1, wins: 0 };
@@ -51,12 +59,18 @@ let turnIndicator = new Image();
 let turnIndicatorCounter = 0;
 let turnIndicatorOn = true;
 let roundOver = new Image();
-let gameComplete = new Image()
+let gameComplete = new Image();
+let feverImage = new Image();
 let roundOverFrames = 30;
 let roundOverGrow = true;
 let roundOverHold = false;
 let roundOverHoldTimer = 0;
 let roundNum = 1;
+///////////
+let feverFrames = 30;
+let feverGrow = true;
+let feverHold = false;
+let feverHoldTimer = 0;
 ///////////
 document.addEventListener("DOMContentLoaded", init, false);
 
@@ -140,8 +154,18 @@ function init() {
         { "var": cj, "url": "/static/cards/JC.png" },
         { "var": turnIndicator, "url": "/static/Turn_indicator.png" },
         { "var": roundOver, "url": "/static/round_over.jpg" },
-        { "var": gameComplete, "url": "/static/game_complete.jpg" }
+        { "var": gameComplete, "url": "/static/game_complete.jpg" },
+        { "var": feverImage, "url": "/static/fever.png" },
+        { "var": draw_card_sound, "url": "/static/draw_card_sound.wav" },
+        { "var": game_music, "url": "/static/game_music.wav" },
+        { "var": lose_game_music, "url": "/static/lose_game_music.wav" },
+        { "var": menu_music, "url": "/static/menu_music.wav" },
+        { "var": round_over_sound, "url": "/static/round_over_sound.wav" },
+        { "var": stand_sound, "url": "/static/stand_sound.wav" },
+        { "var": win_game_music, "url": "/static/win_game_music.wav" },
+        { "var": fever_sound, "url": "/static/fever_sound.wav" }
     ], draw);
+    playBGM("game");
 }
 
 pixelFont.load().then(function (font) {
@@ -157,7 +181,8 @@ function draw() {
         return;
     }
     then = now - (elapsed % fpsInterval);
-    context.clearRect(0, 0, canvas.width, canvas.height)
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    playBGM(currentSong);
     //draw card stack
     context.drawImage(card_stack,
         0, 0, 74, 98,
@@ -306,15 +331,22 @@ function draw() {
     context.fillStyle = "white";
     context.fillText("Please wait for your next turn", 400, canvas.height - 50);
     // round end screen
-    document.getElementById("stand").onclick = function () { endRoundAnimation() };
+    document.getElementById("stand").onclick = function () { stand_sound.volume = 1; stand_sound.play(); };
+    document.getElementById("round").onclick = function () { endRoundAnimation() };
     if (roundOverFrames < 30) {
         endRoundAnimation();
+    }
+    document.getElementById("fever").onclick = function () { feverAnimation() };
+    if (feverFrames < 30) {
+        feverAnimation();
     }
     //
 }
 
 function endRoundAnimation() {
     if (roundNum === 5) {
+        playBGM("win");
+        //playBGM("lose");
         context.drawImage(gameComplete, 0, 0, roundOver.width, roundOver.height,
             (-(0 - (canvas.width / 2)) * (roundOverFrames / 30)), (-(0 - (canvas.height / 2))) * (roundOverFrames / 30),
             canvas.width - 300 - ((canvas.width - 300) * (roundOverFrames / 30)), canvas.height - (canvas.height * (roundOverFrames / 30))
@@ -327,6 +359,8 @@ function endRoundAnimation() {
         )
     }
     if (roundOverGrow) {
+        round_over_sound.volume = 1;
+        round_over_sound.play();
         roundOverFrames -= 1;
         if (roundOverFrames === 0) {
             roundOverGrow = false;
@@ -360,6 +394,38 @@ function endRoundAnimation() {
         for (let p of players) {
             p.cards = [];
             p.score = 0;
+        }
+    }
+}
+
+function feverAnimation() {
+    context.drawImage(feverImage, 0, 0, feverImage.width, feverImage.height,
+        (((canvas.width/2)-(feverImage.width/4)) + ((feverImage.width/4) * (feverFrames / 30))), (80 + ((feverImage.height/4) * (feverFrames / 30))),
+        (feverImage.width/2) - ((feverImage.width/2) * (feverFrames / 30)), (feverImage.height/2) - ((feverImage.height/2) * (feverFrames / 30))
+    )
+    if (feverGrow) {
+        fever_sound.volume = 1;
+        fever_sound.play();
+        feverFrames -= 1;
+        if (feverFrames === 0) {
+            feverGrow = false;
+            feverHold = true;
+        }
+    }
+    else {
+        feverFrames += 1
+        if (feverFrames === 30) {
+            feverGrow = true;
+            feverFrames = 30;
+        }
+    }
+    if (feverHold) {
+        feverFrames -= 1
+        feverHoldTimer += 1
+        if (feverHoldTimer === 60) {
+            feverHoldTimer = 0;
+            feverHold = false;
+            feverFrames += 2;
         }
     }
 }
@@ -407,12 +473,37 @@ function updateP1Score() {
 }
 
 function drawCard() {
+    draw_card_sound.volume = 1;
+    draw_card_sound.play();
     cardToDrawID = randint(0, 51);
     cardToDraw = cards[cardToDrawID];
     cardDrawing = true;
     framesInDraw = 0;
     cardToDrawFrame = 0;
     remainingCards -= 1;
+}
+
+function playBGM(song) {
+    if (song === "game") {
+        game_music.loop = true;
+        game_music.volume = 0.4;
+        game_music.play();
+        currentSong = game_music;
+    }
+    else if (song === "win") {
+        game_music.pause();
+        win_game_music.loop = true;
+        win_game_music.volume = 0.4;
+        win_game_music.play();
+        currentSong = win_game_music;
+    }
+    else if (song === "lose") {
+        game_music.pause();
+        lose_game_music.loop = true;
+        lose_game_music.volume = 0.4;
+        lose_game_music.play();
+        currentSong = lose_game_music;
+    }
 }
 
 function load_assets(assets, callback) {

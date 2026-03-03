@@ -15,6 +15,7 @@ let token7 = { x: 800+350, y: -500, width: 30, height: 30, frame: 1};
 let token8 = { x: 800+250, y: -700, width: 30, height: 30, frame: 2};
 let tokens = [token1, token2, token3, token4, token5, token6, token7, token8];
 let corner_cards = new Image();
+let menu_music = new Audio();
 
 
 document.addEventListener("DOMContentLoaded", init, false);
@@ -23,8 +24,10 @@ function init() {
     canvas = document.querySelector("canvas");
     context = canvas.getContext("2d");
     load_assets([
-        { "var": falling_token, "url": "static/falling_token.png" }
+        { "var": falling_token, "url": "static/falling_token.png" },
+        { "var": menu_music, "url": "/static/menu_music.wav" }
     ], draw);
+    playBGM("menu");
 }
 
 function draw() {
@@ -36,6 +39,7 @@ function draw() {
     }
     then = now - (elapsed % fpsInterval);
     context.clearRect(0, 0, canvas.width, canvas.height)
+    playBGM("menu");
     //draw falling token
     for (let t of tokens){
         context.drawImage(falling_token,
@@ -52,6 +56,14 @@ function draw() {
             }
         }
     } 
+}
+
+function playBGM(song) {
+    if (song === "menu") {
+        menu_music.loop = true;
+        menu_music.volume = 0.4;
+        menu_music.play();
+    }
 }
 
 function load_assets(assets, callback) {
