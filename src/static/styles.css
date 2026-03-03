@@ -372,7 +372,7 @@ color:yellow}
     margin:0 5em;
     display: flex;
     gap:10px;
-    width:auto;
+    width:440px;
 
     overflow: auto;
     flex-direction: row;
@@ -388,7 +388,8 @@ color:yellow}
 }
 
 #picture_selection_box{
-  margin:2em auto;
+    width: 80%;
+    margin:2em auto;
 }
 
 
