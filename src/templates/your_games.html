@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block main_content %}
+<h1 id="game_title">Your Games</h1>
+
+<section>
+<p id="your_games_notice">Games that have finished will not be shown</p>
+</section>
+
+<section class="pixel_border" id = "games_box">
+    
+
+    <section id="game_headers"><p>Game ID</p>
+    <p>Host</p>
+    <p>Mode</p>
+    <p>Players</p>
+    <p></p>
+   
+
+  </section>
+<section id = "games_list">
+
+{% for game in games %}
+
+{% include "game_entry.html" %}
+
+{% endfor %}
+
+</section>
+</section>
+
+
+
+{% endblock %}

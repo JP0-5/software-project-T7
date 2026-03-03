@@ -2,9 +2,11 @@
 {% block main_content %}
 <h1 id="game_title">Available Games</h1>
 
+<section>
+<p><a id="your_games_link" href="{{ url_for('your_games') }}">Click to view previously joined games</a></p>
+</section>
     
 <section id="game_search">
-
 
   <legend>Game Mode</legend>
 
@@ -23,10 +25,11 @@
     <label for="modified">Modified</label>
   </div>
 
-
 </section>
 
 <section class="pixel_border" id = "games_box">
+    
+
     <section id="game_headers"><p>Game ID</p>
     <p>Host</p>
     <p>Mode</p>

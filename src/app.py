@@ -224,20 +224,35 @@ def logout():
 @app.route("/games")
 def games():
     db=get_db()
-    player_id = session["player_id"]
     games = db.execute("""
                        SELECT * FROM games
                        WHERE
                        finished = 0 AND
-                       ((public = 1 AND player_count < allowed_players) OR
-                       game_id IN (SELECT game_id FROM players WHERE player_id = ?))
+                       public = 1 AND
+                       player_count < allowed_players
                        ORDER BY start_time DESC;
-                       """, (player_id,)).fetchall()
+                       """).fetchall()
 
     return render_template("game_list.html", title="BlackJack Fever", games=games, scripts=[
         "https://cdn.socket.io/4.8.1/socket.io.min.js",
         url_for("static", filename="game_list.js")
     ])
+
+@app.route("/your_games")
+def your_games():
+    db=get_db()
+    player_id = session["player_id"]
+    games = db.execute("""
+                       SELECT * FROM games
+                       WHERE
+                       finished = 0 AND
+                       (host = ? OR
+                       game_id IN (SELECT game_id FROM players WHERE player_id = ?))
+                       ORDER BY start_time DESC;
+                       """, (player_id, player_id)).fetchall()
+
+    return render_template("your_games.html", title="BlackJack Fever", games=games)
+
 
 @app.route("/create", methods = ['GET', 'POST'])
 def create():
@@ -403,7 +418,7 @@ def account_settings():
         db = get_db()
         user_data = db.execute('''SELECT * FROM users WHERE user = ?;''', (g.user,)).fetchone()
         if form.user_id.data != g.user:
-            ongoing_games = db.execute("SELECT games.game_id FROM players JOIN games WHERE user = ? AND finished = 0 AND score != 404", (g.user,)).fetchall()
+            ongoing_games = db.execute("SELECT games.game_id FROM players JOIN games ON players.game_id = games.game_id WHERE user = ? AND finished = 0 AND score != 404", (g.user,)).fetchall()
             if len(ongoing_games) == 0:
                 conflict_user = db.execute('SELECT * FROM users WHERE user = ?;', (form.user_id.data,)).fetchone()
                 if conflict_user is not None:
@@ -434,7 +449,7 @@ def delete_account():
     form = DeleteAccountForm()
     if form.validate_on_submit():
         db = get_db()
-        ongoing_games = db.execute("SELECT games.game_id FROM players JOIN games WHERE user = ? AND finished = 0 AND score != 404", (g.user,)).fetchall()
+        ongoing_games = db.execute("SELECT games.game_id FROM players JOIN games ON players.game_id = games.game_id WHERE user = ? AND finished = 0 AND score != 404", (g.user,)).fetchall()
         if len(ongoing_games) == 0:
             db.execute("DELETE FROM players WHERE user = ?", (g.user,))
             db.execute("DELETE FROM invites WHERE invitee = ?", (g.user,))
@@ -609,6 +624,9 @@ def handle_disconnect(*args):
             socketio.emit("chat_message_from_server", (None, message), to=game_id)
             db.execute("INSERT INTO chat_messages VALUES (?, NULL, ?)", (game_id, message))
             db.commit()
+            if player_entry["public"] == 1:
+                player_count = db.execute("SELECT player_count FROM games WHERE game_id = ?", (game_id,)).fetchone()["player_count"]
+                socketio.emit("player_count_update", (game_id, player_count), to="game_list")
         else:
             # Emit message if the game is not finished
             if player_entry["finished"] == 0:
@@ -641,6 +659,8 @@ def handle_disconnect(*args):
             if num_remaining == 0:
                 print("------------Deleting game")
                 db.execute("DELETE FROM games WHERE game_id = ?", (game_id,))
+                db.execute("DELETE FROM invites WHERE game_id = ?", (game_id,))
+                socketio.emit("game_removed", game_id, to="game_list")
                 db.commit()
             return
 
