@@ -589,6 +589,7 @@ def handle_join(game_id):
 def game_start(game_id):
     db = get_db()
     db.execute("UPDATE games SET status = 1 WHERE game_id = ?", (game_id,))
+    db.commit()
     player_rows = db.execute("SELECT player_id, stood, score, rounds_won FROM players WHERE game_id = ? ORDER BY player_id", (game_id,)).fetchall()
     players = [dict(player) for player in player_rows]
     turn_index = int(db.execute("SELECT current_turn FROM games WHERE game_id = ?", (game_id,)).fetchone()["current_turn"])
@@ -697,9 +698,9 @@ def handle_disconnect(*args):
         send_game_update(game_id)
 
         message = "%s did not reconnect in time and has been removed from the game" % (player_id[1:])
-        socketio.emit("chat_message_from_server", (None, message), to=game_id)
         db.execute("INSERT INTO chat_messages VALUES (?, NULL, ?)", (game_id, message))
         db.commit()
+        socketio.emit("chat_message_from_server", (None, message), to=game_id)
 
         if end_round:
             round_finish(game_id)
@@ -747,7 +748,6 @@ def advance_turn(game_id):
             break
 
     db.execute("UPDATE games SET current_turn = ? WHERE game_id = ?", (new_turn, game_id))
-    db.commit()
 
 @socketio.on("hit")
 def handle_hit(): 
@@ -780,7 +780,6 @@ def handle_hit():
 
             for p in new_scores:
                 if p["score"] == 21:
-                    db.commit()
                     round_finish(game_id)
                     return
                 
@@ -791,21 +790,17 @@ def handle_hit():
             players_stood = db.execute(""" SELECT players_stood FROM games WHERE game_id == (?)""", (game_id,)).fetchone()["players_stood"]
 
             if players_stood == 4:
-                db.commit()
                 round_finish(game_id)
                 return
 
-            db.commit()
+
 
             # If the round is not over, advanced the turn and send an update to the clients
             advance_turn(game_id)
 
+            db.commit()
+
             send_game_update(game_id, card_taken=(player_id, card["value"], card["suit"]))
-        else:
-            # Debugging
-            print("--------------------Not your turn! The current turn is:", playersTurn[currentT]["player_id"])
-            print("--------------------currentT is:", currentT)
-            print("--------------------playersTurn:", [playersTurn[i]["player_id"] for i in range(4)])
 
 @socketio.on("stand")
 def handle_stand():
@@ -823,7 +818,7 @@ def handle_stand():
                 db.execute("""UPDATE players SET stood = (?) WHERE game_id == (?) AND player_id == (?)""", (1, game_id, player_id))
                 
                 db.execute("""UPDATE games SET players_stood = `players_stood` + 1 WHERE game_id == (?)""", (game_id,))
-                db.commit()
+                
 
             if int(playersStood) + 1 == 4:
                 round_finish(game_id)
@@ -831,12 +826,9 @@ def handle_stand():
 
             advance_turn(game_id)
 
+            db.commit()
+
         send_game_update(game_id)
-    else:
-        # Debugging
-        print("--------------------Not your turn! The current turn is:", playersTurn[currentT]["player_id"])
-        print("--------------------currentT is:", currentT)
-        print("--------------------playersTurn:", [playersTurn[i]["player_id"] for i in range(4)])
 
 def send_game_update(game_id, card_taken=None):
     # card_taken is a triple of (player id, value, suit)
@@ -857,8 +849,13 @@ def round_finish(game_id):
 
     players = db.execute(""" SELECT player_id, score, rounds_won FROM players WHERE game_id = ? ORDER BY player_id""", (game_id,)).fetchall()
 
-    # Get the player who has the smallest difference between their score and 21
-    winning_player = min(players, key=lambda p: abs(21 - p["score"]))
+    players_not_over_21 = [p for p in players if p["score"] <= 21]
+    if len(players_not_over_21) == 0:
+        # If all players are above 21
+        # Get the player who has the smallest difference between their score and 21
+        winning_player = min(players, key=lambda p: abs(21 - p["score"]))
+    else:
+        winning_player = min(players_not_over_21, key=lambda p: abs(21 - p["score"]))
 
     db.execute(""" UPDATE players SET rounds_won = `rounds_won` + 1 WHERE player_id = ? AND game_id = ? """, (winning_player["player_id"], game_id))
     db.execute(""" DELETE FROM hands WHERE game_id = ? """, (game_id,))
@@ -868,7 +865,6 @@ def round_finish(game_id):
     db.execute("INSERT INTO chat_messages VALUES (?, NULL, ?)", (game_id, message))
 
     if game_info["round"] == 5:
-        db.commit()
         game_finish(game_id, winning_player["player_id"], winning_player["score"])
         return
     
