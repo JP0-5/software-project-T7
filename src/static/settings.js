@@ -25,3 +25,27 @@ function keyPress(event){
     document.getElementById("edit_picture").onclick=openEdit}
 
 }
+
+function musicOn(){
+       document.getElementById('music_on').classList.add('active')
+    document.getElementById('music_off').classList.remove('active')
+ 
+}
+function musicOff(){
+         document.getElementById('music_off').classList.add('active')
+    document.getElementById('music_on').classList.remove('active')
+
+       
+       
+}
+
+function soundOn(){
+    document.getElementById('sound_on').classList.add('active')
+    document.getElementById('sound_off').classList.remove('active')
+      
+}
+function soundOff(){
+      document.getElementById('sound_off').classList.add('active')
+    document.getElementById('sound_on').classList.remove('active')
+
+}

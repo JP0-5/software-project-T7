@@ -209,6 +209,7 @@ def log_in():
         else:
             session.clear()
             session["username"]=user_id
+            session['profile_picture']=user['picture']
             next_page=request.args.get('next')
             if not next_page:
                 next_page = url_for('main')

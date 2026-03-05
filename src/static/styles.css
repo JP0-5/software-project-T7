@@ -94,20 +94,24 @@ header .reg_nav{
 
 #settings_box {
     z-index: 9100;
-    position:absolute;
+    position:fixed;
+    inset: 0;
     display: None;
 
     width:100%;
     justify-content: center;
     text-align:center;
 
-    top: 5em;
+    /* top: 20%; */
     margin: auto;
+    backdrop-filter: blur(5px);
 }
 #settings_content>h2{
   margin-bottom: 0;
 }
 #settings_content {
+    top:20%;
+    height: auto;
     z-index:9000;
     display: flex;
 
@@ -127,23 +131,74 @@ header .reg_nav{
     font-family: pixelated,Arial, Helvetica, sans-serif;
 }   
 
-
-#settings_content > p,#settings_content>a {
+#settings_content>a {
     padding: 0.5em;
     margin: 1em;
-    text-align: left;
+    text-align: center;
     font-size: 1.5em;
 
     border-style: solid;
   
     border-color: black;
     color: black;
-    background-color: yellow
+    background-color: yellow;
+    transition:filter 0.3 ease;
 }
 
-#settings_content>a{text-align: center;
-color: black;}
+#settings_content>a:hover{
+    filter: brightness(95%);
+}
 
+#settings_content .audio{
+    display: flex;
+    gap:10px;
+    margin: 1em;
+    background-color: yellow;
+    font-size: 1.5em;
+    color: black;
+    padding: 0.5em;
+    text-align: center;
+    
+}
+.audio img{
+    height: 26px;
+    width: 26px;
+   
+    
+}
+
+.audio p{margin: 0;padding-top: 0.1em;}
+#settings_content .audio_select {
+    display: flex;
+    margin: 0 auto;
+    width: 100%;
+    justify-content: center;
+    gap: 15%;
+    
+
+}
+
+.audio button{
+  filter:brightness(90%);
+  font-weight: bold;font-size: 1rem;
+  color:black;transition: ease-in;cursor: pointer;font-family: pixelated;padding-top:0.3em;width: 25%; border-color: black;border-style: solid; border-radius: 10px;background-color: rgb(45, 115, 245);}
+
+
+
+.audio button:hover{filter:brightness(80%);}
+
+.audio button.active{
+  filter: brightness(100%);
+  color:yellow;
+}
+
+
+.audio_label {
+  display: flex;
+  min-width: 110px;
+  gap:10px
+
+}
 
 #account_name{
     padding: 0.3em 0.3em 0.3em 2em;
@@ -313,10 +368,15 @@ color:yellow}
 .profile_img{
     height:100px;
     width:100px;
+    
+   
    
 }
 
-#profile_picture
+#profile_picture>img{
+     border-style: solid;
+  border-color: black;
+  background-color: black;border-radius: 50%;}
 
 #account_settings h2{
     font-size: 1.3em;
@@ -330,28 +390,30 @@ color:yellow}
 
 
 #change_picture_box {
-    position:absolute;
+    position:fixed;
+    inset: 0;
     display: None;
-
+    backdrop-filter: blur(5px);
     width:100%;
     height:100%;
 
     justify-content: center;
     text-align:center;
 
-    top: 5em;
+    
     margin: auto;
     backdrop-filter: blur(10px);
     z-index:9000;
 }
 
 #change_picture {
+    
     display: flex;
 
-    margin-top: 3em;
+    margin-top: 5em;
     background-color: rgba(255, 0, 0, 0.8);
     
-    width:45em;
+    width:40em;
     height: 700px;
     
     flex-direction: column;
@@ -372,7 +434,7 @@ color:yellow}
     margin:0 5em;
     display: flex;
     gap:10px;
-    width:440px;
+    width:auto;
 
     overflow: auto;
     flex-direction: row;
@@ -385,11 +447,15 @@ color:yellow}
   height: 80px;
   width: 80px;
   border-radius: 50%;
+  
+}
+
+#picture_selection_box .buttons{
+margin-top: 0;
 }
 
 #picture_selection_box{
-    width: 80%;
-    margin:2em auto;
+  margin:2em auto;
 }
 
 
@@ -442,14 +508,12 @@ color:yellow}
 
 
 #game_creation p{
+    
     margin-top:0;
 }
 
-#your_games_link, #your_games_notice {
-    color: yellow;
-}
 
-#game_headers, #your_games_link, #your_games_notice {display: flex;
+#game_headers{display: flex;
 font-family: pixelated;text-align: center;
 justify-content: center;position: sticky; font-size: 1.3em; font-weight: bold;margin-top:0}
 #game_headers>p,.game_entry a,.game_entry p{width:20%}
@@ -694,3 +758,11 @@ justify-content: center;position: sticky; font-size: 1.3em; font-weight: bold;ma
   pointer-events: none; 
 }
 
+#inbox_msg{font-family: pixelated;text-align: center;margin-top: 10em;}
+
+
+#close_settings,#close_edit{ transition: filter 0.1s ease;position:absolute;width: 40px;height: 40px; top:13px;right:16px;cursor:pointer}
+#close_settings:hover,#close_edit:hover{filter:brightness(95%)}
+#settings_content{position:fixed}
+
+#close_edit{left:580px}
