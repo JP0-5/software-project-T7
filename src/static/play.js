@@ -503,7 +503,9 @@ function endRoundAnimation() {
     }
     if (roundOverGrow) {
         round_over_sound.volume = 1;
-        round_over_sound.play();
+        if (soundEnabled) {
+            round_over_sound.play();
+        }
         roundOverFrames -= 1;
         if (roundOverFrames === 0) {
             roundOverGrow = false;
@@ -572,7 +574,9 @@ function feverAnimation() {
     )
     if (feverGrow) {
         fever_sound.volume = 1;
-        fever_sound.play();
+        if (soundEnabled) {
+            fever_sound.play();
+        }
         feverFrames -= 1;
         if (feverFrames === 0) {
             feverGrow = false;
@@ -616,12 +620,16 @@ function standButtonPress() {
     disableButtons();
     socket.emit("stand");
     stand_sound.volume = 1;
-    stand_sound.play();
+    if (soundEnabled) {
+        stand_sound.play();
+    }
 }
 
 function drawCard(value, suit) {
     draw_card_sound.volume = 1;
-    draw_card_sound.play();
+    if (soundEnabled) {
+        draw_card_sound.play();
+    }
     cardToDraw = cards[suit][value];
     cardDrawing = true;
     framesInDraw = 0;
@@ -629,6 +637,12 @@ function drawCard(value, suit) {
 }
 
 function playBGM(song) {
+    if (!musicEnabled) {
+        game_music.pause();
+        win_game_music.pause();
+        lose_game_music.pause();
+        return;
+    }
     if (song === "game") {
         game_music.loop = true;
         game_music.volume = 0.4;

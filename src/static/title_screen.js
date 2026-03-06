@@ -16,6 +16,7 @@ let token8 = { x: 800+250, y: -700, width: 30, height: 30, frame: 2};
 let tokens = [token1, token2, token3, token4, token5, token6, token7, token8];
 let corner_cards = new Image();
 let menu_music = new Audio();
+//musicEnabled and soundsEnabled declared in settings.js
 
 
 document.addEventListener("DOMContentLoaded", init, false);
@@ -58,7 +59,9 @@ function draw() {
 }
 
 function playBGM(song) {
-    if (song === "menu") {
+    if (!musicEnabled) {
+        menu_music.pause();
+    } else if (song === "menu") {
         menu_music.loop = true;
         menu_music.volume = 0.4;
         menu_music.play().catch(() => {});

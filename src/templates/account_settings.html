@@ -3,6 +3,7 @@
 
     <section id="change_picture_box">
         <form enctype=multipart/form-data class="pixel_border" id="change_picture" method="post" novalidate action="">
+             <img onclick="closeEdit()" id="close_edit" src="{{ url_for('static', filename='close_button.png')}}">
             <h2>Select A Profile Picture</h2>
             <section id="picture_selection_box">
                 {{ formTwo.selected_picture(id="selected_img" )}}

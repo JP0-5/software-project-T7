@@ -38,6 +38,40 @@
                         {% endif %}
                     {% endfor %}
                 </section>
+                <a class="pixel_border reg_nav" id="settings" onclick="openSettings()" href="#">Settings</a>
+            </section>
+
+
+            <section id = "settings_box">
+                 <section class="pixel_border" id="settings_content">
+                <img onclick="closeSettings()" id="close_settings"
+                    src="{{ url_for('static', filename='close_button.png')}}">
+                <h2>Settings</h2>
+                <section class="pixel_border audio">
+                    <section class="audio_label">
+                        <p>Music</p>
+                        <img src="{{ url_for('static', filename='music_note2.png')}}"></img>
+                    </section>
+                    <section class="audio_select">
+                        <button id="music_on" class="active" onclick="musicOn()">On</button>
+                        <button id="music_off" onclick="musicOff()">Off</button>
+                    </section>
+                </section>
+                <section class="pixel_border audio">
+                    <section class="audio_label">
+                        <p>Sound</p>
+                        <img src="{{ url_for('static', filename='headphones.png')}}"></img>
+                    </section>
+                    <section class="audio_select">
+                        <button id="sound_on" onclick="soundOn()">On</button>
+                        <button id="sound_off" onclick="soundOff()">Off</button>
+                    </section>
+                </section>
+                <a class="pixel_border" href="{{ url_for('account_settings') }}" class="settings_button" target="_blank">Account</a>
+                <a class="pixel_border" href="{{ url_for('how_to_play') }}" class="settings_button" target="_blank">How to Play</a>
+                <a class="pixel_border" href="{{ url_for('attribution') }}" class="settings_button" target="_blank">Attribution</a>
+
+            </section>
             </section>
         </main>
 

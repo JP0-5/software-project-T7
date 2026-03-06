@@ -1,8 +1,10 @@
 <section id = "games_list">
-
+{% if invites %}
 {% for game in invites %}
 
 <section class="invite">
+
+    
 
 {% include "game_entry.html" %}
 
@@ -12,5 +14,8 @@
 </section>
 
 {% endfor %}
+{% else %}
+<p id="inbox_msg">No messages at the moment!</p>
+{% endif %}
 
 </section>
