@@ -32,7 +32,7 @@
                         <img src="{{ url_for('static', filename='music_note2.png')}}"></img>
                     </section>
                     <section class="audio_select">
-                        <button id="music_on" onclick="musicOn()">On</button>
+                        <button id="music_on" class="active" onclick="musicOn()">On</button>
                         <button id="music_off" onclick="musicOff()">Off</button>
                     </section>
                 </section>
@@ -47,8 +47,8 @@
                     </section>
                 </section>
                 <a class="pixel_border" href="{{ url_for('account_settings') }}" class="settings_button">Account</a>
-                <a class="pixel_border" href="{{ url_for('account_settings') }}"
-                    class="settings_button">Documentation</a>
+                <a class="pixel_border" href="{{ url_for('how_to_play') }}" class="settings_button">How to Play</a>
+                <a class="pixel_border" href="{{ url_for('attribution') }}" class="settings_button">Attribution</a>
 
             </section>
         </section>

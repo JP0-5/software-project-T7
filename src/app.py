@@ -1,4 +1,4 @@
-# NOTE: Do not use `flask run` to start the server. 
+# NOTE: Do not use `flask run` to start the server.
 # Instead, run this file and code at the end of the file will start the server.
 
 # NOTE: You may need to run the schema.sql file to setup app.db first.
@@ -461,6 +461,14 @@ def delete_account():
         else:
             form.check.errors.append("Cannot delete account while you are participating in ongoing games")
     return render_template("/delete_account.html", form=form, title="Delete Account")
+
+@app.route("/attribution")
+def attribution():
+    return render_template("attribution.html", title="BlackJack Fever")
+
+@app.route("/how_to_play")
+def how_to_play():
+    return render_template("how_to_play.html", title="BlackJack Fever")
 
 @app.route("/pfp/<user>")
 def get_user_pfp(user):

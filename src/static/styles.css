@@ -96,7 +96,7 @@ header .reg_nav{
     z-index: 9100;
     position:fixed;
     inset: 0;
-    display: None;
+    display: none;
 
     width:100%;
     justify-content: center;
@@ -133,7 +133,7 @@ header .reg_nav{
 
 #settings_content>a {
     padding: 0.5em;
-    margin: 1em;
+    margin: 0.5em;
     text-align: center;
     font-size: 1.5em;
 
