@@ -65,7 +65,7 @@ header .reg_nav{
     font-family: pixelated,Arial, Helvetica, sans-serif;
 }
 
-#registration,#game_creation,#enter_code {
+#registration,#game_creation,#enter_code,#attribution {
     text-align: center;
     width:37em;
     padding-bottom: 6em;
@@ -86,6 +86,10 @@ header .reg_nav{
     color: yellow;
     background-color: red;
     font-family: pixelated,Arial, Helvetica, sans-serif;
+}
+
+#attribution a {
+    color: yellow;
 }
 
 #registration p{font-size: 1.3em;}
