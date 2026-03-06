@@ -61,7 +61,7 @@ canvas{
     display: flex;
     flex-direction: column;
 }
-#sideContent, #messages, #settings {
+#sideContent, #messages {
     padding-left: 15px;
 }
 #messages {
@@ -256,11 +256,73 @@ canvas{
 
 
 
+#side {
+  font-family: pixelated;
+}
+
+.game_header{display: flex; gap:10px}
+.game_header p{color:yellow}
+.game_header p:first-child{color: white; text-shadow: 1px 1px black;padding-left:15px;font-weight: bold;}
+.game_header p{margin:0.5em 0}
+
+
+
+#messages{color:yellow; border-style: solid none;border-bottom: 3px;border-top: 3px;}
+
+#side_navbar{
+  display: flex;
+  justify-content: space-between;
+  margin:0.5em 1em;
+  margin-bottom:0;
+  color: white;
+  font-weight: bold;
+  text-shadow: 1px 1px black;
+}
+
+#side_navbar img{
+  height: 25px;
+  width: 25px;
+  
+}
+#side_navbar img:hover{
+  filter:brightness(80%)
+}
+#side_navbar a{
+  margin: auto 0;
+}
+#side{background-color: #252525;border-left-style:solid}
+#sideContent{background-color: #a70303;border-bottom-style: solid;}
+
+#send_msg{
+  display: flex;
+  margin: 0 auto;
+margin-top: 2em;
+margin-bottom: 2em;
+ gap:10px;
+height: 30px;
+}
+#send_msg input{
+  width: 70%;
+  margin: 0.1em;
+  padding: 0.5em;
+  border-color: black;
+  border-style: solid;
+  border-width: 2px;
+  font-size: 1.1rem;
+  text-align: center;
+  font-family: pixelated;
+  border-radius: 5px;
+}
+#send_msg #sendButton {width: 20%;border-color: black;
+  width:auto;
+  border-style: solid;
+  border-width: 2px;background-color: yellow;font-family:pixelated;border-radius:5px;padding-top:0.2em}
+
 #settings_box {
     z-index: 9100;
     position:fixed;
     inset: 0;
-    display: none;
+    display: None;
 
     width:100%;
     justify-content: center;
@@ -297,7 +359,7 @@ canvas{
 
 #settings_content>a {
     padding: 0.5em;
-    margin: 0.5em;
+    margin: 1em;
     text-align: center;
     font-size: 1.5em;
 
@@ -367,6 +429,8 @@ canvas{
 #close_settings,#close_edit{ transition: filter 0.1s ease;position:absolute;width: 40px;height: 40px; top:13px;right:16px;cursor:pointer}
 #close_settings:hover,#close_edit:hover{filter:brightness(95%)}
 #settings_content{position:fixed}
+
+
 
 
 
@@ -530,25 +594,4 @@ canvas{
 }
 .pixel_border::after {
   margin: -4px;
-}
-
-#settings {
-    width: auto;
-
-    background: red;
-    color:yellow;
-    text-decoration:none;
-    
-    padding:0.3em 0.5em;
-    margin-left:2rem;
-    margin-right:2rem;
-    margin-top: 0.5rem;
-    margin-bottom: 0.5rem;
-
-    border-style: solid;
-    border-color:black;
-    
-    font-weight: bold;
-    font-size: 1.5rem;
-    font-family: pixelated,Arial, Helvetica, sans-serif;
 }

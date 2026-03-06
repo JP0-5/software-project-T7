@@ -20,14 +20,30 @@
             <a id="home"><span>HOME</span></a>
             <section id="side">
                 <section id="sideContent">
-                    <p>Game code: <b id="gameId"></b></p>
+                    <section id="side_navbar">
+                        <p >Round: </p><p><b  id="roundNum"></b></p>
+                        <a href="{{ url_for('main')}}"><img alt="Leave Game"src="{{ url_for('static', filename='logout3.png')}}"></a>
+                       <a href="#" onclick="openSettings()" id="settings"><img alt="Settings"src="{{ url_for('static', filename='settings.png')}}"></a>
+                    </section>
 
-                    <p>Game status: <b id="connectionStatus">Disconnected</b></p>
-                    <p>Game mode: <b id="gameMode">{{ game_mode }}</b></p>
-                    <p>Round number: <b id="roundNum"></b></p>
+                    <section class="game_header">
+                    <p >Game code: </p><p><b id="gameId"></b></p>
+                    </section>
 
-                    <input id="messageInput" type="text" placeholder="Enter your message">
-                    <button id="sendButton" disabled>Send</button>
+
+                    <section class="game_header">
+                    <p >Game status: </p><p><b  id="connectionStatus">Disconnected</b></p>
+                    </section>
+
+                    <section class="game_header">
+                    <p >Game mode: </p><p><b  id="gameMode">{{ game_mode }}</b></p>
+                    </section>
+
+                    
+                  
+        
+
+                   
                 </section>
                 <section id="messages">
                     {% for message in messages %}
@@ -38,12 +54,21 @@
                         {% endif %}
                     {% endfor %}
                 </section>
-                <a class="pixel_border reg_nav" id="settings" onclick="openSettings()" href="#">Settings</a>
+                <section id="send_msg">
+                     <input id="messageInput" type="text" placeholder="Enter your message">
+                    <button id="sendButton" disabled>Send</button>
+                </section>
+                
             </section>
+        </main>
+
+        
+    </body>
+</html>
 
 
-            <section id = "settings_box">
-                 <section class="pixel_border" id="settings_content">
+<section id="settings_box">
+            <section class="pixel_border" id="settings_content">
                 <img onclick="closeSettings()" id="close_settings"
                     src="{{ url_for('static', filename='close_button.png')}}">
                 <h2>Settings</h2>
@@ -53,7 +78,7 @@
                         <img src="{{ url_for('static', filename='music_note2.png')}}"></img>
                     </section>
                     <section class="audio_select">
-                        <button id="music_on" class="active" onclick="musicOn()">On</button>
+                        <button id="music_on" onclick="musicOn()">On</button>
                         <button id="music_off" onclick="musicOff()">Off</button>
                     </section>
                 </section>
@@ -67,14 +92,9 @@
                         <button id="sound_off" onclick="soundOff()">Off</button>
                     </section>
                 </section>
-                <a class="pixel_border" href="{{ url_for('account_settings') }}" class="settings_button" target="_blank">Account</a>
-                <a class="pixel_border" href="{{ url_for('how_to_play') }}" class="settings_button" target="_blank">How to Play</a>
-                <a class="pixel_border" href="{{ url_for('attribution') }}" class="settings_button" target="_blank">Attribution</a>
+                <a class="pixel_border" href="{{ url_for('account_settings') }}" class="settings_button">Account</a>
+                <a class="pixel_border" href="{{ url_for('account_settings') }}"
+                    class="settings_button">Documentation</a>
 
             </section>
-            </section>
-        </main>
-
-        
-    </body>
-</html>
+        </section>
