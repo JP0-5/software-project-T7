@@ -11,7 +11,6 @@
             const playerID = "{{ session['player_id'] }}";
         </script>
         <script src="{{ url_for('static', filename='play.js') }}"></script>
-                <script src="{{ url_for('static', filename='settings.js') }}"></script>
     </head>
     <body>
         <main>
@@ -24,7 +23,7 @@
                     <section id="side_navbar">
                         <p >Round: </p><p><b  id="roundNum"></b></p>
                         <a href="{{ url_for('main')}}"><img alt="Leave Game"src="{{ url_for('static', filename='logout3.png')}}"></a>
-                       <a href="#" onclick="openSettings()"><img alt="Settings"src="{{ url_for('static', filename='settings.png')}}"></a>
+                       <a href="#" onclick="openSettings()" id="settings"><img alt="Settings"src="{{ url_for('static', filename='settings.png')}}"></a>
                     </section>
 
                     <section class="game_header">
