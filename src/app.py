@@ -406,7 +406,7 @@ def account_settings():
 
    
     if formTwo.submitTwo.data:
-        if formTwo.selected_picture.data is not None:
+       if formTwo.selected_picture.data is not None and formTwo.selected_picture.data !='':
             db = get_db()
             db.execute("UPDATE users SET picture = ? WHERE user = ?", (formTwo.selected_picture.data, g.user))
             db.commit()

@@ -29,22 +29,19 @@
                
             </section>
              <p>Or</p>
-                 <section id="upload_picture">
+              
                     <h2>Upload Picture</h2>
+                       <section id="upload_picture">
                     <img class="profile_img" id="upload_img" src="{{ url_for('static',filename='image_icon.png')}}"></img>
                     <br>
                     <input type=file name=file id="image_upload_input">
-                </section>
-                <!-- <section id="selected_picture">
-                    <h2>Selected Picture</h2>
-                    <img class="profile_img" src="{{ url_for('static',filename='logo.jpg')}}"></img>
-                </section> -->
-                <section class="buttons">
+                 
                     {{ formThree.upload() }}
+             
                 </section>
-                <section class="buttons">
-                    <span id="cancelTwo" onClick="closeEdit()">Cancel</span>
-                </section>
+               
+                
+              
         </form>
     </section>
 
