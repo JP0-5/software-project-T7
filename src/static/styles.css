@@ -152,7 +152,7 @@ header .reg_nav{
 
 #settings_content>a {
     padding: 0.5em;
-    margin: 0.5em;
+    margin: 0.5em 1em;
     text-align: center;
     font-size: 1.5em;
 
@@ -171,7 +171,7 @@ header .reg_nav{
 #settings_content .audio{
     display: flex;
     gap:10px;
-    margin: 1em;
+    margin: 0.5em 1em;
     background-color: yellow;
     font-size: 1.5em;
     color: black;
@@ -332,6 +332,9 @@ color:yellow}
     padding: 1em;
     border-style: solid;
     border-color:black;
+    background-color: white;
+    font-family: pixelated;
+   
    
 }
 
@@ -433,7 +436,7 @@ color:yellow}
     background-color: rgba(255, 0, 0, 0.8);
     
     width:40em;
-    height: 700px;
+    height: 640px;
     
     flex-direction: column;
 
@@ -453,14 +456,14 @@ color:yellow}
     margin:0 5em;
     display: flex;
     gap:10px;
-    width:auto;
+        width:440px;
 
     overflow: auto;
     flex-direction: row;
     
     padding-bottom: 1em;
 }
-#change_picture p {font-size: 1.2em; margin: 0;}
+#change_picture p {font-size: 1.2em; margin:1em 0;}
 #picture_selection img{
 
   height: 80px;
@@ -470,7 +473,7 @@ color:yellow}
 }
 
 #picture_selection_box .buttons{
-margin-top: 0;
+margin-top: 1em;
 }
 
 #picture_selection_box{
