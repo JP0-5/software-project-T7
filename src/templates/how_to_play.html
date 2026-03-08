@@ -1,6 +1,35 @@
 {% extends 'base.html' %}
 {% block main_content %}
 
+<section class="pixel_border" id="how_to_play">
+    <h1>How to Play</h1>
 
+    <h2>The Basics of Blackjack</h2>
+
+    <img src="{{ url_for('static', filename='screenshots/gameplay.png') }}">
+
+    <p>In blackjack, the person who gets the score closest to 21 without going over it, wins. Your score corresponds to the value of the cards your dealt, E.G. If you have a 9 of Clubs and a 5 of Diamonds your total score is 14.</p>
+
+    <p>Players will "Hit" to get another card and "Stand" to show they are happy with their score.</p>
+
+    <img src="{{ url_for('static', filename='screenshots/hit_btn.png') }}" class="small_img">
+    <img src="{{ url_for('static', filename='screenshots/stand_btn.png') }}" class="small_img">
+
+    <p>A classic game of blackjack consists of 5 rounds in which the winner of the majority of the rounds wins overall.</p>
+
+    <img src="{{ url_for('static', filename='screenshots/round_over.jpg') }}">
+    <img src="{{ url_for('static', filename='screenshots/game_complete.jpg') }}">
+
+    <h2>Blackjack Fever</h2>
+
+    <p>With the Modified/ Fever element to our game, we shake things up by including "special cards", these are golden cards that when drawn will either add or subtract from every other players total, adding an extra layer of player interaction to Blackjack!</p>
+
+    <img src="{{ url_for('static', filename='screenshots/-3G.png') }}">
+
+    <p>Thank you for reading and we hope you enjoy!</p>
+
+    <p>- Team 7</p>
+
+</section>
 
 {% endblock %}

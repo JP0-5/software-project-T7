@@ -65,7 +65,7 @@ header .reg_nav{
     font-family: pixelated,Arial, Helvetica, sans-serif;
 }
 
-#registration,#game_creation,#enter_code,#attribution {
+#registration,#game_creation,#enter_code,#attribution,#how_to_play {
     text-align: center;
     width:37em;
     padding-bottom: 6em;
@@ -91,6 +91,21 @@ header .reg_nav{
 #attribution a {
     color: yellow;
 }
+
+#how_to_play {
+    align-items: center;
+}
+
+#how_to_play img {
+    max-width:100%;
+    height:auto;
+}
+
+/* #how_to_play .small_img {
+    margin: 1em;
+    width: 67px;
+    height: 20px;
+} */
 
 #registration p{font-size: 1.3em;}
 

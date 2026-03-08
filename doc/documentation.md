@@ -83,4 +83,5 @@ With the Modified/ Fever element to our game, we shake things up by including "s
 <img src="screenshots/-3G.png">
 
 Thank you for reading and we hope you enjoy!
-- Team 7
+
+Team 7
